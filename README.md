@@ -1,4 +1,4 @@
-# ActualProductChecker  
+# PokaYoke  
 
 - [物流現場] 品番照合  
 
@@ -21,7 +21,7 @@
 
 ## アプリケーションの種類  
 
-- コンソール アプリ (.NET Framework) C#  
+- Windows フォーム アプリケーション  
 
 
 ## プロジェクトツール  
@@ -62,37 +62,37 @@
 │  │  PokaYoke.vbproj.user			# プロジェクトオプション設定ファイル  
 │  │  SmartDeviceProject1.suo			# ソリューションユーザー オプションファイル  
 │  │          
-│  └─My Project
-│          AssemblyInfo.vb	
-│          Resources.Designer.vb
-│          Resources.resx
+│  └─My Project  
+│          AssemblyInfo.vb  
+│          Resources.Designer.vb  
+│          Resources.resx  
 │          
-├─ modules
+├─ modules  
 │      btCommLibNet.dll			# 通信制御ライブラリ  
 │      btFileLibNet.dll			# ファイル制御ライブラリ  
 │      btLibDefNet.dll				# .NET用データ定義  
 │      btScanLibNet.dll			# 読み取り制御ライブラリ  
 │      btSysLibNet.dll				# システム制御ライブラリ  
 │      
-└─ specification
-        [KMC006SC] 製造実績ファイル照合 機能仕様書_Ver.1.0.0.0.xlsx
+└─ specification  
+        [物流現場] 品番照合 機能仕様書_Ver.1.0.0.0.xlsx  
         
 ~~~
 
 
 ## データベース  
 
-- PokaYokeDB.DB
+- PokaYokeDB.DB  
 
 | Table    | Name                      |  
 | :------: | :------------------------ |  
-| Poka1    | クボタ照合                |  
+| Poka1    | クボタ照合データ          |  
 | Poka2    | ヤンマー照合データ        |  
 | Poka3    | 日立建機照合データ        |  
 
 
 ## 設定ファイル  
 
-- PokaYoke.ini  
+- PokaYoke.ini  (担当者コードを記録)  
 
 
