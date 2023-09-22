@@ -1,6 +1,6 @@
 # PokaYoke  
 
-- [物流現場] 品番照合  
+- [KMD005BH] 物流品番照合  
 
 
 ## 概要  
@@ -49,6 +49,7 @@
 │  │  FormPoka1Kubota.vb				# クボタ照合画面  
 │  │  FormPoka2Yanmar.vb				# ヤンマー照合画面  
 │  │  FormPoka3Hitati.vb				# 日立建機照合画面  
+│  │  FormPoka4Orient.vb				# オリエント照合画面  
 │  │  FormPokaHistry.vb				# 照合履歴表示画面  
 │  │  FormTransmitting.vb				# ファイル送信ダイアログ画面  
 │  │  Koken-16x16-32x32.ico			# プロジェクトアイコン  
@@ -56,8 +57,9 @@
 │  │  ModuleCommon.vb					# 設定ファイル取得モジュール  
 │  │  ModuleScan.vb					# 読み取り制御モジュール  
 │  │  ModuleSQLite.vb					# SQLite制御モジュール  
-│  │  MyDialogError.vb				# 照合エラー画面  
-│  │  MyDialogOK.vb					# 照合OK画面  
+│  │  MyDialogError.vb				# 照合エラーダイアログ画面  
+│  │  MyDialogOK.vb					# 照合OKダイアログ画面  
+│  │  MyDialogWarn.vb					# 照合確認ダイアログ画面  
 │  │  PokaYoke.vbproj					# プロジェクトファイル  
 │  │  PokaYoke.vbproj.user			# プロジェクトオプション設定ファイル  
 │  │  SmartDeviceProject1.suo			# ソリューションユーザー オプションファイル  
@@ -89,6 +91,7 @@
 | Poka1    | クボタ照合データ          |  
 | Poka2    | ヤンマー照合データ        |  
 | Poka3    | 日立建機照合データ        |  
+| Poka4    | オリエント照合データ      |  
 
 
 ## 設定ファイル  

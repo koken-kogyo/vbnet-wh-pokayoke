@@ -84,11 +84,17 @@
             Case Keys.Down
                 btnYANMAR.Focus()
             Case Keys.NumPad1
+                btnKUBOTA.Focus()
                 btnKUBOTA_Click(sender, e)
             Case Keys.NumPad2
+                btnYANMAR.Focus()
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
+                btnHITATI.Focus()
                 btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnORIENT.Focus()
+                btnORIENT_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -106,6 +112,8 @@
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnORIENT_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -123,6 +131,27 @@
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnORIENT_Click(sender, e)
+            Case Keys.NumPad9
+                Me.Close()
+        End Select
+    End Sub
+
+    Private Sub btnORIENT_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles btnORIENT.KeyDown
+        Select Case e.KeyCode
+            Case Keys.Up
+                btnYANMAR.Focus()
+            Case Keys.Down
+                btnClose.Focus()
+            Case Keys.NumPad1
+                btnKUBOTA_Click(sender, e)
+            Case Keys.NumPad2
+                btnYANMAR_Click(sender, e)
+            Case Keys.NumPad3
+                btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnORIENT_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -144,6 +173,11 @@
 
     Private Sub btnHITATI_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHITATI.Click
         Dim frm As Form = New FormPoka3Hitati()
+        frm.Show()
+    End Sub
+
+    Private Sub btnORIENT_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHITATI.Click, btnORIENT.Click
+        Dim frm As Form = New FormPoka4Orient()
         frm.Show()
     End Sub
 

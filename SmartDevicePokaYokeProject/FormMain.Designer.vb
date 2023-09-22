@@ -28,14 +28,15 @@ Partial Public Class FormMain
         Me.btnHITATI = New System.Windows.Forms.Button
         Me.lblVersion = New System.Windows.Forms.Label
         Me.chkBuzzer = New System.Windows.Forms.CheckBox
+        Me.btnORIENT = New System.Windows.Forms.Button
         Me.SuspendLayout()
         '
         'btnKUBOTA
         '
         Me.btnKUBOTA.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.btnKUBOTA.Location = New System.Drawing.Point(14, 91)
+        Me.btnKUBOTA.Location = New System.Drawing.Point(14, 78)
         Me.btnKUBOTA.Name = "btnKUBOTA"
-        Me.btnKUBOTA.Size = New System.Drawing.Size(213, 38)
+        Me.btnKUBOTA.Size = New System.Drawing.Size(213, 36)
         Me.btnKUBOTA.TabIndex = 1
         Me.btnKUBOTA.Text = "1.クボタ　"
         '
@@ -45,7 +46,7 @@ Partial Public Class FormMain
         Me.btnClose.Location = New System.Drawing.Point(14, 274)
         Me.btnClose.Name = "btnClose"
         Me.btnClose.Size = New System.Drawing.Size(97, 38)
-        Me.btnClose.TabIndex = 5
+        Me.btnClose.TabIndex = 6
         Me.btnClose.Text = "9.終了"
         '
         'lblTANCD
@@ -67,7 +68,7 @@ Partial Public Class FormMain
         '
         'LabelMenu
         '
-        Me.LabelMenu.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
+        Me.LabelMenu.BackColor = System.Drawing.Color.MediumBlue
         Me.LabelMenu.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
         Me.LabelMenu.ForeColor = System.Drawing.SystemColors.HighlightText
         Me.LabelMenu.Location = New System.Drawing.Point(0, 0)
@@ -79,18 +80,18 @@ Partial Public Class FormMain
         'btnYANMAR
         '
         Me.btnYANMAR.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.btnYANMAR.Location = New System.Drawing.Point(14, 135)
+        Me.btnYANMAR.Location = New System.Drawing.Point(14, 119)
         Me.btnYANMAR.Name = "btnYANMAR"
-        Me.btnYANMAR.Size = New System.Drawing.Size(213, 38)
+        Me.btnYANMAR.Size = New System.Drawing.Size(213, 36)
         Me.btnYANMAR.TabIndex = 3
         Me.btnYANMAR.Text = "2.ヤンマー"
         '
         'btnHITATI
         '
         Me.btnHITATI.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.btnHITATI.Location = New System.Drawing.Point(14, 179)
+        Me.btnHITATI.Location = New System.Drawing.Point(14, 160)
         Me.btnHITATI.Name = "btnHITATI"
-        Me.btnHITATI.Size = New System.Drawing.Size(213, 38)
+        Me.btnHITATI.Size = New System.Drawing.Size(213, 36)
         Me.btnHITATI.TabIndex = 4
         Me.btnHITATI.Text = "3.日立建機"
         '
@@ -100,7 +101,7 @@ Partial Public Class FormMain
         Me.lblVersion.Location = New System.Drawing.Point(117, 288)
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(110, 22)
-        Me.lblVersion.Text = "ver 23.08.11"
+        Me.lblVersion.Text = "ver 23.09.22"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
         'chkBuzzer
@@ -108,11 +109,21 @@ Partial Public Class FormMain
         Me.chkBuzzer.Checked = True
         Me.chkBuzzer.CheckState = System.Windows.Forms.CheckState.Checked
         Me.chkBuzzer.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 11.0!, System.Drawing.FontStyle.Regular)
-        Me.chkBuzzer.Location = New System.Drawing.Point(14, 238)
+        Me.chkBuzzer.Location = New System.Drawing.Point(14, 250)
         Me.chkBuzzer.Name = "chkBuzzer"
         Me.chkBuzzer.Size = New System.Drawing.Size(213, 20)
         Me.chkBuzzer.TabIndex = 8
+        Me.chkBuzzer.TabStop = False
         Me.chkBuzzer.Text = "照合時ブザー音あり"
+        '
+        'btnORIENT
+        '
+        Me.btnORIENT.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
+        Me.btnORIENT.Location = New System.Drawing.Point(14, 201)
+        Me.btnORIENT.Name = "btnORIENT"
+        Me.btnORIENT.Size = New System.Drawing.Size(213, 36)
+        Me.btnORIENT.TabIndex = 5
+        Me.btnORIENT.Text = "4.オリエント"
         '
         'FormMain
         '
@@ -122,6 +133,7 @@ Partial Public Class FormMain
         Me.BackColor = System.Drawing.Color.Gainsboro
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
+        Me.Controls.Add(Me.btnORIENT)
         Me.Controls.Add(Me.chkBuzzer)
         Me.Controls.Add(Me.lblVersion)
         Me.Controls.Add(Me.btnHITATI)
@@ -148,5 +160,6 @@ Partial Public Class FormMain
     Friend WithEvents lblVersion As System.Windows.Forms.Label
     Public WithEvents txtTANCD As System.Windows.Forms.TextBox
     Friend WithEvents chkBuzzer As System.Windows.Forms.CheckBox
+    Friend WithEvents btnORIENT As System.Windows.Forms.Button
 
 End Class

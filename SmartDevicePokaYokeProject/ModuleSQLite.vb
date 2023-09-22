@@ -6,11 +6,12 @@ Module ModuleSQLite
 
     ' データベース関連
     Private accPath As [String] = "\FlashDisk\BT_FILES\drv1"
-    Private dbFile As [String] = "PokaYokeDB.DB"
+    Private dbFile As [String] = "PokaYoke.DB"
 
     Public tblNamePoka1 As [String] = "Poka1"
     Public tblNamePoka2 As [String] = "Poka2"
     Public tblNamePoka3 As [String] = "Poka3"
+    Public tblNamePoka4 As [String] = "Poka4"
     Public itemMAKER As [String] = "メーカー"
     Public itemDATETIME As [String] = "照合日付"
     Public itemTANCD As [String] = "担当者"
@@ -53,7 +54,7 @@ Module ModuleSQLite
         If dbIdx > 0 Then
             Return SQLITE_REOPEN_ERROR
         End If
-        dbIdx = Bt.FileLib.SQLite.btSQLiteOpen(New StringBuilder(accPath & dbFile))
+        dbIdx = Bt.FileLib.SQLite.btSQLiteOpen(New StringBuilder(accPath & "\" & dbFile))
         If dbIdx > 0 Then
             ' Create Table
             ret = createPoka1()
@@ -65,6 +66,10 @@ Module ModuleSQLite
                 Return ret
             End If
             ret = createPoka3()
+            If ret <> 0 Then
+                Return ret
+            End If
+            ret = createPoka4()
             If ret <> 0 Then
                 Return ret
             End If
@@ -131,6 +136,22 @@ Module ModuleSQLite
         End If
         Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemRESULT
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka3 (" & columns & ");")
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(dbIdx, sql)
+        If ret <> 0 Then
+            Return SQLITE_CREATE_TABLE_ERROR
+        End If
+        Return SQLITE_OK
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' Create Table4
+    '''//////////////////////////////////////////////////////////
+    Private Function createPoka4() As Int32
+        If dbIdx <= 0 Then
+            Return SQLITE_NOTOPEN_ERROR
+        End If
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemRESULT
+        Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka4 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(dbIdx, sql)
         If ret <> 0 Then
             Return SQLITE_CREATE_TABLE_ERROR
