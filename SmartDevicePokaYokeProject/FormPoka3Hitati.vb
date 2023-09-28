@@ -203,13 +203,27 @@ Public Class FormPoka3Hitati
         Dim i As Int32 = lblHMCD.Text.Length
         Dim j As Int32 = txtTKHMCD.TextLength
         Dim isOK As Boolean = False
+        Dim isWN As Boolean = False
 
         ' 照合処理
-        If lblHMCD.Text = Strings.Left(txtTKHMCD.Text.Replace("-", ""), i) Or _
+        If txtHMCD.Text = txtTKHMCD.Text Then
+            isWN = True
+        ElseIf lblHMCD.Text = Strings.Left(txtTKHMCD.Text.Replace("-", ""), i) Or _
            lblHMCD.Text = Strings.Mid(txtTKHMCD.Text, 6, i) Then
 
             isOK = True
 
+        End If
+
+        ' 同一データを読み取った場合はワーニングメッセージを出す
+        If isWN Then
+            Thread.Sleep(300)
+            Dim result = MyDialogWarn.ShowDialog()
+            If result = Windows.Forms.DialogResult.OK Then
+                isOK = True
+            ElseIf result = Windows.Forms.DialogResult.Cancel Then
+                isOK = False
+            End If
         End If
 
         ' 照合結果出力
@@ -233,7 +247,7 @@ Public Class FormPoka3Hitati
 
             ' OKダイアログ表示
             Thread.Sleep(300)
-            MyDialogOK.ShowDialog()
+            If isWN = False Then MyDialogOK.ShowDialog()
 
             ' 次の照合へ
             Call txtClear()
@@ -251,7 +265,7 @@ Public Class FormPoka3Hitati
             End If
 
             ' 照合エラー
-            MyDialogError.ShowDialog()
+            If isWN = False Then MyDialogError.ShowDialog()
             lblCount.Text = getRecordCount(tblNamePoka3)
             txtTKHMCD.Focus()
 

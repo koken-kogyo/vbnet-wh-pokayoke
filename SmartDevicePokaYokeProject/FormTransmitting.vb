@@ -60,6 +60,7 @@ Public Class FormTransmitting
             If tblName = "Poka1" Then jpName = "品番照合クボタ"
             If tblName = "Poka2" Then jpName = "品番照合ヤンマー"
             If tblName = "Poka3" Then jpName = "品番照合ティエラ"
+            If tblName = "Poka4" Then jpName = "品番照合オリエント"
 
             Dim localFileName As String = accPath & "\" & tblName & "_" & week & ".csv"
             Dim remoteFileName As String = Format(Now, "yyyyMMdd") & "_" & _

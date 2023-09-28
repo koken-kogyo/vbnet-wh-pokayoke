@@ -28,7 +28,7 @@ Partial Public Class MyDialogOK
         '
         Me.Label1.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 68.0!, System.Drawing.FontStyle.Regular)
         Me.Label1.ForeColor = System.Drawing.Color.Snow
-        Me.Label1.Location = New System.Drawing.Point(19, 13)
+        Me.Label1.Location = New System.Drawing.Point(22, 21)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(218, 104)
         Me.Label1.Text = "照合"
@@ -46,7 +46,7 @@ Partial Public Class MyDialogOK
         '
         Me.Label2.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 68.0!, System.Drawing.FontStyle.Regular)
         Me.Label2.ForeColor = System.Drawing.Color.Snow
-        Me.Label2.Location = New System.Drawing.Point(19, 126)
+        Me.Label2.Location = New System.Drawing.Point(22, 134)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(218, 104)
         Me.Label2.Text = " OK"

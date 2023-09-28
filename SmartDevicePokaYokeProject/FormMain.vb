@@ -89,6 +89,8 @@
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnORIENT_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -106,6 +108,8 @@
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnORIENT_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -123,27 +127,57 @@
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnORIENT_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
     End Sub
 
-    Private Sub btnKUBOTA_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnKUBOTA.Click
-        Dim frm As Form = New FormPoka1Kubota()
-        frm.Show()
+    Private Sub btnORIENT_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles btnORIENT.KeyDown
+        Select Case e.KeyCode
+            Case Keys.Up
+                btnYANMAR.Focus()
+            Case Keys.Down
+                btnClose.Focus()
+            Case Keys.NumPad1
+                btnKUBOTA_Click(sender, e)
+            Case Keys.NumPad2
+                btnYANMAR_Click(sender, e)
+            Case Keys.NumPad3
+                btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnORIENT_Click(sender, e)
+            Case Keys.NumPad9
+                Me.Close()
+        End Select
     End Sub
 
     Private Sub btnClose_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClose.Click
         Me.Close()
     End Sub
 
+    Private Sub btnKUBOTA_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnKUBOTA.Click
+        btnKUBOTA.Focus()
+        Dim frm As Form = New FormPoka1Kubota()
+        frm.Show()
+    End Sub
+
     Private Sub btnYANMAR_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnYANMAR.Click
-        Dim frm As Form = New FormPoka2yanmar()
+        btnYANMAR.Focus()
+        Dim frm As Form = New FormPoka2Yanmar()
         frm.Show()
     End Sub
 
     Private Sub btnHITATI_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHITATI.Click
+        btnHITATI.Focus()
         Dim frm As Form = New FormPoka3Hitati()
+        frm.Show()
+    End Sub
+
+    Private Sub btnORIENT_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHITATI.Click, btnORIENT.Click
+        btnORIENT.Focus()
+        Dim frm As Form = New FormPoka4Orient()
         frm.Show()
     End Sub
 

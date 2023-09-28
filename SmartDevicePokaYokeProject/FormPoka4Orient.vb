@@ -1,10 +1,10 @@
 ﻿Imports System.Threading
 Imports System.Runtime.InteropServices
 
-Public Class FormPoka2Yanmar
+Public Class FormPoka4Orient
 
     ' このWindowのインスタンス
-    Public Shared FormPoka2Instance As FormPoka2yanmar
+    Public Shared FormPoka4Instance As FormPoka4Orient
 
     Private Const PROCESS_EXIT_WAIT_TIME As Integer = 200
     '--------------------------------------------------------------
@@ -22,23 +22,23 @@ Public Class FormPoka2Yanmar
     ' F2キー
     Private Sub btnF2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF2.Click
 
-        If getRecordCount(tblNamePoka2) = 0 Then
+        If getRecordCount(tblNamePoka4) = 0 Then
             MessageBox.Show("送信するデータが存在しません", "警告")
             Exit Sub
         End If
 
         ' CSVファイル作成
-        If SQLite2CSV(tblNamePoka2) <> 0 Then
+        If SQLite2CSV(tblNamePoka4) <> 0 Then
             MessageBox.Show("CSVファイルの作成に失敗しました")
             Exit Sub
         End If
 
         ' ファイル転送
-        Dim dialog As New FormTransmitting(tblNamePoka2)
+        Dim dialog As New FormTransmitting(tblNamePoka4)
         If (System.Windows.Forms.DialogResult.OK = dialog.ShowDialog()) Then
 
             'DB Delete
-            If deletePokaX(tblNamePoka2) = 0 Then
+            If deletePokaX(tblNamePoka4) = 0 Then
                 txtClear()
             Else
                 MessageBox.Show("CSVファイルの作成に失敗しました")
@@ -50,7 +50,7 @@ Public Class FormPoka2Yanmar
 
     ' F3キー
     Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
-        Dim frm As Form = New FormPokaHistory(tblNamePoka2)
+        Dim frm As Form = New FormPokaHistory(tblNamePoka4)
         frm.Show()
     End Sub
 
@@ -64,11 +64,11 @@ Public Class FormPoka2Yanmar
         lblHMCD.Text = ""
         txtTKHMCD.Text = ""
         lblTKHMCD.Text = ""
-        lblCount.Text = getRecordCount(tblNamePoka2)
+        lblCount.Text = getRecordCount(tblNamePoka4)
         txtHMCD.Focus()
     End Sub
 
-    Private Sub FormPoka2Yanmar_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles MyBase.KeyDown
+    Private Sub FormPoka4Orient_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles MyBase.KeyDown
         Select Case e.KeyValue
             Case Bt.LibDef.BT_VK_F1
                 Call btnF1_Click(sender, e)
@@ -81,7 +81,7 @@ Public Class FormPoka2Yanmar
         End Select
     End Sub
 
-    Private Sub FormPoka2Yanmar_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+    Private Sub FormPoka4Orient_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
         txtTANCD.Text = FormMain.txtTANCD.Text
         txtClear()
@@ -90,7 +90,7 @@ Public Class FormPoka2Yanmar
         Me.KeyPreview = True
 
         ' インスタンス保持
-        FormPoka2Instance = Me
+        FormPoka4Instance = Me
 
     End Sub
 
@@ -106,7 +106,7 @@ Public Class FormPoka2Yanmar
         txtHMCD.BackColor = Color.Aqua
     End Sub
 
-    Private Sub txtHMCD_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtHMCD.LostFocus
+    Private Sub txtHMCD_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtHMCD.LostFocus
         ' エラーチェック
         If txtHMCD.TextLength > 24 Or Strings.Left(txtHMCD.Text, 2) = "**" Then
             MessageBox.Show("社内品番を読み取ってください")
@@ -117,14 +117,16 @@ Public Class FormPoka2Yanmar
         ' 入力待機食を解除
         txtHMCD.BackColor = Color.White
 
-        ' 社内品番は [ハイフン, 空白] を除去
+        ' オリエント社内品番はなにもしない
         ' (SATOのラベルプリンターは品番24桁空白パディングでバーコードが作成されている)
         txtHMCD.Text = Trim(txtHMCD.Text)
-        lblHMCD.Text = txtHMCD.Text.Replace("-", "")
+        Dim tmpHMCD As String = ""
+        tmpHMCD = txtHMCD.Text
+        lblHMCD.Text = tmpHMCD.Replace("-", "")
 
     End Sub
 
-    Private Sub txtHMCD_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtHMCD.KeyDown
+    Private Sub txtHMCD_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtHMCD.KeyDown
         Select Case e.KeyCode
             Case System.Windows.Forms.Keys.Up
                 txtTKHMCD.Focus()
@@ -149,12 +151,12 @@ Public Class FormPoka2Yanmar
         txtTKHMCD.BackColor = Color.Aqua
     End Sub
 
-    Private Sub txtTKHMCD_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtTKHMCD.LostFocus
+    Private Sub txtTKHMCD_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTKHMCD.LostFocus
         txtTKHMCD.BackColor = Color.White
         lblTKHMCD.Text = txtTKHMCD.Text
     End Sub
 
-    Private Sub txtTKHMCD_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtTKHMCD.KeyDown
+    Private Sub txtTKHMCD_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtTKHMCD.KeyDown
         Select Case e.KeyCode
             Case System.Windows.Forms.Keys.Up
                 txtHMCD.Focus()
@@ -189,41 +191,21 @@ Public Class FormPoka2Yanmar
     ' lblHMCD(ハイフンが除去されたもの)とtxtTKHMCDを照合
     Private Sub Judge()
         Dim ret As Int32
-
-        Dim _HMCD As String = txtHMCD.Text.Replace("-", "")         ' ハイフンは除去
-        Dim _TKHMCD As String = txtTKHMCD.Text.Replace("-", "")     ' ハイフンは除去
-
-        Dim i As Int32 = _HMCD.Length
-        Dim j As Int32 = _TKHMCD.Length
-
+        Dim i As Int32 = lblHMCD.Text.Length
+        Dim j As Int32 = txtTKHMCD.TextLength
         Dim isOK As Boolean = False
 
         ' 照合処理
-        If lblHMCD.Text = Strings.Left(_TKHMCD, i) Then ' 先頭から社内品番文字数分
+        If lblHMCD.Text = Strings.Left(txtTKHMCD.Text.Replace("-", ""), i) Or _
+           lblHMCD.Text = Strings.Left(txtTKHMCD.Text, i) Then
+
             isOK = True
-
-        ElseIf lblHMCD.Text = Strings.Mid(_TKHMCD, 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
-            isOK = True
-
-        Else
-
-            ' 得意先マスタ[M0600]の情報で照合 23.09.27
-            _HMCD = getTKHMCD(txtHMCD.Text).Replace("-", "") ' SQLiteのマスタサーチ
-            i = _HMCD.Length
-
-            If _HMCD <> "" And _HMCD = Strings.Left(_TKHMCD, i) Then ' 先頭から得意先品番文字数分
-                isOK = True
-
-            ElseIf _HMCD <> "" And _HMCD = Strings.Mid(_TKHMCD, 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
-                isOK = True
-
-            End If
 
         End If
 
         ' 照合結果出力
         Dim rec As DBRecord
-        rec.MAKER = "YANMAR"
+        rec.MAKER = "ORIENT"
         rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
         rec.TANCD = txtTANCD.Text
         rec.HMCD = txtHMCD.Text
@@ -232,7 +214,7 @@ Public Class FormPoka2Yanmar
 
             ' SQLite Insert
             rec.RESULT = "OK"
-            ret = insertPokaX(tblNamePoka2, rec)
+            ret = insertPokaX(tblNamePoka4, rec)
             If ret <> SQLITE_OK Then
                 MessageBox.Show(sqliteErrorString & vbCrLf & _
                     "データベースの登録に失敗しました" & vbCrLf & _
@@ -251,7 +233,7 @@ Public Class FormPoka2Yanmar
 
             ' SQLite Insert
             rec.RESULT = "NG"
-            ret = insertPokaX(tblNamePoka2, rec)
+            ret = insertPokaX(tblNamePoka4, rec)
             If ret <> SQLITE_OK Then
                 MessageBox.Show(sqliteErrorString & vbCrLf & _
                     "データベースの登録に失敗しました" & vbCrLf & _
@@ -261,7 +243,7 @@ Public Class FormPoka2Yanmar
 
             ' 照合エラー
             MyDialogError.ShowDialog()
-            lblCount.Text = getRecordCount(tblNamePoka2)
+            lblCount.Text = getRecordCount(tblNamePoka4)
             txtTKHMCD.Focus()
 
         End If

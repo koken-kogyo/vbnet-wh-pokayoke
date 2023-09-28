@@ -120,6 +120,7 @@ Public Class FormPoka1Kubota
         ' 社内品番は [ハイフン, 空白] を除去
         ' (SATOのラベルプリンターは品番24桁空白パディングでバーコードが作成されている)
         txtHMCD.Text = Trim(txtHMCD.Text)
+
         lblHMCD.Text = txtHMCD.Text.Replace("-", "")
 
     End Sub
@@ -196,42 +197,70 @@ Public Class FormPoka1Kubota
     ' lblHMCD(ハイフンが除去されたもの)とtxtTKHMCDを照合
     Private Sub Judge()
         Dim ret As Int32
-        Dim i As Int32 = lblHMCD.Text.Length
-        Dim j As Int32 = txtTKHMCD.TextLength
+
+        Dim _HMCD As String = txtHMCD.Text.Replace("-", "") ' ハイフンは除去
+        Dim _TKHMCD As String = txtTKHMCD.Text              ' 23.09.28 得意先品番のハイフンは除去しない
+
+        If txtHMCD.Text = "V0531-68961-S" Then _HMCD = "V053168961" ' スリーブ品番特化対策 23.09.22
+        If txtHMCD.Text = "V0531-68971-S" Then _HMCD = "V053168971" ' スリーブ品番特化対策 23.09.28
+
+        Dim i As Int32 = _HMCD.Length
+        Dim j As Int32 = _TKHMCD.Length
+
         Dim isOK As Boolean = False
+        Dim isWN As Boolean = False
 
         ' 照合処理
-        If lblHMCD.Text = Strings.Left(txtTKHMCD.Text.Replace("-", ""), i) Or _
-           lblHMCD.Text = Strings.Mid(txtTKHMCD.Text, 3, i) Then
+        If txtHMCD.Text = txtTKHMCD.Text Then ' 同じものを読み取ったらワーニング
+            isWN = True
+
+        ElseIf _HMCD = Strings.Left(_TKHMCD.Replace("-", ""), i) Then ' 先頭から社内品番文字数分
             isOK = True
 
-        ElseIf j > 30 And lblHMCD.Text = Strings.Mid(txtTKHMCD.Text, 18, i) Then
+        ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
+            isOK = True
+
+        ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 3, i) Then ' 3バイト目から社内品番文字数分
+            isOK = True
+
+        ElseIf j > 30 And _HMCD = Strings.Mid(_TKHMCD, 18, i) Then
             isOK = True ' 8/8 add メーカー品番 KQR_TagZ
 
-        ElseIf j > 30 And lblHMCD.Text = Strings.Mid(txtTKHMCD.Text, 20, i) Then
+        ElseIf j > 30 And _HMCD = Strings.Mid(_TKHMCD, 20, i) Then
             isOK = True '
 
-        ElseIf j > 70 And lblHMCD.Text = Strings.Mid(txtTKHMCD.Text, 59, 12).Replace("-", "") Then ' 素地品番を称号
+        ElseIf j > 70 And _HMCD = Strings.Mid(_TKHMCD, 59, 12).Replace("-", "") Then ' 素地品番を照合
             isOK = True ' 8/4 add 素地品番 「23RP85A7961186241411001                0000005TP3920000005RP851-7961-101910     20230731            」
 
-        ElseIf i > 11 And Strings.Left(lblHMCD.Text, 11) = Strings.Mid(txtTKHMCD.Text, 1, 11) Then
-            isOK = True ' 8/8 add 社内品番 TA040333628000015
+        ElseIf i > 11 And Strings.Left(_HMCD, 11) = Strings.Mid(_TKHMCD, 1, 11) Then
+            isOK = True ' 8/8 add 社内品番11桁 TA040333628000015
 
-        ElseIf i > 11 And Strings.Left(lblHMCD.Text, 11) = Strings.Mid(txtTKHMCD.Text, 3, 11) Then
-            isOK = True ' 8/8 add 社内品番 TA040333628000015
+        ElseIf i > 11 And Strings.Left(_HMCD, 11) = Strings.Mid(_TKHMCD, 3, 11) Then
+            isOK = True ' 8/8 add 社内品番11桁 TA040333628000015
 
-        ElseIf lblHMCD.Text = "RD55192432" And Strings.Mid(txtTKHMCD.Text, 59, 12) = "RD551-9243-1" Then
+        ElseIf _HMCD = "RD55192432" And Strings.Mid(_TKHMCD, 59, 12) = "RD551-9243-1" Then
             isOK = True ' 8/10 add 素地品番違い 臨時対応
 
-        ElseIf lblHMCD.Text = "RD55192442" And Strings.Mid(txtTKHMCD.Text, 59, 12) = "RD551-9244-1" Then
+        ElseIf _HMCD = "RD55192442" And Strings.Mid(_TKHMCD, 59, 12) = "RD551-9244-1" Then
             isOK = True ' 8/10 add 素地品番違い 臨時対応
 
-        ElseIf lblHMCD.Text = "RP47168632" And Strings.Mid(txtTKHMCD.Text, 59, 12) = "RP47B-6863-2" Then
+        ElseIf _HMCD = "RP47168632" And Strings.Mid(_TKHMCD, 59, 12) = "RP47B-6863-2" Then
             isOK = True ' 8/10 add 素地品番違い 臨時対応
 
-        ElseIf lblHMCD.Text = "RP47168643" And Strings.Mid(txtTKHMCD.Text, 59, 12) = "RP47B-6864-3" Then
+        ElseIf _HMCD = "RP47168643" And Strings.Mid(_TKHMCD, 59, 12) = "RP47B-6864-3" Then
             isOK = True ' 8/10 add 素地品番違い 臨時対応
 
+        End If
+
+        ' 同一データを読み取った場合はワーニングメッセージを出す
+        If isWN Then
+            Thread.Sleep(300)
+            Dim result = MyDialogWarn.ShowDialog()
+            If result = Windows.Forms.DialogResult.OK Then
+                isOK = True
+            ElseIf result = Windows.Forms.DialogResult.Cancel Then
+                isOK = False
+            End If
         End If
 
         ' 照合結果出力
@@ -255,7 +284,7 @@ Public Class FormPoka1Kubota
 
             ' OKダイアログ表示
             Thread.Sleep(300)
-            MyDialogOK.ShowDialog()
+            If isWN = False Then MyDialogOK.ShowDialog()
 
             ' 次の照合へ
             Call txtClear()
@@ -273,7 +302,7 @@ Public Class FormPoka1Kubota
             End If
 
             ' 照合エラー
-            MyDialogError.ShowDialog()
+            If isWN = False Then MyDialogError.ShowDialog()
             lblCount.Text = getRecordCount(tblNamePoka1)
             txtTKHMCD.Focus()
 
