@@ -193,16 +193,20 @@ Public Class FormPoka2Yanmar
         Dim _HMCD As String = txtHMCD.Text.Replace("-", "")         ' ハイフンは除去
         Dim _TKHMCD As String = txtTKHMCD.Text.Replace("-", "")     ' ハイフンは除去
 
+        If Strings.Right(txtHMCD.Text, 3) = "-YR" Then ' 23.10.04 YR品番対応
+            _HMCD = Strings.Left(txtHMCD.Text, txtHMCD.Text.Length - 3).Replace("-", "")
+        End If
+
         Dim i As Int32 = _HMCD.Length
         Dim j As Int32 = _TKHMCD.Length
 
         Dim isOK As Boolean = False
 
         ' 照合処理
-        If lblHMCD.Text = Strings.Left(_TKHMCD, i) Then ' 先頭から社内品番文字数分
+        If _HMCD = Strings.Left(_TKHMCD, i) Then ' 先頭から社内品番文字数分
             isOK = True
 
-        ElseIf lblHMCD.Text = Strings.Mid(_TKHMCD, 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
+        ElseIf _HMCD = Strings.Mid(_TKHMCD, 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
             isOK = True
 
         Else

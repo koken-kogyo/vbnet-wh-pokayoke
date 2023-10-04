@@ -120,7 +120,6 @@ Public Class FormPoka1Kubota
         ' 社内品番は [ハイフン, 空白] を除去
         ' (SATOのラベルプリンターは品番24桁空白パディングでバーコードが作成されている)
         txtHMCD.Text = Trim(txtHMCD.Text)
-
         lblHMCD.Text = txtHMCD.Text.Replace("-", "")
 
     End Sub
@@ -201,8 +200,11 @@ Public Class FormPoka1Kubota
         Dim _HMCD As String = txtHMCD.Text.Replace("-", "") ' ハイフンは除去
         Dim _TKHMCD As String = txtTKHMCD.Text              ' 23.09.28 得意先品番のハイフンは除去しない
 
-        If txtHMCD.Text = "V0531-68961-S" Then _HMCD = "V053168961" ' スリーブ品番特化対策 23.09.22
-        If txtHMCD.Text = "V0531-68971-S" Then _HMCD = "V053168971" ' スリーブ品番特化対策 23.09.28
+        'If txtHMCD.Text = "V0531-68961-S" Then _HMCD = "V053168961" ' スリーブ品番特化対策 23.09.22
+        'If txtHMCD.Text = "V0531-68971-S" Then _HMCD = "V053168971" ' スリーブ品番特化対策 23.09.28
+        If Strings.Right(txtHMCD.Text, 2) = "-S" Then ' 23.10.04 スリーブ品番対応
+            _HMCD = Strings.Left(txtHMCD.Text, txtHMCD.Text.Length - 2).Replace("-", "")
+        End If
 
         Dim i As Int32 = _HMCD.Length
         Dim j As Int32 = _TKHMCD.Length
@@ -214,7 +216,7 @@ Public Class FormPoka1Kubota
         If txtHMCD.Text = txtTKHMCD.Text Then ' 同じものを読み取ったらワーニング
             isWN = True
 
-        ElseIf _HMCD = Strings.Left(_TKHMCD.Replace("-", ""), i) Then ' 先頭から社内品番文字数分
+        ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 1, i) Then ' 先頭から社内品番文字数分
             isOK = True
 
         ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
@@ -223,10 +225,13 @@ Public Class FormPoka1Kubota
         ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 3, i) Then ' 3バイト目から社内品番文字数分
             isOK = True
 
-        ElseIf j > 30 And _HMCD = Strings.Mid(_TKHMCD, 18, i) Then
+        ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 6, i) Then ' 6バイト目から社内品番文字数分
+            isOK = True
+
+        ElseIf j > 30 And _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 18, i) Then ' 18バイト目から社内品番文字数分
             isOK = True ' 8/8 add メーカー品番 KQR_TagZ
 
-        ElseIf j > 30 And _HMCD = Strings.Mid(_TKHMCD, 20, i) Then
+        ElseIf j > 30 And _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 20, i) Then ' 20バイト目から社内品番文字数分
             isOK = True '
 
         ElseIf j > 70 And _HMCD = Strings.Mid(_TKHMCD, 59, 12).Replace("-", "") Then ' 素地品番を照合
@@ -250,6 +255,36 @@ Public Class FormPoka1Kubota
         ElseIf _HMCD = "RP47168643" And Strings.Mid(_TKHMCD, 59, 12) = "RP47B-6864-3" Then
             isOK = True ' 8/10 add 素地品番違い 臨時対応
 
+        Else
+
+            ' 得意先マスタ[M0600]の情報で再度照合をかける 23.10.04
+            _HMCD = getTKHMCD(txtHMCD.Text).Replace("-", "") ' SQLiteのマスタサーチ
+
+            If _HMCD <> "" Then
+
+                i = _HMCD.Length
+
+                If _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 1, i) Then ' 先頭から社内品番文字数分
+                    isOK = True
+
+                ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
+                    isOK = True
+
+                ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 3, i) Then ' 3バイト目から社内品番文字数分
+                    isOK = True
+
+                ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 6, i) Then ' 6バイト目から社内品番文字数分
+                    isOK = True
+
+                ElseIf j > 30 And _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 18, i) Then ' 18バイト目から社内品番文字数分
+                    isOK = True ' 8/8 add メーカー品番 KQR_TagZ
+
+                ElseIf j > 30 And _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 20, i) Then ' 20バイト目から社内品番文字数分
+                    isOK = True '
+
+                End If
+
+            End If
         End If
 
         ' 同一データを読み取った場合はワーニングメッセージを出す

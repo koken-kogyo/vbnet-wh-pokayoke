@@ -120,18 +120,7 @@ Public Class FormPoka3Hitati
         ' 社内品番は [空白, 990, 993, A001, _0010-0010, ハイフン] を除去
         ' (SATOのラベルプリンターは品番24桁空白パディングでバーコードが作成されている)
         txtHMCD.Text = Trim(txtHMCD.Text)
-        Dim tmpHMCD As String = ""
-        If Strings.Right(txtHMCD.Text, 3) = "990" Or _
-           Strings.Right(txtHMCD.Text, 3) = "993" Then
-            tmpHMCD = Strings.Left(txtHMCD.Text, txtHMCD.TextLength - 3)
-        ElseIf Strings.Right(txtHMCD.Text, 4) = "A001" Then
-            tmpHMCD = Strings.Left(txtHMCD.Text, txtHMCD.TextLength - 4)
-        ElseIf txtHMCD.TextLength > 20 And Strings.Right(txtHMCD.Text, 10) = "_0010-0010" Then
-            tmpHMCD = Strings.Left(txtHMCD.Text, txtHMCD.TextLength - 10)
-        Else
-            tmpHMCD = txtHMCD.Text
-        End If
-        lblHMCD.Text = tmpHMCD.Replace("-", "")
+        lblHMCD.Text = txtHMCD.Text.Replace("-", "")
 
     End Sub
 
@@ -200,30 +189,32 @@ Public Class FormPoka3Hitati
     ' lblHMCD(ハイフンが除去されたもの)とtxtTKHMCDを照合
     Private Sub Judge()
         Dim ret As Int32
-        Dim i As Int32 = lblHMCD.Text.Length
-        Dim j As Int32 = txtTKHMCD.TextLength
-        Dim isOK As Boolean = False
-        Dim isWN As Boolean = False
 
-        ' 照合処理
-        If txtHMCD.Text = txtTKHMCD.Text Then
-            isWN = True
-        ElseIf lblHMCD.Text = Strings.Left(txtTKHMCD.Text.Replace("-", ""), i) Or _
-           lblHMCD.Text = Strings.Mid(txtTKHMCD.Text, 6, i) Then
+        Dim _HMCD As String = txtHMCD.Text.Replace("-", "") ' ハイフンは除去
+        Dim _TKHMCD As String = txtTKHMCD.Text              ' 23.09.28 得意先品番のハイフンは除去しない
 
-            isOK = True
-
+        ' 社内品番変換処理
+        If Strings.Right(_HMCD, 3) = "990" Or _
+           Strings.Right(_HMCD, 3) = "993" Then
+            _HMCD = Strings.Left(_HMCD, _HMCD.Length - 3)
+        ElseIf Strings.Right(_HMCD, 4) = "A001" Then
+            _HMCD = Strings.Left(_HMCD, _HMCD.Length - 4)
+        ElseIf _HMCD.Length > 10 And Strings.Right(txtHMCD.Text, 10) = "_0010-0010" Then
+            _HMCD = Strings.Left(txtHMCD.Text, txtHMCD.Text.Length - 10)
         End If
 
-        ' 同一データを読み取った場合はワーニングメッセージを出す
-        If isWN Then
-            Thread.Sleep(300)
-            Dim result = MyDialogWarn.ShowDialog()
-            If result = Windows.Forms.DialogResult.OK Then
-                isOK = True
-            ElseIf result = Windows.Forms.DialogResult.Cancel Then
-                isOK = False
-            End If
+        ' 照合桁数決定
+        Dim i As Int32 = _HMCD.Length
+        Dim j As Int32 = _TKHMCD.Length
+        Dim isOK As Boolean = False
+
+        ' 照合処理
+        If _HMCD = Strings.Left(_TKHMCD.Replace("-", ""), i) Then
+            isOK = True
+
+        ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 6, i) Then
+            isOK = True
+
         End If
 
         ' 照合結果出力
@@ -247,7 +238,7 @@ Public Class FormPoka3Hitati
 
             ' OKダイアログ表示
             Thread.Sleep(300)
-            If isWN = False Then MyDialogOK.ShowDialog()
+            MyDialogOK.ShowDialog()
 
             ' 次の照合へ
             Call txtClear()
@@ -265,7 +256,7 @@ Public Class FormPoka3Hitati
             End If
 
             ' 照合エラー
-            If isWN = False Then MyDialogError.ShowDialog()
+            MyDialogError.ShowDialog()
             lblCount.Text = getRecordCount(tblNamePoka3)
             txtTKHMCD.Focus()
 
