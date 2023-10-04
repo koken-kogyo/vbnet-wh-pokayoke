@@ -51,7 +51,7 @@ Partial Public Class FormPoka3Hitati
         Me.btnF3.BackColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
         Me.btnF3.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 16.0!, System.Drawing.FontStyle.Regular)
         Me.btnF3.ForeColor = System.Drawing.SystemColors.ControlLightLight
-        Me.btnF3.Location = New System.Drawing.Point(118, 285)
+        Me.btnF3.Location = New System.Drawing.Point(120, 285)
         Me.btnF3.Name = "btnF3"
         Me.btnF3.Size = New System.Drawing.Size(62, 34)
         Me.btnF3.TabIndex = 114

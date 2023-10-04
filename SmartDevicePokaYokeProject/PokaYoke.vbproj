@@ -97,18 +97,6 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyDialogWarn.Designer.vb">
-      <DependentUpon>MyDialogWarn.vb</DependentUpon>
-    </Compile>
-    <Compile Include="MyDialogWarn.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormPoka4Orient.Designer.vb">
-      <DependentUpon>FormPoka4Orient.vb</DependentUpon>
-    </Compile>
-    <Compile Include="FormPoka4Orient.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="FormTransmitting.Designer.vb">
       <DependentUpon>FormTransmitting.vb</DependentUpon>
     </Compile>
@@ -170,14 +158,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MyDialogWarn.resx">
-      <DependentUpon>MyDialogWarn.vb</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="FormPoka2Yanmar.resx">
       <DependentUpon>FormPoka2Yanmar.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="FormPoka4Orient.resx">
-      <DependentUpon>FormPoka4Orient.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormPokaHistry.resx">
       <DependentUpon>FormPokaHistry.vb</DependentUpon>

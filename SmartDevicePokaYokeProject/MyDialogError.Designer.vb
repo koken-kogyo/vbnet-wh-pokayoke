@@ -30,7 +30,7 @@ Partial Public Class MyDialogError
         Me.Label1.BackColor = System.Drawing.Color.Red
         Me.Label1.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 68.0!, System.Drawing.FontStyle.Regular)
         Me.Label1.ForeColor = System.Drawing.Color.Snow
-        Me.Label1.Location = New System.Drawing.Point(23, 22)
+        Me.Label1.Location = New System.Drawing.Point(25, 30)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(217, 104)
         Me.Label1.Text = "照合"
@@ -39,7 +39,7 @@ Partial Public Class MyDialogError
         '
         Me.Label2.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 68.0!, System.Drawing.FontStyle.Regular)
         Me.Label2.ForeColor = System.Drawing.Color.Snow
-        Me.Label2.Location = New System.Drawing.Point(23, 136)
+        Me.Label2.Location = New System.Drawing.Point(25, 146)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(217, 104)
         Me.Label2.Text = "ＮＧ"
