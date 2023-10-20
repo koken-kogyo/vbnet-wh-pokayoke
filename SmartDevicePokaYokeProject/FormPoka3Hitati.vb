@@ -215,6 +215,20 @@ Public Class FormPoka3Hitati
         ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 6, i) Then
             isOK = True
 
+        Else
+
+            ' 得意先マスタ[M0600]の情報で照合 23.10.20
+            _HMCD = getTKHMCD(txtHMCD.Text, _TKHMCD).Replace("-", "") ' SQLiteのマスタサーチ
+            i = _HMCD.Length
+
+            If _HMCD <> "" And _HMCD = Strings.Left(_TKHMCD, i) Then ' 先頭から得意先品番文字数分
+                isOK = True
+
+            ElseIf _HMCD <> "" And _HMCD = Strings.Mid(_TKHMCD, 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
+                isOK = True
+
+            End If
+
         End If
 
         ' 照合結果出力

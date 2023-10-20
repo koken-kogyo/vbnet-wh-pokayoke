@@ -212,7 +212,7 @@ Public Class FormPoka2Yanmar
         Else
 
             ' 得意先マスタ[M0600]の情報で照合 23.09.27
-            _HMCD = getTKHMCD(txtHMCD.Text).Replace("-", "") ' SQLiteのマスタサーチ
+            _HMCD = getTKHMCD(txtHMCD.Text, _TKHMCD).Replace("-", "") ' SQLiteのマスタサーチ
             i = _HMCD.Length
 
             If _HMCD <> "" And _HMCD = Strings.Left(_TKHMCD, i) Then ' 先頭から得意先品番文字数分

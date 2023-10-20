@@ -476,12 +476,12 @@ FUNCEND:
     '''//////////////////////////////////////////////////////////
     ''' 得意先品番取得
     '''//////////////////////////////////////////////////////////
-    Public Function getTKHMCD(ByVal HMCD As String) As String
+    Public Function getTKHMCD(ByVal _HMCD As String, ByVal _TKHMCD As String) As String
 
         Dim tkhmcd As [String] = ""
 
         ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
-        Dim sql As New StringBuilder("SELECT TKHMCD FROM M0600 WHERE HMCD='" & HMCD & "';")
+        Dim sql As New StringBuilder("SELECT TKHMCD FROM M0600 WHERE HMCD='" & _HMCD & "';")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(dbIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR M0600 btSQLiteCmdCreate:" & cIdx)
@@ -499,25 +499,33 @@ FUNCEND:
         ret = Bt.FileLib.SQLite.btSQLiteCmdExecuteReader(cIdx)
         Do
             ret = Bt.FileLib.SQLite.btSQLiteCmdRead(cIdx)
-            If ret = 1 Then
-                Exit Do
-            ElseIf ret = 0 Then
+            If ret = 1 Then ' データあり
+
+                Dim data As IntPtr
+                data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
+                Dim ret2 As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 0, data, 8192)
+                If ret2 <> 0 Then
+                    MessageBox.Show("ERROR btSQLiteCmdGetValue:" & ret2)
+                    Marshal.FreeCoTaskMem(data)
+                    GoTo FUNCEND
+                End If
+                tkhmcd = Marshal.PtrToStringUni(data)
+                Marshal.FreeCoTaskMem(data)
+
+                ' マスタ変換した値が、入力得意先品番内に存在してたらループを抜ける
+                If InStr(tkhmcd, _TKHMCD) > 0 Then
+                    Exit Do
+                End If
+
+            ElseIf ret = 0 Then 'データが無くなったもしくは無い場合終了
                 GoTo FUNCEND
-            ElseIf ret = 0 Then
+
+            ElseIf ret < 0 Then
                 MessageBox.Show("ERROR btSQLiteCmdRead:" & ret & vbCr & vbLf & sql.ToString())
                 GoTo FUNCEND
             End If
         Loop While ret = 1
 
-        Dim data As IntPtr
-        data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
-        ret = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 0, data, 8192)
-        If ret = 0 Then
-            tkhmcd = Marshal.PtrToStringUni(data)
-        Else
-            MessageBox.Show("ERROR getRecordCount 4:" & ret & vbCr & vbLf & sql.ToString())
-        End If
-        Marshal.FreeCoTaskMem(data)
 FUNCEND:
         Bt.FileLib.SQLite.btSQLiteCmdDelete(cIdx)
         Return tkhmcd

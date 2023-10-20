@@ -225,6 +225,9 @@ Public Class FormPoka1Kubota
         ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 3, i) Then ' 3バイト目から社内品番文字数分
             isOK = True
 
+        ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 4, i) Then ' 4バイト目から社内品番文字数分 23.10.20
+            isOK = True
+
         ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 6, i) Then ' 6バイト目から社内品番文字数分
             isOK = True
 
@@ -258,7 +261,7 @@ Public Class FormPoka1Kubota
         Else
 
             ' 得意先マスタ[M0600]の情報で再度照合をかける 23.10.04
-            _HMCD = getTKHMCD(txtHMCD.Text).Replace("-", "") ' SQLiteのマスタサーチ
+            _HMCD = getTKHMCD(txtHMCD.Text, _TKHMCD).Replace("-", "") ' SQLiteのマスタサーチ
 
             If _HMCD <> "" Then
 
@@ -271,6 +274,9 @@ Public Class FormPoka1Kubota
                     isOK = True
 
                 ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 3, i) Then ' 3バイト目から社内品番文字数分
+                    isOK = True
+
+                ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 4, i) Then ' 4バイト目から社内品番文字数分
                     isOK = True
 
                 ElseIf _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 6, i) Then ' 6バイト目から社内品番文字数分
