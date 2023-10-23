@@ -224,7 +224,7 @@ Public Class FormPoka3Hitati
             If _HMCD <> "" And _HMCD = Strings.Left(_TKHMCD, i) Then ' 先頭から得意先品番文字数分
                 isOK = True
 
-            ElseIf _HMCD <> "" And _HMCD = Strings.Mid(_TKHMCD, 2, i) Then ' OCR対応 先頭"*"が入る 23.09.27
+            ElseIf _HMCD <> "" And _HMCD = Strings.Mid(_TKHMCD, 6, i) Then
                 isOK = True
 
             End If

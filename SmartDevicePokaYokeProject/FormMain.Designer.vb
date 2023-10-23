@@ -101,7 +101,7 @@ Partial Public Class FormMain
         Me.lblVersion.Location = New System.Drawing.Point(117, 288)
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(110, 22)
-        Me.lblVersion.Text = "ver 23.10.20"
+        Me.lblVersion.Text = "ver 23.10.23"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
         'chkBuzzer
