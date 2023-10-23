@@ -221,10 +221,10 @@ Public Class FormPoka3Hitati
             _HMCD = getTKHMCD(txtHMCD.Text, _TKHMCD).Replace("-", "") ' SQLiteのマスタサーチ
             i = _HMCD.Length
 
-            If _HMCD <> "" And _HMCD = Strings.Left(_TKHMCD, i) Then ' 先頭から得意先品番文字数分
+            If _HMCD <> "" And _HMCD = Strings.Left(_TKHMCD.Replace("-", ""), i) Then ' 先頭から得意先品番文字数分
                 isOK = True
 
-            ElseIf _HMCD <> "" And _HMCD = Strings.Mid(_TKHMCD, 6, i) Then
+            ElseIf _HMCD <> "" And _HMCD = Strings.Mid(_TKHMCD.Replace("-", ""), 6, i) Then ' 23.10.23
                 isOK = True
 
             End If
