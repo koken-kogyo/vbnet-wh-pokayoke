@@ -513,7 +513,7 @@ FUNCEND:
                 Marshal.FreeCoTaskMem(data)
 
                 ' マスタ変換した値が、入力得意先品番内に存在してたらループを抜ける
-                If InStr(tkhmcd, _TKHMCD) > 0 Then
+                If InStr(_TKHMCD.Replace("-", ""), tkhmcd.Replace("-", "")) > 0 Then ' 23.10.25
                     Exit Do
                 End If
 
