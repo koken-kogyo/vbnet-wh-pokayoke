@@ -34,6 +34,7 @@ Partial Public Class FormPoka1Kubota
         Me.lblHMCD = New System.Windows.Forms.Label
         Me.lblTKHMCD = New System.Windows.Forms.Label
         Me.chkQR = New System.Windows.Forms.CheckBox
+        Me.chkTe = New System.Windows.Forms.CheckBox
         Me.SuspendLayout()
         '
         'btnF1
@@ -153,6 +154,7 @@ Partial Public Class FormPoka1Kubota
         'lblHMCD
         '
         Me.lblHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 11.0!, System.Drawing.FontStyle.Regular)
+        Me.lblHMCD.ForeColor = System.Drawing.SystemColors.ControlDark
         Me.lblHMCD.Location = New System.Drawing.Point(11, 249)
         Me.lblHMCD.Name = "lblHMCD"
         Me.lblHMCD.Size = New System.Drawing.Size(171, 20)
@@ -168,12 +170,24 @@ Partial Public Class FormPoka1Kubota
         '
         'chkQR
         '
-        Me.chkQR.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
-        Me.chkQR.Location = New System.Drawing.Point(178, 147)
+        Me.chkQR.Anchor = System.Windows.Forms.AnchorStyles.None
+        Me.chkQR.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 10.0!, System.Drawing.FontStyle.Regular)
+        Me.chkQR.Location = New System.Drawing.Point(161, 152)
         Me.chkQR.Name = "chkQR"
-        Me.chkQR.Size = New System.Drawing.Size(48, 24)
+        Me.chkQR.Size = New System.Drawing.Size(77, 20)
         Me.chkQR.TabIndex = 128
-        Me.chkQR.Text = "堺"
+        Me.chkQR.TabStop = False
+        Me.chkQR.Text = "QRだけ"
+        '
+        'chkTe
+        '
+        Me.chkTe.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 10.0!, System.Drawing.FontStyle.Regular)
+        Me.chkTe.Location = New System.Drawing.Point(160, 74)
+        Me.chkTe.Name = "chkTe"
+        Me.chkTe.Size = New System.Drawing.Size(77, 20)
+        Me.chkTe.TabIndex = 136
+        Me.chkTe.TabStop = False
+        Me.chkTe.Text = "手入力"
         '
         'FormPoka1Kubota
         '
@@ -182,13 +196,14 @@ Partial Public Class FormPoka1Kubota
         Me.AutoScroll = True
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
+        Me.Controls.Add(Me.txtHMCD)
+        Me.Controls.Add(Me.chkTe)
         Me.Controls.Add(Me.chkQR)
         Me.Controls.Add(Me.lblCount)
         Me.Controls.Add(Me.txtTKHMCD)
         Me.Controls.Add(Me.LabelMenu)
         Me.Controls.Add(Me.txtTANCD)
         Me.Controls.Add(Me.lblTANCD)
-        Me.Controls.Add(Me.txtHMCD)
         Me.Controls.Add(Me.btnF4)
         Me.Controls.Add(Me.btnF3)
         Me.Controls.Add(Me.btnF2)
@@ -217,4 +232,5 @@ Partial Public Class FormPoka1Kubota
     Friend WithEvents lblHMCD As System.Windows.Forms.Label
     Friend WithEvents lblTKHMCD As System.Windows.Forms.Label
     Friend WithEvents chkQR As System.Windows.Forms.CheckBox
+    Friend WithEvents chkTe As System.Windows.Forms.CheckBox
 End Class

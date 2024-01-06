@@ -168,6 +168,12 @@
     <Compile Include="FormPoka3Hitati.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FormPoka5Tana.Designer.vb">
+      <DependentUpon>FormPoka5Tana.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FormPoka5Tana.vb">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MyDialogWarn.resx">
@@ -205,6 +211,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormPoka3Hitati.resx">
       <DependentUpon>FormPoka3Hitati.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormPoka5Tana.resx">
+      <DependentUpon>FormPoka5Tana.vb</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

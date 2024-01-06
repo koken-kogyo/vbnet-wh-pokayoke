@@ -91,8 +91,6 @@ Public Class FormPokaHistory
     ' F2キー (先頭行へ移動)
     Private Sub btnF2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF2.Click
 
-        DataGrid1.CurrentCell = New DataGridCell(0, 0)
-
         'C:\Program Files(x86)\Windows Mobile 5.0 R2\PocketPC\Incude\Armv4i\winuser.hより
         '#define WM_KEYDOWN             0x0100
         '#define WM_KEYUP               0x0101
@@ -104,20 +102,18 @@ Public Class FormPokaHistory
         Dim VK_DOWN As Integer = Bt.LibDef.BT_VK_DOWN '&H28(40)
         Dim VK_F1 As Integer = Bt.LibDef.BT_VK_F1 '&H70(112)
 
-
-        Dim hWnd As IntPtr = Me.DataGrid1.Handle
-        Dim msg As Message
-        msg = Message.Create(hWnd, VK_DOWN, IntPtr.Zero, IntPtr.Zero)
-        MessageWindow.SendMessage(msg)
-        msg = Message.Create(hWnd, VK_UP, IntPtr.Zero, IntPtr.Zero)
-        MessageWindow.SendMessage(msg)
+        If totalRow > 0 Then
+            DataGrid1.CurrentRowIndex = 0
+            DataGrid1.Focus()
+        End If
 
     End Sub
 
     ' F3キー
     Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
         If totalRow > 0 Then
-            DataGrid1.CurrentCell = New DataGridCell(totalRow - 1, 0)
+            DataGrid1.CurrentRowIndex = totalRow - 1
+            DataGrid1.Focus()
         End If
     End Sub
 
@@ -160,11 +156,15 @@ Public Class FormPokaHistory
         viewData()
     End Sub
 
+    ' CrrentCell変更時はSelectをコードで一旦消してから変更しないといけないみたい
+    ' 逆にSelectだけ変更してもCurrentCellが自動で追いかけてくれない
     Private Sub DataGrid1_CurrentCellChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles DataGrid1.CurrentCellChanged
-        DataGrid1.Select(DataGrid1.CurrentRowIndex)
+        If totalRow > 0 Then
+            For wRow As Integer = 0 To totalRow - 1
+                DataGrid1.UnSelect(wRow)
+            Next
+            DataGrid1.Select(DataGrid1.CurrentRowIndex)
+        End If
     End Sub
 
-    Private Sub DataGrid1_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles DataGrid1.KeyDown
-        'Debug.WriteLine(e.KeyCode)
-    End Sub
 End Class

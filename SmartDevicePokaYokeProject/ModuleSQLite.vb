@@ -17,11 +17,14 @@ Module ModuleSQLite
     Public tblNamePoka2 As [String] = "Poka2"
     Public tblNamePoka3 As [String] = "Poka3"
     Public tblNamePoka4 As [String] = "Poka4"
+    Public tblNamePoka5 As [String] = "Poka5"
     Public itemMAKER As [String] = "メーカー"
     Public itemDATETIME As [String] = "照合日付"
     Public itemTANCD As [String] = "担当者"
     Public itemHMCD As [String] = "社内品番"
     Public itemTKHMCD As [String] = "社外品番"
+    Public itemBUCD As [String] = "伝票棚番"
+    Public itemTANACD As [String] = "倉庫棚番"
     Public itemRESULT As [String] = "照合結果"
 
     ' エラー詳細を保持
@@ -41,12 +44,21 @@ Module ModuleSQLite
     Public Const SQLITE_INSERT_ERROR As Int32 = -931
     Public Const SQLITE_DELETE_ERROR As Int32 = -941
 
-    Public Structure DBRecord
+    Public Structure DBPokaRecord
         Public MAKER As String
         Public DATATIME As String
         Public TANCD As String
         Public HMCD As String
         Public TKHMCD As String
+        Public RESULT As String
+    End Structure
+
+    Public Structure DBTanaRecord
+        Public DATATIME As String
+        Public TANCD As String
+        Public HMCD As String
+        Public BUCD As String
+        Public TANACD As String
         Public RESULT As String
     End Structure
 
@@ -78,6 +90,10 @@ Module ModuleSQLite
                 Return ret
             End If
             ret = createPoka4()
+            If ret <> 0 Then
+                Return ret
+            End If
+            ret = createPoka5()
             If ret <> 0 Then
                 Return ret
             End If
@@ -165,6 +181,22 @@ Module ModuleSQLite
         End If
         Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemRESULT
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka4 (" & columns & ");")
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
+        If ret <> 0 Then
+            Return SQLITE_CREATE_TABLE_ERROR
+        End If
+        Return SQLITE_OK
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' Create Table5
+    '''//////////////////////////////////////////////////////////
+    Private Function createPoka5() As Int32
+        If logIdx <= 0 Then
+            Return SQLITE_NOTOPEN_ERROR
+        End If
+        Dim columns As [String] = itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemBUCD & ", " & itemTANACD & "," & itemRESULT
+        Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka5 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
             Return SQLITE_CREATE_TABLE_ERROR
@@ -261,7 +293,7 @@ FUNCEND:
     '''//////////////////////////////////////////////////////////
     ''' Insert
     '''//////////////////////////////////////////////////////////
-    Public Function insertPokaX(ByVal tableName As String, ByVal rec As DBRecord) As Int32
+    Public Function insertPokaX(ByVal tableName As String, ByVal rec As DBPokaRecord) As Int32
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
@@ -273,6 +305,24 @@ FUNCEND:
             setSQLErrorString()
         Else
             insertPokaX = SQLITE_OK
+        End If
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' Insert
+    '''//////////////////////////////////////////////////////////
+    Public Function insertTana(ByVal tableName As String, ByVal rec As DBTanaRecord) As Int32
+        If logIdx <= 0 Then
+            Return SQLITE_NOTOPEN_ERROR
+        End If
+        Dim val As String = rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.BUCD & "', '" & rec.TANACD & "', '" & rec.RESULT
+        Dim sql As New StringBuilder("INSERT INTO " & tableName & " VALUES('" & val & "');")
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
+        If ret <> 0 Then
+            insertTana = SQLITE_INSERT_ERROR
+            setSQLErrorString()
+        Else
+            insertTana = SQLITE_OK
         End If
     End Function
 
@@ -290,6 +340,23 @@ FUNCEND:
             setSQLErrorString()
         Else
             deletePokaX = SQLITE_OK
+        End If
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' Delete
+    '''//////////////////////////////////////////////////////////
+    Public Function deleteTana(ByVal tableName As String) As Int32
+        If logIdx <= 0 Then
+            Return SQLITE_NOTOPEN_ERROR
+        End If
+        Dim sql As New StringBuilder("DELETE FROM " & tableName & ";")
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
+        If ret <> 0 Then
+            deleteTana = SQLITE_DELETE_ERROR
+            setSQLErrorString()
+        Else
+            deleteTana = SQLITE_OK
         End If
     End Function
 
@@ -531,6 +598,118 @@ FUNCEND:
         Return tkhmcd
     End Function
 
+    '''//////////////////////////////////////////////////////////
+    ''' 得意先コード取得
+    '''//////////////////////////////////////////////////////////
+    Public Function getTKCD(ByVal _HMCD As String) As String
+
+        Dim tkcd As [String] = ""
+
+        ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
+        Dim sql As New StringBuilder("SELECT TKCD FROM M0500 WHERE HMCD='" & _HMCD & "';")
+        Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(dbIdx)
+        If cIdx <= 0 Then
+            MessageBox.Show("ERROR M0500 btSQLiteCmdCreate:" & cIdx)
+            Return ""
+        End If
+
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteCmdSetCommandText(cIdx, sql)
+        If ret <> 0 Then
+            setDBSQLErrorString()
+            MessageBox.Show(sqliteErrorString)
+            MessageBox.Show("ERROR M0500 btSQLiteCmdSetCommandText:" & ret & vbCr & vbLf & sql.ToString())
+            GoTo FUNCEND
+        End If
+
+        ret = Bt.FileLib.SQLite.btSQLiteCmdExecuteReader(cIdx)
+        Do
+            ret = Bt.FileLib.SQLite.btSQLiteCmdRead(cIdx)
+            If ret = 1 Then ' データあり
+
+                Dim data As IntPtr
+                data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
+                Dim ret2 As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 0, data, 8192)
+                If ret2 <> 0 Then
+                    MessageBox.Show("ERROR btSQLiteCmdGetValue:" & ret2)
+                    Marshal.FreeCoTaskMem(data)
+                    GoTo FUNCEND
+                End If
+                tkcd = Marshal.PtrToStringUni(data)
+                Marshal.FreeCoTaskMem(data)
+
+                Exit Do
+
+            ElseIf ret = 0 Then 'データが無くなったもしくは無い場合終了
+                GoTo FUNCEND
+
+            ElseIf ret < 0 Then
+                MessageBox.Show("ERROR btSQLiteCmdRead:" & ret & vbCr & vbLf & sql.ToString())
+                GoTo FUNCEND
+
+            End If
+        Loop While ret = 1
+
+FUNCEND:
+        Bt.FileLib.SQLite.btSQLiteCmdDelete(cIdx)
+        Return tkcd
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' ロケーション取得
+    '''//////////////////////////////////////////////////////////
+    Public Function getBUCD(ByVal _HMCD As String) As String
+
+        Dim bucd As [String] = ""
+
+        ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
+        Dim sql As New StringBuilder("SELECT BUCD FROM M0500 WHERE HMCD='" & _HMCD & "';")
+        Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(dbIdx)
+        If cIdx <= 0 Then
+            MessageBox.Show("ERROR M0500 btSQLiteCmdCreate:" & cIdx)
+            Return ""
+        End If
+
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteCmdSetCommandText(cIdx, sql)
+        If ret <> 0 Then
+            setDBSQLErrorString()
+            MessageBox.Show(sqliteErrorString)
+            MessageBox.Show("ERROR M0500 btSQLiteCmdSetCommandText:" & ret & vbCr & vbLf & sql.ToString())
+            GoTo FUNCEND
+        End If
+
+        ret = Bt.FileLib.SQLite.btSQLiteCmdExecuteReader(cIdx)
+        Do
+            ret = Bt.FileLib.SQLite.btSQLiteCmdRead(cIdx)
+            If ret = 1 Then ' データあり
+
+                Dim data As IntPtr
+                data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
+                Dim ret2 As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 0, data, 8192)
+                If ret2 <> 0 Then
+                    MessageBox.Show("ERROR btSQLiteCmdGetValue:" & ret2)
+                    Marshal.FreeCoTaskMem(data)
+                    GoTo FUNCEND
+                End If
+                bucd = Marshal.PtrToStringUni(data)
+                Marshal.FreeCoTaskMem(data)
+
+                Exit Do
+
+            ElseIf ret = 0 Then 'データが無くなったもしくは無い場合終了
+                bucd = "NotFound"
+                GoTo FUNCEND
+
+            ElseIf ret < 0 Then
+                MessageBox.Show("ERROR btSQLiteCmdRead:" & ret & vbCr & vbLf & sql.ToString())
+                GoTo FUNCEND
+
+            End If
+        Loop While ret = 1
+
+FUNCEND:
+        Bt.FileLib.SQLite.btSQLiteCmdDelete(cIdx)
+        Return bucd
+    End Function
 
 End Module
 

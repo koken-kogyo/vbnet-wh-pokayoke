@@ -204,7 +204,7 @@ Public Class FormPoka4Orient
         End If
 
         ' 照合結果出力
-        Dim rec As DBRecord
+        Dim rec As DBPokaRecord
         rec.MAKER = "ORIENT"
         rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
         rec.TANCD = txtTANCD.Text

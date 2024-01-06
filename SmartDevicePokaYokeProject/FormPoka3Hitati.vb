@@ -232,7 +232,7 @@ Public Class FormPoka3Hitati
         End If
 
         ' 照合結果出力
-        Dim rec As DBRecord
+        Dim rec As DBPokaRecord
         rec.MAKER = "HITATI"
         rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
         rec.TANCD = txtTANCD.Text

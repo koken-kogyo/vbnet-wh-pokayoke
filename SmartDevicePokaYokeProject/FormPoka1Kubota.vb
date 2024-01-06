@@ -7,12 +7,22 @@ Public Class FormPoka1Kubota
     Public Shared FormPoka1Instance As FormPoka1Kubota
 
     Private Const PROCESS_EXIT_WAIT_TIME As Integer = 200
-    '--------------------------------------------------------------
-    ' DLLImport
-    '--------------------------------------------------------------
-    <DllImport("coredll.dll", EntryPoint:="DeleteObject")> _
-    Public Shared Function DeleteObject(ByVal hObject As IntPtr) As Boolean
-    End Function
+
+    Dim flgSCAN As Boolean = False
+
+    Private Sub FormPoka1Kubota_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+
+        txtTANCD.Text = FormMain.txtTANCD.Text
+        chkQR.Checked = True
+        txtClear()
+
+        ' フォーム上でキーダウンイベントを取得
+        Me.KeyPreview = True
+
+        ' インスタンス保持
+        FormPoka1Instance = Me
+
+    End Sub
 
     ' F1キー
     Private Sub btnF1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF1.Click
@@ -81,46 +91,53 @@ Public Class FormPoka1Kubota
         End Select
     End Sub
 
-    Private Sub FormPoka1Kubota_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-
-        txtTANCD.Text = FormMain.txtTANCD.Text
-        txtClear()
-
-        ' フォーム上でキーダウンイベントを取得
-        Me.KeyPreview = True
-
-        ' インスタンス保持
-        FormPoka1Instance = Me
-
-    End Sub
-
     Private Sub txtHMCD_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtHMCD.GotFocus
         Dim modeSet As UInt32 = Bt.LibDef.BT_KEYINPUT_DIRECT
         Dim ret As Int32 = Bt.SysLib.Display.btSetKeyCharacter(modeSet)
         If ret <> 0 Then
             MessageBox.Show("キー入力設定に失敗しました:" & ret)
         End If
-        'Call setScanProperty(1)
+        Call setScanProperty(1)
         txtHMCD.SelectionStart = 0
         txtHMCD.SelectionLength = txtHMCD.TextLength
         txtHMCD.BackColor = Color.Aqua
     End Sub
 
     Private Sub txtHMCD_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtHMCD.LostFocus
-        ' エラーチェック
-        If txtHMCD.TextLength > 24 Or Strings.Left(txtHMCD.Text, 2) = "**" Then
-            MessageBox.Show("社内品番を読み取ってください")
-            txtHMCD.Focus()
-            Return
-        End If
-
-        ' 入力待機食を解除
-        txtHMCD.BackColor = Color.White
 
         ' 社内品番は [ハイフン, 空白] を除去
         ' (SATOのラベルプリンターは品番24桁空白パディングでバーコードが作成されている)
         txtHMCD.Text = Trim(txtHMCD.Text)
         lblHMCD.Text = txtHMCD.Text.Replace("-", "")
+
+        ' エラーチェック
+        If txtHMCD.TextLength > 24 Then
+            MessageBox.Show("24桁以下の品番を読み取ってください")
+            txtHMCD.Focus()
+            Return
+        End If
+        If Strings.Left(txtHMCD.Text, 2) = "**" Then
+            MessageBox.Show("社内品番を読み取ってください[**]")
+            txtHMCD.Focus()
+            Return
+        End If
+
+        'If txtHMCD.Text <> "" Then
+
+        '    ' 得意先コードを取得
+        '    Dim tkcd As String = getTKCD(txtHMCD.Text)
+
+        '    ' C0101:堺 C0104:臨海
+        '    If tkcd = "C0101" Or tkcd = "C0104" Then
+        '        chkQR.Checked = True
+        '    Else
+        '        chkQR.Checked = False
+        '    End If
+
+        'End If
+
+        ' 入力待機色を解除
+        txtHMCD.BackColor = Color.White
 
     End Sub
 
@@ -134,7 +151,18 @@ Public Class FormPoka1Kubota
                 If txtHMCD.Text <> "" Then
                     txtTKHMCD.Focus()
                 End If
+            Case 153 'SCAN
+                flgSCAN = True
+            Case Keys.NumPad0 To Keys.NumPad9   ' テンキーの0～9
+                flgSCAN = False
+            Case Keys.Subtract, Keys.Decimal    ' テンキーの減算"-", 小数点"." 
+                flgSCAN = False
         End Select
+    End Sub
+
+    Private Sub txtHMCD_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles txtHMCD.KeyPress
+        ' 通常時はキー入力禁止（チェックオンで社内品番を入力可能にする）
+        If chkTe.Checked = False And flgSCAN = False Then e.Handled = True
     End Sub
 
     Private Sub txtTKHMCD_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTKHMCD.GotFocus
@@ -144,9 +172,9 @@ Public Class FormPoka1Kubota
             MessageBox.Show("キー入力設定に失敗しました:" & ret)
         End If
 
-        ' クボタ新システムはQRを読み取らない設定
+        ' QR読取フラグの設定
         If chkQR.Checked Then
-            Call setScanProperty(2) ' Code系, JAN系 のみ読み取り可能に設定
+            Call setScanProperty(2) ' QRコードのみ読み取り可能に設定(OCRもオフ)
         Else
             Call setScanProperty(1) ' すべての読取を可能に設定
         End If
@@ -305,7 +333,7 @@ Public Class FormPoka1Kubota
         End If
 
         ' 照合結果出力
-        Dim rec As DBRecord
+        Dim rec As DBPokaRecord
         rec.MAKER = "KUBOTA"
         rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
         rec.TANCD = txtTANCD.Text
@@ -350,7 +378,12 @@ Public Class FormPoka1Kubota
         End If
     End Sub
 
+    Private Sub chkTe_CheckStateChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkTe.CheckStateChanged
+        txtHMCD.Focus()
+    End Sub
+
     Private Sub chkQR_CheckStateChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkQR.CheckStateChanged
         txtTKHMCD.Focus()
     End Sub
+
 End Class

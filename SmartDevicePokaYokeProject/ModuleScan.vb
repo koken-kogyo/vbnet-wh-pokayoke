@@ -88,20 +88,33 @@ Module ModuleScan
 
         Try
             '-----------------------------------------------------------
-            ' 設定
+            ' 設定①コード読み取り許可
             '-----------------------------------------------------------
             idSet = LibDef.BT_SCAN_PROP_ENABLE_SYMBOLS
-
             If iMode = 1 Then
                 ulDataSet = LibDef.BT_SCAN_ENABLE_ALL
             Else
-                ulDataSet = _
-                    LibDef.BT_SCAN_ENABLE_C128 + _
-                    LibDef.BT_SCAN_ENABLE_C93 + _
-                    LibDef.BT_SCAN_ENABLE_C39 + _
-                    LibDef.BT_SCAN_CODE_JAN
+                ulDataSet = LibDef.BT_SCAN_ENABLE_QR
+            End If
+            pValueSet = Marshal.AllocCoTaskMem(Marshal.SizeOf(ulDataSet))
+            Marshal.WriteInt32(pValueSet, CType(ulDataSet, Int32))
+            ret = Setting.btScanSetProperty(idSet, pValueSet)
+            Marshal.FreeCoTaskMem(pValueSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btScanSetProperty ENABLE_SYMBOLS error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
             End If
 
+            '----------------------------------------------------------
+            ' 設定②[OCR] 読取組合せ
+            '----------------------------------------------------------
+            idSet = LibDef.BT_SCAN_PROP_OCR_ENABLE_COMBI
+            If iMode = 1 Then
+                ulDataSet = LibDef.BT_SCAN_OCR_ENABLE_PLUS
+            Else
+                ulDataSet = LibDef.BT_SCAN_OCR_DISABLE
+            End If
             pValueSet = Marshal.AllocCoTaskMem(Marshal.SizeOf(ulDataSet))
             Marshal.WriteInt32(pValueSet, CType(ulDataSet, Int32))
             ret = Setting.btScanSetProperty(idSet, pValueSet)
@@ -112,8 +125,6 @@ Module ModuleScan
                 Return
             End If
 
-            disp = "読み取り許可コードをJANに設定しました。" & vbCr & vbLf
-            'MessageBox.Show(disp, "読み取り設定")
         Catch ex As Exception
             MessageBox.Show(ex.ToString())
         End Try

@@ -28,6 +28,7 @@ Partial Public Class FormMain
         Me.btnHITATI = New System.Windows.Forms.Button
         Me.lblVersion = New System.Windows.Forms.Label
         Me.chkBuzzer = New System.Windows.Forms.CheckBox
+        Me.btnTANA = New System.Windows.Forms.Button
         Me.btnORIENT = New System.Windows.Forms.Button
         Me.SuspendLayout()
         '
@@ -101,7 +102,7 @@ Partial Public Class FormMain
         Me.lblVersion.Location = New System.Drawing.Point(117, 288)
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(110, 22)
-        Me.lblVersion.Text = "ver 23.10.25"
+        Me.lblVersion.Text = "ver 24.01.08"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
         'chkBuzzer
@@ -116,14 +117,25 @@ Partial Public Class FormMain
         Me.chkBuzzer.TabStop = False
         Me.chkBuzzer.Text = "照合時ブザー音あり"
         '
+        'btnTANA
+        '
+        Me.btnTANA.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
+        Me.btnTANA.Location = New System.Drawing.Point(14, 201)
+        Me.btnTANA.Name = "btnTANA"
+        Me.btnTANA.Size = New System.Drawing.Size(213, 36)
+        Me.btnTANA.TabIndex = 5
+        Me.btnTANA.Text = "5.棚番照合"
+        '
         'btnORIENT
         '
+        Me.btnORIENT.Enabled = False
         Me.btnORIENT.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.btnORIENT.Location = New System.Drawing.Point(14, 201)
+        Me.btnORIENT.Location = New System.Drawing.Point(14, 182)
         Me.btnORIENT.Name = "btnORIENT"
         Me.btnORIENT.Size = New System.Drawing.Size(213, 36)
-        Me.btnORIENT.TabIndex = 5
+        Me.btnORIENT.TabIndex = 12
         Me.btnORIENT.Text = "4.オリエント"
+        Me.btnORIENT.Visible = False
         '
         'FormMain
         '
@@ -133,7 +145,7 @@ Partial Public Class FormMain
         Me.BackColor = System.Drawing.Color.Gainsboro
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
-        Me.Controls.Add(Me.btnORIENT)
+        Me.Controls.Add(Me.btnTANA)
         Me.Controls.Add(Me.chkBuzzer)
         Me.Controls.Add(Me.lblVersion)
         Me.Controls.Add(Me.btnHITATI)
@@ -143,6 +155,7 @@ Partial Public Class FormMain
         Me.Controls.Add(Me.lblTANCD)
         Me.Controls.Add(Me.btnClose)
         Me.Controls.Add(Me.btnKUBOTA)
+        Me.Controls.Add(Me.btnORIENT)
         Me.Font = New System.Drawing.Font("メイリオ", 14.0!, System.Drawing.FontStyle.Regular)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
         Me.MaximizeBox = False
@@ -160,6 +173,7 @@ Partial Public Class FormMain
     Friend WithEvents lblVersion As System.Windows.Forms.Label
     Public WithEvents txtTANCD As System.Windows.Forms.TextBox
     Friend WithEvents chkBuzzer As System.Windows.Forms.CheckBox
+    Friend WithEvents btnTANA As System.Windows.Forms.Button
     Friend WithEvents btnORIENT As System.Windows.Forms.Button
 
 End Class

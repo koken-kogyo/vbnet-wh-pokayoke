@@ -8,11 +8,11 @@ Imports System.Runtime.InteropServices
 
 ' アセンブリ属性の値を確認します。
 
-<Assembly: AssemblyTitle("SmartDeviceProject1")>
+<Assembly: AssemblyTitle("PokaYoke")> 
 <Assembly: AssemblyDescription("")>
 <Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("SmartDeviceProject1")>
-<Assembly: AssemblyCopyright("Copyright ©  2023")>
+<Assembly: AssemblyProduct("PokaYoke")> 
+<Assembly: AssemblyCopyright("© 2023 koken-kogyo CO,LTD.")> 
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: CLSCompliant(True)>
@@ -33,7 +33,7 @@ Imports System.Runtime.InteropServices
 ' 既定値にすることができます:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("1.2.0.2")> 
+<Assembly: AssemblyVersion("1.3.0.0")> 
 
 '以下の属性は FxCop 警告 "CA2232 : Microsoft.Usage : STAThreadAttribute をアセンブリに追加します" を抑制しますが、
 ' これは、デバイス アプリケーションで STA スレッドがサポートされないためです。
