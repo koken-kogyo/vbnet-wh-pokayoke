@@ -134,7 +134,7 @@
                 'Case Keys.NumPad4
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
-                btnTana_Click(sender, e)
+                btnTANA_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -161,7 +161,7 @@
         End Select
     End Sub
 
-    Private Sub btnTANA_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles btnTANA.KeyDown, btnORIENT.KeyDown
+    Private Sub btnTANA_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles btnTANA.KeyDown
         Select Case e.KeyCode
             Case Keys.Up
                 btnYANMAR.Focus()
@@ -204,13 +204,13 @@
         frm.Show()
     End Sub
 
-    Private Sub btnORIENT_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHITATI.Click, btnORIENT.Click
+    Private Sub btnORIENT_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnORIENT.Click
         btnORIENT.Focus()
-        Dim frm As Form = New FormPoka5Tana()
+        Dim frm As Form = New FormPoka4Orient()
         frm.Show()
     End Sub
 
-    Private Sub btnTANA_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHITATI.Click, btnTANA.Click, btnORIENT.Click
+    Private Sub btnTANA_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnTANA.Click
         btnTANA.Focus()
         Dim frm As Form = New FormPoka5Tana()
         frm.Show()

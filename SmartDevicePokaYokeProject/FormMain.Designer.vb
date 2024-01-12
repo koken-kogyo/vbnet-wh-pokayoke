@@ -130,9 +130,9 @@ Partial Public Class FormMain
         '
         Me.btnORIENT.Enabled = False
         Me.btnORIENT.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.btnORIENT.Location = New System.Drawing.Point(14, 182)
+        Me.btnORIENT.Location = New System.Drawing.Point(195, 243)
         Me.btnORIENT.Name = "btnORIENT"
-        Me.btnORIENT.Size = New System.Drawing.Size(213, 36)
+        Me.btnORIENT.Size = New System.Drawing.Size(32, 27)
         Me.btnORIENT.TabIndex = 12
         Me.btnORIENT.Text = "4.オリエント"
         Me.btnORIENT.Visible = False
