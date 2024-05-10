@@ -13,6 +13,9 @@ Module ModuleSQLite
     Private logFile As [String] = "PokaYoke.DB"
     Public logIdx As Integer = 0
 
+    Private jidoFile As [String] = "shelfstock.pkdat"
+    Public jidoIdx As Integer = 0
+
     Public tblNamePoka1 As [String] = "Poka1"
     Public tblNamePoka2 As [String] = "Poka2"
     Public tblNamePoka3 As [String] = "Poka3"
@@ -56,9 +59,9 @@ Module ModuleSQLite
     Public Structure DBTanaRecord
         Public DATATIME As String
         Public TANCD As String
+        Public TANACD As String
         Public HMCD As String
         Public BUCD As String
-        Public TANACD As String
         Public RESULT As String
     End Structure
 
@@ -72,6 +75,10 @@ Module ModuleSQLite
         End If
         dbIdx = Bt.FileLib.SQLite.btSQLiteOpen(New StringBuilder(accPath & "\" & dbFile))
         If dbIdx <= 0 Then
+            Return SQLITE_OPEN_ERROR
+        End If
+        jidoIdx = Bt.FileLib.SQLite.btSQLiteOpen(New StringBuilder(accPath & "\" & jidoFile))
+        If jidoIdx <= 0 Then
             Return SQLITE_OPEN_ERROR
         End If
         logIdx = Bt.FileLib.SQLite.btSQLiteOpen(New StringBuilder(accPath & "\" & logFile))
@@ -116,6 +123,13 @@ Module ModuleSQLite
             Return SQLITE_CLOSE_ERROR
         End If
         dbIdx = 0
+
+        ret = Bt.FileLib.SQLite.btSQLiteClose(jidoIdx)
+        If ret <> 0 Then
+            Return SQLITE_CLOSE_ERROR
+        End If
+        jidoIdx = 0
+
         ret = Bt.FileLib.SQLite.btSQLiteClose(logIdx)
         If ret <> 0 Then
             Return SQLITE_CLOSE_ERROR
@@ -195,7 +209,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemBUCD & ", " & itemTANACD & "," & itemRESULT
+        Dim columns As [String] = itemDATETIME & ", " & itemTANCD & ", " & itemTANACD & "," & itemHMCD & ", " & itemBUCD & ", " & itemRESULT
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka5 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -315,7 +329,7 @@ FUNCEND:
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim val As String = rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.BUCD & "', '" & rec.TANACD & "', '" & rec.RESULT
+        Dim val As String = rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.TANACD & "', '" & rec.HMCD & "', '" & rec.BUCD & "', '" & rec.RESULT
         Dim sql As New StringBuilder("INSERT INTO " & tableName & " VALUES('" & val & "');")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -393,6 +407,27 @@ FUNCEND:
             Dim data As IntPtr
             data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
             Bt.FileLib.SQLite.btSQLiteGetErrorStr(dbIdx, data, 8192)
+
+            Dim data2 As [String] = Marshal.PtrToStringUni(data)
+            Marshal.FreeCoTaskMem(data)
+
+            sqliteErrorString = data2 & vbCrLf & "ErrorCode:" & lasterr.ToString()
+
+        End If
+    End Sub
+
+    '''//////////////////////////////////////////////////////////
+    ''' View SQL Error (JIDO)
+    '''//////////////////////////////////////////////////////////
+    Private Sub setJidoSQLErrorString()
+        Dim msg As String = ""
+        If jidoIdx > 0 Then
+
+            Dim lasterr As Integer = Bt.FileLib.SQLite.btSQLiteGetErrorCode(jidoIdx)
+
+            Dim data As IntPtr
+            data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
+            Bt.FileLib.SQLite.btSQLiteGetErrorStr(jidoIdx, data, 8192)
 
             Dim data2 As [String] = Marshal.PtrToStringUni(data)
             Marshal.FreeCoTaskMem(data)
@@ -655,25 +690,24 @@ FUNCEND:
     End Function
 
     '''//////////////////////////////////////////////////////////
-    ''' ロケーション取得
+    ''' 自動倉庫棚番チェック
     '''//////////////////////////////////////////////////////////
-    Public Function getBUCD(ByVal _HMCD As String) As String
+    Public Function checkBUCD(ByVal _BUCD As String) As Boolean
+        Dim check As Boolean = False
 
-        Dim bucd As [String] = ""
-
-        ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
-        Dim sql As New StringBuilder("SELECT BUCD FROM M0500 WHERE HMCD='" & _HMCD & "';")
-        Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(dbIdx)
+        ' SQLite
+        Dim sql As New StringBuilder("SELECT * FROM pkdat WHERE field1='" & _BUCD & "';")
+        Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(jidoIdx)
         If cIdx <= 0 Then
-            MessageBox.Show("ERROR M0500 btSQLiteCmdCreate:" & cIdx)
-            Return ""
+            MessageBox.Show("ERROR JIDO btSQLiteCmdCreate:" & cIdx)
+            Return False
         End If
 
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteCmdSetCommandText(cIdx, sql)
         If ret <> 0 Then
-            setDBSQLErrorString()
+            setJidoSQLErrorString()
             MessageBox.Show(sqliteErrorString)
-            MessageBox.Show("ERROR M0500 btSQLiteCmdSetCommandText:" & ret & vbCr & vbLf & sql.ToString())
+            MessageBox.Show("ERROR JIDO btSQLiteCmdSetCommandText:" & ret & vbCr & vbLf & sql.ToString())
             GoTo FUNCEND
         End If
 
@@ -681,22 +715,10 @@ FUNCEND:
         Do
             ret = Bt.FileLib.SQLite.btSQLiteCmdRead(cIdx)
             If ret = 1 Then ' データあり
-
-                Dim data As IntPtr
-                data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
-                Dim ret2 As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 0, data, 8192)
-                If ret2 <> 0 Then
-                    MessageBox.Show("ERROR btSQLiteCmdGetValue:" & ret2)
-                    Marshal.FreeCoTaskMem(data)
-                    GoTo FUNCEND
-                End If
-                bucd = Marshal.PtrToStringUni(data)
-                Marshal.FreeCoTaskMem(data)
-
+                check = True
                 Exit Do
 
             ElseIf ret = 0 Then 'データが無くなったもしくは無い場合終了
-                bucd = "NotFound"
                 GoTo FUNCEND
 
             ElseIf ret < 0 Then
@@ -708,7 +730,53 @@ FUNCEND:
 
 FUNCEND:
         Bt.FileLib.SQLite.btSQLiteCmdDelete(cIdx)
-        Return bucd
+        Return check
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' 自動倉庫マスタチェック
+    '''//////////////////////////////////////////////////////////
+    Public Function checkJIDO(ByVal _BUCD As String, ByVal _HMCD As String) As Boolean
+        Dim check As Boolean = False
+
+        ' SQLite
+        Dim sql As New StringBuilder("SELECT * FROM pkdat WHERE " & _
+            "field1='" & _BUCD & "' and field2='" & _HMCD & "';")
+        Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(jidoIdx)
+        If cIdx <= 0 Then
+            MessageBox.Show("CmdCreate ERROR [shelfstock.pkdat]")
+            Return False
+        End If
+
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteCmdSetCommandText(cIdx, sql)
+        If ret <> 0 Then
+            setJidoSQLErrorString()
+            MessageBox.Show("CmdSetCommandText ERROR [shelfstock.pkdat]")
+            MessageBox.Show(sqliteErrorString)
+            GoTo FUNCEND
+        End If
+
+        ret = Bt.FileLib.SQLite.btSQLiteCmdExecuteReader(cIdx)
+        Do
+            ret = Bt.FileLib.SQLite.btSQLiteCmdRead(cIdx)
+            If ret = 1 Then ' データあり
+                check = True
+                Exit Do
+
+            ElseIf ret = 0 Then 'データが無くなったもしくは無い場合終了
+                checkJIDO = False
+                GoTo FUNCEND
+
+            ElseIf ret < 0 Then
+                MessageBox.Show("ERROR btSQLiteCmdRead:" & ret & vbCr & vbLf & sql.ToString())
+                GoTo FUNCEND
+
+            End If
+        Loop While ret = 1
+
+FUNCEND:
+        Bt.FileLib.SQLite.btSQLiteCmdDelete(cIdx)
+        Return check
     End Function
 
 End Module

@@ -1,5 +1,7 @@
-﻿Imports System.Threading
-Imports System.Runtime.InteropServices
+﻿Imports System.Text
+Imports Bt.CommLib
+Imports Bt.SysLib
+Imports Bt
 
 Public Class FormPoka5Tana
 
@@ -7,6 +9,8 @@ Public Class FormPoka5Tana
     Public Shared FormPoka5Instance As FormPoka5Tana
 
     Private Const PROCESS_EXIT_WAIT_TIME As Integer = 200
+    Private Const MASTER_PATH As String = "\FlashDisk\BT_FILES\drv1\"
+    Private Const SS_MASTER As String = "shelfstock.pkdat"
 
     Private Sub FormPoka5Tana_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
@@ -70,7 +74,82 @@ Public Class FormPoka5Tana
 
     ' F3キー
     Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
+        If MessageBox.Show("少々時間がかかります．" & vbCrLf & "実行してよろしいですか？", "マスターファイル受信", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) = DialogResult.OK Then
+            Dim frm As Form = New FormDialog()
+            frm.Show()
+            Call receiveShelfStock(frm)
+            frm.Close()
+        End If
+    End Sub
 
+    '************************************************************
+    ' ロケーションマスタ受信 (shelfstock.pkdat)
+    '************************************************************
+    Private Sub receiveShelfStock(ByRef frm As FormDialog)
+        Dim ret As Integer
+
+        ' 通信経路設定
+        frm.lblMessage.Text = "通信経路設定"
+        Dim route As UInt32 = LibDef.BT_COMM_DEVICE_USBCOM
+        ret = KProtocol2.btComm2SetDev(route)
+        If ret <> LibDef.BT_OK Then
+            MessageBox.Show("通信経路設定エラー: ret[" & ret & "]")
+            Exit Sub
+        End If
+
+        ' PCへコネクト (タイムアウト10秒、キャンセル＝Cキー)
+        frm.lblMessage.Text = "コネクト中"
+        ret = KProtocol2.btComm2Connect(10)
+        If ret <> LibDef.BT_OK Then
+            MessageBox.Show("PCへコネクトエラー: ret[" & ret & "]")
+            Exit Sub
+        End If
+
+        ' SQLite データベースクローズ
+        closeDB()
+
+        ' PCからファイルを受信 (タイムアウト10秒)
+        frm.lblMessage.Text = "マスタ受信中"
+        Dim localFile As StringBuilder
+        localFile = New StringBuilder(MASTER_PATH & SS_MASTER)
+        ret = KProtocol2.btComm2GetFile(New StringBuilder(SS_MASTER), localFile, 10)
+        If ret <> LibDef.BT_OK Then
+            Dim msg As String
+            Select Case ret
+                Case LibDef.BT_ERR_COMM_KP_FILENOTFOUND
+                    msg = "マスタファイルが見つかりません．" & vbCrLf & "[" & SS_MASTER & "]"
+                Case LibDef.BT_ERR_COMM_KP_CANCELED
+                    msg = "キャンセルされました．"
+                Case LibDef.BT_ERR_COMM_KP_INCOMPLETE
+                    msg = "処理が完了しませんでした．"
+                Case LibDef.BT_ERR_COMM_KP_NETDOWN
+                    msg = "通信経路が切断されました．" & vbCrLf & "（通信ユニット上に端末が無い等）"
+                Case LibDef.BT_ERR_COMM_KP_TIMEOUT
+                    msg = "タイムアウトしました (10秒)．"
+                Case Else
+                    msg = "PCファイルの受信に失敗しました: ret[" & ret & "]"
+            End Select
+            MessageBox.Show(msg)
+            Exit Sub
+        End If
+
+        ' SQLite 再オープン
+        frm.lblMessage.Text = "DB再オープン"
+        ret = openDB()
+        If ret <> 0 Then
+            MessageBox.Show("受信後のオープンに失敗しました:" & ret & vbCrLf & "処理を終了します")
+            Close()
+        End If
+
+        ' 切断
+        frm.lblMessage.Text = "切断中"
+        ret = KProtocol2.btComm2Disconnect(10)
+        If ret <> LibDef.BT_OK Then
+            MessageBox.Show("切断エラー: ret[" & ret & "]")
+            Exit Sub
+        End If
+
+        MessageBox.Show("マスタファイルを受信しました．")
     End Sub
 
     ' F4キー
@@ -85,14 +164,16 @@ Public Class FormPoka5Tana
     Private Sub txtClearAll()
         txtTANACD.Text = ""
         txtHMCD.Text = ""
-        txtBUCD.Text = ""
+        lblStatus.Text = ""
+        lblStatus.BackColor = Color.Silver
         lblCount.Text = getRecordCount(tblNamePoka5)
         txtTANACD.Focus()
     End Sub
 
     Private Sub txtClear()
         txtHMCD.Text = ""
-        txtBUCD.Text = ""
+        lblStatus.Text = ""
+        lblStatus.BackColor = Color.Silver
         lblCount.Text = getRecordCount(tblNamePoka5)
         txtHMCD.Focus()
     End Sub
@@ -109,8 +190,24 @@ Public Class FormPoka5Tana
         txtTANACD.BackColor = Color.Aqua
     End Sub
 
+    Private Sub txtTANACD_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTANACD.TextChanged
+        If txtTANACD.TextLength > 8 Then
+            txtTANACD.Text = Strings.Left(txtTANACD.Text, 8)
+            txtTANACD.SelectionStart = 8
+        End If
+    End Sub
+
     Private Sub txtTANACD_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTANACD.LostFocus
-        txtTANACD.BackColor = Color.White
+        If txtTANACD.Text = "" Then
+            txtTANACD.BackColor = Color.White
+        Else
+            If checkBUCD(txtTANACD.Text) Then
+                txtTANACD.BackColor = Color.White
+            Else
+                MessageBox.Show("棚番はマスタに存在しません．", "エラー")
+                txtTANACD.Focus()
+            End If
+        End If
     End Sub
 
     Private Sub txtTANACD_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtTANACD.KeyDown
@@ -151,14 +248,9 @@ Public Class FormPoka5Tana
             Case Keys.Back
                 If txtHMCD.Text = "" Then
                     txtTANACD.Focus()
-                Else
-                    txtBUCD.Text = ""
                 End If
 
             Case Keys.Enter
-
-                ' 前データクリア
-                txtBUCD.Text = ""
 
                 ' 入力チェック
                 If txtHMCD.Text = "" Then
@@ -178,22 +270,6 @@ Public Class FormPoka5Tana
                     Return
                 End If
 
-                ' 商品マスターを検索しローケーション番号を取得
-                Dim bucd As String = getBUCD(txtHMCD.Text)
-
-                ' 結果チェック
-                If bucd = "NotFound" Then
-                    MessageBox.Show("社内品番がマスターに存在しません")
-                    txtHMCD.Focus()
-                    Return
-                ElseIf bucd = "" Then
-                    MessageBox.Show("ロケーション番号が設定されていません")
-                    txtHMCD.Focus()
-                    Return
-                Else
-                    txtBUCD.Text = bucd
-                End If
-
                 ' ロケーション照合
                 Call Judge()
 
@@ -203,23 +279,16 @@ Public Class FormPoka5Tana
     ' ロケーション照合
     Private Sub Judge()
         Dim ret As Int32
-        Dim i As Int32 = txtTANACD.TextLength
-        Dim j As Int32 = txtBUCD.Text.Length
-        Dim isOK As Boolean = False
 
         ' 照合処理
-        If txtTANACD.Text = txtBUCD.Text Then
-
-            isOK = True
-
-        End If
+        Dim isOK As Boolean = checkJIDO(txtTANACD.Text, txtHMCD.Text)
 
         ' 照合結果出力
         Dim rec As DBTanaRecord
         rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
         rec.TANCD = txtTANCD.Text
         rec.HMCD = txtHMCD.Text
-        rec.BUCD = txtBUCD.Text
+        rec.BUCD = ""
         rec.TANACD = txtTANACD.Text
         If isOK Then
 
@@ -233,12 +302,15 @@ Public Class FormPoka5Tana
                 Return
             End If
 
-            ' OKダイアログ表示
-            Thread.Sleep(300)
-            MyDialogOK.ShowDialog()
+            Call MyDialogOK_Activated()
 
             ' 次の照合へ
             Call txtClear()
+
+            ' OKダイアログ表示
+            lblStatus.Text = "OK"
+            lblStatus.BackColor = Color.LimeGreen
+            lblStatus.ForeColor = Color.Snow
 
         Else ' 照合ERROR
 
@@ -253,11 +325,135 @@ Public Class FormPoka5Tana
             End If
 
             ' 照合エラー
-            MyDialogError.ShowDialog()
-            lblCount.Text = getRecordCount(tblNamePoka5)
-            txtHMCD.Focus()
+            Call MyDialogError_Activated()
 
+            lblCount.Text = getRecordCount(tblNamePoka5)
+
+            lblStatus.Text = "NG"
+            lblStatus.BackColor = Color.Red
+            lblStatus.ForeColor = Color.Yellow
+
+            txtHMCD.SelectionStart = 0
+            txtHMCD.SelectionLength = txtHMCD.TextLength
+            txtHMCD.Focus()
         End If
+    End Sub
+
+    Private Sub MyDialogOK_Activated()
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        ' ブザー制御構造体(Set)
+        ' 「500msオン、500msオフ」を3回繰り返す設定
+        Dim stBuzzerSet As New LibDef.BT_BUZZER_PARAM()
+        stBuzzerSet.dwOn = 100      ' 鳴動時間[ms] （1～5000）
+        stBuzzerSet.dwOff = 100     ' 停止時間[ms] （0～5000）
+        stBuzzerSet.dwCount = 1     ' 鳴動回数[回] （0～100）
+        stBuzzerSet.bTone = 16      ' 音階 （1～16）
+        stBuzzerSet.bVolume = 2     ' ブザー音量 （1～3）
+
+        ' バイブレータ制御構造体(Set)
+        ' 「500msオン、500msオフ」を3回繰り返す設定
+        Dim stVibSet As New LibDef.BT_VIBRATOR_PARAM()
+        stVibSet.dwOn = 500         ' 鳴動時間[ms] （1～5000）
+        stVibSet.dwOff = 500        ' 停止時間[ms] （0～5000）
+        stVibSet.dwCount = 1        ' 鳴動回数[回] （0～100）
+
+        ' LED制御構造体(Set)
+        ' 「500msオン、500msオフ」を3回繰り返す設定
+        Dim stLedSet As New LibDef.BT_LED_PARAM()
+        stLedSet.dwOn = 500         ' 鳴動時間[ms] （1～5000）
+        stLedSet.dwOff = 500        ' 停止時間[ms] （0～5000）
+        stLedSet.dwCount = 1        ' 鳴動回数[回] （0～100）
+        stLedSet.bColor = LibDef.BT_LED_GREEN ' 点灯色
+
+        Try
+            If FormMain.chkBuzzer.Checked Then ' 開発時ブザーは鳴らしたくない
+                ' btBuzzer 鳴動
+                ret = Device.btBuzzer(1, stBuzzerSet)
+                If ret <> LibDef.BT_OK Then
+                    disp = "btBuzzer error ret[" & ret & "]"
+                    MessageBox.Show(disp, "エラー")
+                    Return
+                End If
+            End If
+            ' btVibrator 鳴動
+            ret = Device.btVibrator(1, stVibSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btVibrator error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+            ' btLED 点灯
+            ret = Device.btLED(1, stLedSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btLED error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+
+    End Sub
+
+    Private Sub MyDialogError_Activated()
+
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        ' ブザー制御構造体(Set)
+        ' 「500msオン、500msオフ」を3回繰り返す設定
+        Dim stBuzzerSet As New LibDef.BT_BUZZER_PARAM()
+        stBuzzerSet.dwOn = 100      ' 鳴動時間[ms] （1～5000）
+        stBuzzerSet.dwOff = 100     ' 停止時間[ms] （0～5000）
+        stBuzzerSet.dwCount = 10    ' 鳴動回数[回] （0～100）
+        stBuzzerSet.bTone = 2       ' 音階 （1～16）
+        stBuzzerSet.bVolume = 3     ' ブザー音量 （1～3）
+
+        ' バイブレータ制御構造体(Set)
+        ' 「500msオン、500msオフ」を3回繰り返す設定
+        Dim stVibSet As New LibDef.BT_VIBRATOR_PARAM()
+        stVibSet.dwOn = 500         ' 鳴動時間[ms] （1～5000）
+        stVibSet.dwOff = 500        ' 停止時間[ms] （0～5000）
+        stVibSet.dwCount = 5        ' 鳴動回数[回] （0～100）
+
+        ' LED制御構造体(Set)
+        ' 「500msオン、500msオフ」を3回繰り返す設定
+        Dim stLedSet As New LibDef.BT_LED_PARAM()
+        stLedSet.dwOn = 500         ' 鳴動時間[ms] （1～5000）
+        stLedSet.dwOff = 500        ' 停止時間[ms] （0～5000）
+        stLedSet.dwCount = 5        ' 鳴動回数[回] （0～100）
+        stLedSet.bColor = LibDef.BT_LED_RED ' 点灯色
+
+        Try
+            ' btBuzzer 鳴動
+            If FormMain.chkBuzzer.Checked Then ' 開発時ブザーは鳴らしたくない
+                ret = Device.btBuzzer(1, stBuzzerSet)
+                If ret <> LibDef.BT_OK Then
+                    disp = "btBuzzer error ret[" & ret & "]"
+                    MessageBox.Show(disp, "エラー")
+                    Return
+                End If
+            End If
+            ' btVibrator 鳴動
+            ret = Device.btVibrator(1, stVibSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btVibrator error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+            ' btLED 点灯
+            ret = Device.btLED(1, stLedSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btLED error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+
     End Sub
 
 End Class
