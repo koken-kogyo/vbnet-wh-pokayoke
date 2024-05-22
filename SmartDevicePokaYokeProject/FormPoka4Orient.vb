@@ -6,13 +6,21 @@ Public Class FormPoka4Orient
     ' このWindowのインスタンス
     Public Shared FormPoka4Instance As FormPoka4Orient
 
-    Private Const PROCESS_EXIT_WAIT_TIME As Integer = 200
-    '--------------------------------------------------------------
-    ' DLLImport
-    '--------------------------------------------------------------
-    <DllImport("coredll.dll", EntryPoint:="DeleteObject")> _
-    Public Shared Function DeleteObject(ByVal hObject As IntPtr) As Boolean
-    End Function
+
+    Dim flgConfirm As Boolean = False
+
+    Private Sub FormPoka4Orient_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+
+        txtTANCD.Text = FormMain.txtTANCD.Text
+        txtClear()
+
+        ' フォーム上でキーダウンイベントを取得
+        Me.KeyPreview = True
+
+        ' インスタンス保持
+        FormPoka4Instance = Me
+
+    End Sub
 
     ' F1キー
     Private Sub btnF1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF1.Click
@@ -64,8 +72,10 @@ Public Class FormPoka4Orient
         lblHMCD.Text = ""
         txtTKHMCD.Text = ""
         lblTKHMCD.Text = ""
+        txtQTY.Text = "" ' 24.05.10 add y.w
         lblCount.Text = getRecordCount(tblNamePoka4)
         txtHMCD.Focus()
+        flgConfirm = False
     End Sub
 
     Private Sub FormPoka4Orient_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles MyBase.KeyDown
@@ -79,19 +89,6 @@ Public Class FormPoka4Orient
             Case Bt.LibDef.BT_VK_F4
                 Call btnF4_Click(sender, e)
         End Select
-    End Sub
-
-    Private Sub FormPoka4Orient_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-
-        txtTANCD.Text = FormMain.txtTANCD.Text
-        txtClear()
-
-        ' フォーム上でキーダウンイベントを取得
-        Me.KeyPreview = True
-
-        ' インスタンス保持
-        FormPoka4Instance = Me
-
     End Sub
 
     Private Sub txtHMCD_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtHMCD.GotFocus
@@ -129,7 +126,7 @@ Public Class FormPoka4Orient
     Private Sub txtHMCD_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtHMCD.KeyDown
         Select Case e.KeyCode
             Case System.Windows.Forms.Keys.Up
-                txtTKHMCD.Focus()
+                txtQTY.Focus() ' 24.05.10 mod y.w
             Case System.Windows.Forms.Keys.Down
                 txtTKHMCD.Focus()
             Case System.Windows.Forms.Keys.Enter
@@ -161,13 +158,12 @@ Public Class FormPoka4Orient
             Case System.Windows.Forms.Keys.Up
                 txtHMCD.Focus()
             Case System.Windows.Forms.Keys.Down
-                txtHMCD.Focus()
+                txtQTY.Focus() ' 24.05.10 mod y.w
             Case System.Windows.Forms.Keys.Back
                 If txtTKHMCD.Text = "" Then
                     txtHMCD.Focus()
                 End If
             Case System.Windows.Forms.Keys.Enter
-
                 If txtTANCD.Text = "" Then
                     MessageBox.Show("担当者ｺｰﾄﾞを確認してください")
                     Return
@@ -187,6 +183,79 @@ Public Class FormPoka4Orient
         End Select
     End Sub
 
+    Private Sub txtQTY_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtQTY.GotFocus
+        Dim modeSet As UInt32 = Bt.LibDef.BT_KEYINPUT_DIRECT
+        Dim ret As Int32 = Bt.SysLib.Display.btSetKeyCharacter(modeSet)
+        If ret <> 0 Then
+            MessageBox.Show("キー入力設定に失敗しました:" & ret)
+        End If
+
+        txtQTY.SelectionStart = 0
+        txtQTY.SelectionLength = txtQTY.TextLength
+        txtQTY.BackColor = Color.Aqua
+    End Sub
+
+    Private Sub txtQTY_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtQTY.KeyDown
+        Select Case e.KeyCode
+            Case System.Windows.Forms.Keys.Up
+                txtTKHMCD.Focus()
+            Case System.Windows.Forms.Keys.Down
+                txtHMCD.Focus()
+            Case System.Windows.Forms.Keys.Back
+                If txtQTY.Text = "" Then
+                    txtTKHMCD.Focus()
+                End If
+            Case System.Windows.Forms.Keys.Enter
+                If txtTANCD.Text = "" Then
+                    MessageBox.Show("担当者ｺｰﾄﾞを確認してください")
+                    Return
+                ElseIf txtHMCD.Text = "" Then
+                    MessageBox.Show("社内品番を入力してください")
+                    txtHMCD.Focus()
+                    Return
+                ElseIf txtTKHMCD.Text = "" Then
+                    MessageBox.Show("メーカー品番をスキャンしてください")
+                    txtTKHMCD.Focus()
+                    Return
+                ElseIf IsNumeric(txtQTY.Text) = False Then
+                    MessageBox.Show("数値を入力してください")
+                    txtQTY.Focus()
+                    Return
+                End If
+
+                ' 照合せず数量入力された場合に備える
+                If flgConfirm = False Then Call Judge()
+
+                ' 品番照合OKを出力 SQLite Insert
+                If flgConfirm Then
+                    Dim rec As DBPokaRecord
+                    Dim ret As Int32
+                    rec.MAKER = "ORIENT"
+                    rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
+                    rec.TANCD = txtTANCD.Text
+                    rec.HMCD = txtHMCD.Text
+                    rec.TKHMCD = txtTKHMCD.Text
+                    rec.QTY = txtQTY.Text
+                    rec.RESULT = "OK"
+                    ret = insertPokaX(tblNamePoka4, rec)
+                    If ret <> SQLITE_OK Then
+                        MessageBox.Show(sqliteErrorString & vbCrLf & _
+                            "データベースの登録に失敗しました" & vbCrLf & _
+                            "システム担当者に連絡してください")
+                        Return
+                    End If
+
+                    ' 次の照合へ
+                    Call txtClear()
+                End If
+
+        End Select
+    End Sub
+
+    Private Sub txtQTY_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtQTY.LostFocus
+        txtQTY.BackColor = Color.White
+    End Sub
+
     ' 品番照合
     ' lblHMCD(ハイフンが除去されたもの)とtxtTKHMCDを照合
     Private Sub Judge()
@@ -203,35 +272,25 @@ Public Class FormPoka4Orient
 
         End If
 
-        ' 照合結果出力
-        Dim rec As DBPokaRecord
-        rec.MAKER = "ORIENT"
-        rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
-        rec.TANCD = txtTANCD.Text
-        rec.HMCD = txtHMCD.Text
-        rec.TKHMCD = txtTKHMCD.Text
         If isOK Then
-
-            ' SQLite Insert
-            rec.RESULT = "OK"
-            ret = insertPokaX(tblNamePoka4, rec)
-            If ret <> SQLITE_OK Then
-                MessageBox.Show(sqliteErrorString & vbCrLf & _
-                    "データベースの登録に失敗しました" & vbCrLf & _
-                    "システム担当者に連絡してください")
-                Return
-            End If
 
             ' OKダイアログ表示
             Thread.Sleep(300)
             MyDialogOK.ShowDialog()
 
-            ' 次の照合へ
-            Call txtClear()
+            txtQTY.Focus()
+            flgConfirm = True
 
         Else ' 照合ERROR
 
-            ' SQLite Insert
+            ' 照合結果出力 SQLite Insert
+            Dim rec As DBPokaRecord
+            rec.MAKER = "ORIENT"
+            rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
+            rec.TANCD = txtTANCD.Text
+            rec.HMCD = txtHMCD.Text
+            rec.TKHMCD = txtTKHMCD.Text
+            rec.QTY = ""
             rec.RESULT = "NG"
             ret = insertPokaX(tblNamePoka4, rec)
             If ret <> SQLITE_OK Then
@@ -245,6 +304,8 @@ Public Class FormPoka4Orient
             MyDialogError.ShowDialog()
             lblCount.Text = getRecordCount(tblNamePoka4)
             txtTKHMCD.Focus()
+
+            flgConfirm = False
 
         End If
     End Sub

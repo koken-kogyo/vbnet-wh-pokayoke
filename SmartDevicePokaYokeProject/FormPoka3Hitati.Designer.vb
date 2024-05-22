@@ -33,6 +33,8 @@ Partial Public Class FormPoka3Hitati
         Me.lblCount = New System.Windows.Forms.Label
         Me.lblHMCD = New System.Windows.Forms.Label
         Me.lblTKHMCD = New System.Windows.Forms.Label
+        Me.txtQTY = New System.Windows.Forms.TextBox
+        Me.lblQTY = New System.Windows.Forms.Label
         Me.SuspendLayout()
         '
         'btnF4
@@ -92,50 +94,50 @@ Partial Public Class FormPoka3Hitati
         '
         'txtTKHMCD
         '
-        Me.txtTKHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 22.0!, System.Drawing.FontStyle.Regular)
-        Me.txtTKHMCD.Location = New System.Drawing.Point(11, 174)
+        Me.txtTKHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 20.0!, System.Drawing.FontStyle.Regular)
+        Me.txtTKHMCD.Location = New System.Drawing.Point(11, 162)
         Me.txtTKHMCD.Name = "txtTKHMCD"
-        Me.txtTKHMCD.Size = New System.Drawing.Size(216, 50)
+        Me.txtTKHMCD.Size = New System.Drawing.Size(216, 46)
         Me.txtTKHMCD.TabIndex = 127
         '
         'txtTANCD
         '
         Me.txtTANCD.BackColor = System.Drawing.SystemColors.ScrollBar
         Me.txtTANCD.Enabled = False
-        Me.txtTANCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
+        Me.txtTANCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
         Me.txtTANCD.Location = New System.Drawing.Point(138, 31)
         Me.txtTANCD.Name = "txtTANCD"
-        Me.txtTANCD.Size = New System.Drawing.Size(89, 42)
+        Me.txtTANCD.Size = New System.Drawing.Size(89, 34)
         Me.txtTANCD.TabIndex = 126
         '
         'lblTANCD
         '
         Me.lblTANCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
-        Me.lblTANCD.Location = New System.Drawing.Point(11, 39)
+        Me.lblTANCD.Location = New System.Drawing.Point(11, 33)
         Me.lblTANCD.Name = "lblTANCD"
         Me.lblTANCD.Size = New System.Drawing.Size(121, 29)
         Me.lblTANCD.Text = "担当者："
         '
         'txtHMCD
         '
-        Me.txtHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 22.0!, System.Drawing.FontStyle.Regular)
-        Me.txtHMCD.Location = New System.Drawing.Point(11, 95)
+        Me.txtHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 20.0!, System.Drawing.FontStyle.Regular)
+        Me.txtHMCD.Location = New System.Drawing.Point(11, 89)
         Me.txtHMCD.Name = "txtHMCD"
-        Me.txtHMCD.Size = New System.Drawing.Size(216, 50)
+        Me.txtHMCD.Size = New System.Drawing.Size(216, 46)
         Me.txtHMCD.TabIndex = 125
         '
         'lblTKHMCDTitle
         '
-        Me.lblTKHMCDTitle.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.lblTKHMCDTitle.Location = New System.Drawing.Point(11, 144)
+        Me.lblTKHMCDTitle.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
+        Me.lblTKHMCDTitle.Location = New System.Drawing.Point(11, 135)
         Me.lblTKHMCDTitle.Name = "lblTKHMCDTitle"
         Me.lblTKHMCDTitle.Size = New System.Drawing.Size(188, 33)
         Me.lblTKHMCDTitle.Text = "メーカー品番："
         '
         'lblHMCDTitle
         '
-        Me.lblHMCDTitle.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.lblHMCDTitle.Location = New System.Drawing.Point(11, 67)
+        Me.lblHMCDTitle.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
+        Me.lblHMCDTitle.Location = New System.Drawing.Point(11, 61)
         Me.lblHMCDTitle.Name = "lblHMCDTitle"
         Me.lblHMCDTitle.Size = New System.Drawing.Size(133, 35)
         Me.lblHMCDTitle.Text = "社内品番："
@@ -151,7 +153,8 @@ Partial Public Class FormPoka3Hitati
         '
         'lblHMCD
         '
-        Me.lblHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 11.0!, System.Drawing.FontStyle.Regular)
+        Me.lblHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 9.0!, System.Drawing.FontStyle.Regular)
+        Me.lblHMCD.ForeColor = System.Drawing.SystemColors.ControlDark
         Me.lblHMCD.Location = New System.Drawing.Point(11, 249)
         Me.lblHMCD.Name = "lblHMCD"
         Me.lblHMCD.Size = New System.Drawing.Size(171, 20)
@@ -159,11 +162,27 @@ Partial Public Class FormPoka3Hitati
         '
         'lblTKHMCD
         '
-        Me.lblTKHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 11.0!, System.Drawing.FontStyle.Regular)
-        Me.lblTKHMCD.Location = New System.Drawing.Point(11, 227)
+        Me.lblTKHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 9.0!, System.Drawing.FontStyle.Regular)
+        Me.lblTKHMCD.Location = New System.Drawing.Point(11, 267)
         Me.lblTKHMCD.Name = "lblTKHMCD"
         Me.lblTKHMCD.Size = New System.Drawing.Size(216, 20)
         Me.lblTKHMCD.Text = "xxxxxxxxxx"
+        '
+        'txtQTY
+        '
+        Me.txtQTY.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 20.0!, System.Drawing.FontStyle.Regular)
+        Me.txtQTY.Location = New System.Drawing.Point(162, 211)
+        Me.txtQTY.Name = "txtQTY"
+        Me.txtQTY.Size = New System.Drawing.Size(65, 46)
+        Me.txtQTY.TabIndex = 132
+        '
+        'lblQTY
+        '
+        Me.lblQTY.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
+        Me.lblQTY.Location = New System.Drawing.Point(95, 218)
+        Me.lblQTY.Name = "lblQTY"
+        Me.lblQTY.Size = New System.Drawing.Size(64, 29)
+        Me.lblQTY.Text = "数量："
         '
         'FormPoka3Hitati
         '
@@ -172,9 +191,10 @@ Partial Public Class FormPoka3Hitati
         Me.AutoScroll = True
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
+        Me.Controls.Add(Me.lblQTY)
+        Me.Controls.Add(Me.txtQTY)
         Me.Controls.Add(Me.lblCount)
         Me.Controls.Add(Me.lblHMCD)
-        Me.Controls.Add(Me.lblTKHMCD)
         Me.Controls.Add(Me.txtTKHMCD)
         Me.Controls.Add(Me.txtTANCD)
         Me.Controls.Add(Me.lblTANCD)
@@ -186,6 +206,7 @@ Partial Public Class FormPoka3Hitati
         Me.Controls.Add(Me.btnF3)
         Me.Controls.Add(Me.btnF2)
         Me.Controls.Add(Me.btnF1)
+        Me.Controls.Add(Me.lblTKHMCD)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.Name = "FormPoka3Hitati"
         Me.Text = "Form1"
@@ -206,4 +227,6 @@ Partial Public Class FormPoka3Hitati
     Friend WithEvents lblCount As System.Windows.Forms.Label
     Friend WithEvents lblHMCD As System.Windows.Forms.Label
     Friend WithEvents lblTKHMCD As System.Windows.Forms.Label
+    Friend WithEvents txtQTY As System.Windows.Forms.TextBox
+    Friend WithEvents lblQTY As System.Windows.Forms.Label
 End Class

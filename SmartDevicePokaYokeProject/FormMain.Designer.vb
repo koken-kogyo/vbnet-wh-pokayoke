@@ -44,11 +44,11 @@ Partial Public Class FormMain
         '
         'btnClose
         '
-        Me.btnClose.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.btnClose.Location = New System.Drawing.Point(14, 240)
+        Me.btnClose.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 16.0!, System.Drawing.FontStyle.Regular)
+        Me.btnClose.Location = New System.Drawing.Point(138, 240)
         Me.btnClose.Name = "btnClose"
-        Me.btnClose.Size = New System.Drawing.Size(140, 36)
-        Me.btnClose.TabIndex = 6
+        Me.btnClose.Size = New System.Drawing.Size(88, 36)
+        Me.btnClose.TabIndex = 7
         Me.btnClose.Text = "9.終了"
         '
         'lblTANCD
@@ -103,7 +103,7 @@ Partial Public Class FormMain
         Me.lblVersion.Location = New System.Drawing.Point(116, 276)
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(110, 22)
-        Me.lblVersion.Text = "ver 24.02.19"
+        Me.lblVersion.Text = "ver 24.05.10"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
         'chkBuzzer
@@ -141,12 +141,12 @@ Partial Public Class FormMain
         '
         'btnRestart
         '
-        Me.btnRestart.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 9.0!, System.Drawing.FontStyle.Regular)
-        Me.btnRestart.Location = New System.Drawing.Point(160, 240)
+        Me.btnRestart.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 16.0!, System.Drawing.FontStyle.Regular)
+        Me.btnRestart.Location = New System.Drawing.Point(14, 240)
         Me.btnRestart.Name = "btnRestart"
-        Me.btnRestart.Size = New System.Drawing.Size(66, 36)
-        Me.btnRestart.TabIndex = 7
-        Me.btnRestart.Text = "端末ﾘｾｯﾄ"
+        Me.btnRestart.Size = New System.Drawing.Size(118, 36)
+        Me.btnRestart.TabIndex = 6
+        Me.btnRestart.Text = "8.再起動"
         '
         'FormMain
         '

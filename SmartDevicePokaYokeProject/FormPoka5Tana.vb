@@ -8,7 +8,6 @@ Public Class FormPoka5Tana
     ' このWindowのインスタンス
     Public Shared FormPoka5Instance As FormPoka5Tana
 
-    Private Const PROCESS_EXIT_WAIT_TIME As Integer = 200
     Private Const MASTER_PATH As String = "\FlashDisk\BT_FILES\drv1\"
     Private Const SS_MASTER As String = "shelfstock.pkdat"
 
@@ -287,9 +286,8 @@ Public Class FormPoka5Tana
         Dim rec As DBTanaRecord
         rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
         rec.TANCD = txtTANCD.Text
-        rec.HMCD = txtHMCD.Text
-        rec.BUCD = ""
         rec.TANACD = txtTANACD.Text
+        rec.HMCD = txtHMCD.Text
         If isOK Then
 
             ' SQLite Insert

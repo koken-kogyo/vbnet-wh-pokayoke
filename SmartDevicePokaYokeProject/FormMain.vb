@@ -99,6 +99,8 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad8
+                btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -120,6 +122,8 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad8
+                btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -141,6 +145,8 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad8
+                btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -162,6 +168,8 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad8
+                btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -183,6 +191,8 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad8
+                btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
         End Select
@@ -223,7 +233,24 @@ Public Class FormMain
     End Sub
 
     Private Sub chkBuzzer_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles chkBuzzer.KeyDown
-        If e.KeyCode = Keys.Enter Then chkBuzzer.Checked = Not chkBuzzer.Checked
+        Select Case e.KeyCode
+            Case Keys.Enter
+                chkBuzzer.Checked = Not chkBuzzer.Checked
+            Case Keys.NumPad1
+                btnKUBOTA_Click(sender, e)
+            Case Keys.NumPad2
+                btnYANMAR_Click(sender, e)
+            Case Keys.NumPad3
+                btnHITATI_Click(sender, e)
+                'Case Keys.NumPad4
+                '    btnORIENT_Click(sender, e)
+            Case Keys.NumPad5
+                btnTANA_Click(sender, e)
+            Case Keys.NumPad8
+                btnRestart_Click(sender, e)
+            Case Keys.NumPad9
+                Me.Close()
+        End Select
     End Sub
 
     ' 端末リセット（レジームなしでマニュアルパワーオフ）

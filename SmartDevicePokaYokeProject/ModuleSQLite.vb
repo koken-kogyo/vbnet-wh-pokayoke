@@ -16,11 +16,11 @@ Module ModuleSQLite
     Private jidoFile As [String] = "shelfstock.pkdat"
     Public jidoIdx As Integer = 0
 
-    Public tblNamePoka1 As [String] = "Poka1"
-    Public tblNamePoka2 As [String] = "Poka2"
-    Public tblNamePoka3 As [String] = "Poka3"
-    Public tblNamePoka4 As [String] = "Poka4"
-    Public tblNamePoka5 As [String] = "Poka5"
+    Public tblNamePoka1 As [String] = "Poka1" ' クボタ照合履歴テーブル
+    Public tblNamePoka2 As [String] = "Poka2" ' ヤンマー照合履歴テーブル
+    Public tblNamePoka3 As [String] = "Poka3" ' 日立照合履歴テーブル
+    Public tblNamePoka4 As [String] = "Poka4" ' オリエント照合履歴テーブル
+    Public tblNamePoka5 As [String] = "Poka5" ' 棚番照合履歴テーブル
     Public itemMAKER As [String] = "メーカー"
     Public itemDATETIME As [String] = "照合日付"
     Public itemTANCD As [String] = "担当者"
@@ -28,6 +28,7 @@ Module ModuleSQLite
     Public itemTKHMCD As [String] = "社外品番"
     Public itemBUCD As [String] = "伝票棚番"
     Public itemTANACD As [String] = "倉庫棚番"
+    Public itemQTY As [String] = "数量" ' 24.05 add y.w
     Public itemRESULT As [String] = "照合結果"
 
     ' エラー詳細を保持
@@ -53,6 +54,7 @@ Module ModuleSQLite
         Public TANCD As String
         Public HMCD As String
         Public TKHMCD As String
+        Public QTY As String ' 24.05 追加 y.w
         Public RESULT As String
     End Structure
 
@@ -61,7 +63,6 @@ Module ModuleSQLite
         Public TANCD As String
         Public TANACD As String
         Public HMCD As String
-        Public BUCD As String
         Public RESULT As String
     End Structure
 
@@ -139,13 +140,13 @@ Module ModuleSQLite
     End Function
 
     '''//////////////////////////////////////////////////////////
-    ''' Create Table1
+    ''' Create Table1 クボタ照合履歴テーブル
     '''//////////////////////////////////////////////////////////
     Private Function createPoka1() As Int32
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemRESULT
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka1 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -155,13 +156,13 @@ Module ModuleSQLite
     End Function
 
     '''//////////////////////////////////////////////////////////
-    ''' Create Table2
+    ''' Create Table2 ヤンマー照合履歴テーブル
     '''//////////////////////////////////////////////////////////
     Private Function createPoka2() As Int32
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemRESULT
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka2 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -171,13 +172,13 @@ Module ModuleSQLite
     End Function
 
     '''//////////////////////////////////////////////////////////
-    ''' Create Table3
+    ''' Create Table3 日立照合履歴テーブル
     '''//////////////////////////////////////////////////////////
     Private Function createPoka3() As Int32
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemRESULT
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka3 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -187,13 +188,13 @@ Module ModuleSQLite
     End Function
 
     '''//////////////////////////////////////////////////////////
-    ''' Create Table4
+    ''' Create Table4 オリエント照合履歴テーブル
     '''//////////////////////////////////////////////////////////
     Private Function createPoka4() As Int32
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemRESULT
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka4 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -203,13 +204,13 @@ Module ModuleSQLite
     End Function
 
     '''//////////////////////////////////////////////////////////
-    ''' Create Table5
+    ''' Create Table5 棚番照合履歴テーブル
     '''//////////////////////////////////////////////////////////
     Private Function createPoka5() As Int32
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemDATETIME & ", " & itemTANCD & ", " & itemTANACD & "," & itemHMCD & ", " & itemBUCD & ", " & itemRESULT
+        Dim columns As [String] = itemDATETIME & ", " & itemTANCD & ", " & itemTANACD & "," & itemHMCD & ", " & itemRESULT
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka5 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -311,7 +312,7 @@ FUNCEND:
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim val As String = rec.MAKER & "', '" & rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.TKHMCD & "', '" & rec.RESULT
+        Dim val As String = rec.MAKER & "', '" & rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.TKHMCD & "', '" & rec.QTY & "', '" & rec.RESULT
         Dim sql As New StringBuilder("INSERT INTO " & tableName & " VALUES('" & val & "');")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -329,7 +330,7 @@ FUNCEND:
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim val As String = rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.TANACD & "', '" & rec.HMCD & "', '" & rec.BUCD & "', '" & rec.RESULT
+        Dim val As String = rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.TANACD & "', '" & rec.HMCD & "', '" & rec.RESULT
         Dim sql As New StringBuilder("INSERT INTO " & tableName & " VALUES('" & val & "');")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then

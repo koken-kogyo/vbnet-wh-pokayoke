@@ -6,9 +6,8 @@ Public Class FormPoka1Kubota
     ' このWindowのインスタンス
     Public Shared FormPoka1Instance As FormPoka1Kubota
 
-    Private Const PROCESS_EXIT_WAIT_TIME As Integer = 200
-
-    Dim flgSCAN As Boolean = False
+    Dim flgSCAN As Boolean = False ' 社内品番のキー入力禁止フラグ
+    Dim flgConfirm As Boolean = False ' 照合済みフラグ
 
     Private Sub FormPoka1Kubota_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
@@ -74,8 +73,10 @@ Public Class FormPoka1Kubota
         lblHMCD.Text = ""
         txtTKHMCD.Text = ""
         lblTKHMCD.Text = ""
+        txtQTY.Text = "" ' 24.05.10 add y.w
         lblCount.Text = getRecordCount(tblNamePoka1)
         txtHMCD.Focus()
+        flgConfirm = False
     End Sub
 
     Private Sub FormPoka1Kubota_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles MyBase.KeyDown
@@ -144,7 +145,7 @@ Public Class FormPoka1Kubota
     Private Sub txtHMCD_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtHMCD.KeyDown
         Select Case e.KeyCode
             Case System.Windows.Forms.Keys.Up
-                txtTKHMCD.Focus()
+                txtQTY.Focus() ' 24.05.10 mod y.w
             Case System.Windows.Forms.Keys.Down
                 txtTKHMCD.Focus()
             Case System.Windows.Forms.Keys.Enter
@@ -194,13 +195,12 @@ Public Class FormPoka1Kubota
             Case System.Windows.Forms.Keys.Up
                 txtHMCD.Focus()
             Case System.Windows.Forms.Keys.Down
-                txtHMCD.Focus()
+                txtQTY.Focus() ' 24.05.10 mod y.w
             Case System.Windows.Forms.Keys.Back
                 If txtTKHMCD.Text = "" Then
                     txtHMCD.Focus()
                 End If
             Case System.Windows.Forms.Keys.Enter
-
                 If txtTANCD.Text = "" Then
                     MessageBox.Show("担当者ｺｰﾄﾞを確認してください")
                     Return
@@ -218,6 +218,79 @@ Public Class FormPoka1Kubota
                 Call Judge()
 
         End Select
+    End Sub
+
+    Private Sub txtQTY_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtQTY.GotFocus
+        Dim modeSet As UInt32 = Bt.LibDef.BT_KEYINPUT_DIRECT
+        Dim ret As Int32 = Bt.SysLib.Display.btSetKeyCharacter(modeSet)
+        If ret <> 0 Then
+            MessageBox.Show("キー入力設定に失敗しました:" & ret)
+        End If
+
+        txtQTY.SelectionStart = 0
+        txtQTY.SelectionLength = txtQTY.TextLength
+        txtQTY.BackColor = Color.Aqua
+    End Sub
+
+    Private Sub txtQTY_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtQTY.KeyDown
+        Select Case e.KeyCode
+            Case System.Windows.Forms.Keys.Up
+                txtTKHMCD.Focus()
+            Case System.Windows.Forms.Keys.Down
+                txtHMCD.Focus()
+            Case System.Windows.Forms.Keys.Back
+                If txtQTY.Text = "" Then
+                    txtTKHMCD.Focus()
+                End If
+            Case System.Windows.Forms.Keys.Enter
+                If txtTANCD.Text = "" Then
+                    MessageBox.Show("担当者ｺｰﾄﾞを確認してください")
+                    Return
+                ElseIf txtHMCD.Text = "" Then
+                    MessageBox.Show("社内品番を入力してください")
+                    txtHMCD.Focus()
+                    Return
+                ElseIf txtTKHMCD.Text = "" Then
+                    MessageBox.Show("メーカー品番をスキャンしてください")
+                    txtTKHMCD.Focus()
+                    Return
+                ElseIf IsNumeric(txtQTY.Text) = False Then
+                    MessageBox.Show("数値を入力してください")
+                    txtQTY.Focus()
+                    Return
+                End If
+
+                ' 照合せず数量入力された場合に備える
+                If flgConfirm = False Then Call Judge()
+
+                ' 品番照合OKを出力 SQLite Insert
+                If flgConfirm Then
+                    Dim rec As DBPokaRecord
+                    Dim ret As Int32
+                    rec.MAKER = "KUBOTA"
+                    rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
+                    rec.TANCD = txtTANCD.Text
+                    rec.HMCD = txtHMCD.Text
+                    rec.TKHMCD = txtTKHMCD.Text
+                    rec.QTY = txtQTY.Text
+                    rec.RESULT = "OK"
+                    ret = insertPokaX(tblNamePoka1, rec)
+                    If ret <> SQLITE_OK Then
+                        MessageBox.Show(sqliteErrorString & vbCrLf & _
+                            "データベースの登録に失敗しました" & vbCrLf & _
+                            "システム担当者に連絡してください")
+                        Return
+                    End If
+
+                    ' 次の照合へ
+                    Call txtClear()
+                End If
+
+        End Select
+    End Sub
+
+    Private Sub txtQTY_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtQTY.LostFocus
+        txtQTY.BackColor = Color.White
     End Sub
 
     ' 品番照合
@@ -332,35 +405,25 @@ Public Class FormPoka1Kubota
             End If
         End If
 
-        ' 照合結果出力
-        Dim rec As DBPokaRecord
-        rec.MAKER = "KUBOTA"
-        rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
-        rec.TANCD = txtTANCD.Text
-        rec.HMCD = txtHMCD.Text
-        rec.TKHMCD = txtTKHMCD.Text
         If isOK Then
-
-            ' SQLite Insert
-            rec.RESULT = "OK"
-            ret = insertPokaX(tblNamePoka1, rec)
-            If ret <> SQLITE_OK Then
-                MessageBox.Show(sqliteErrorString & vbCrLf & _
-                    "データベースの登録に失敗しました" & vbCrLf & _
-                    "システム担当者に連絡してください")
-                Return
-            End If
 
             ' OKダイアログ表示
             Thread.Sleep(300)
             If isWN = False Then MyDialogOK.ShowDialog()
 
-            ' 次の照合へ
-            Call txtClear()
+            txtQTY.Focus()
+            flgConfirm = True
 
         Else ' 照合ERROR
 
-            ' SQLite Insert
+            ' 照合結果出力 SQLite Insert
+            Dim rec As DBPokaRecord
+            rec.MAKER = "KUBOTA"
+            rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
+            rec.TANCD = txtTANCD.Text
+            rec.HMCD = txtHMCD.Text
+            rec.TKHMCD = txtTKHMCD.Text
+            rec.QTY = ""
             rec.RESULT = "NG"
             ret = insertPokaX(tblNamePoka1, rec)
             If ret <> SQLITE_OK Then
@@ -374,6 +437,8 @@ Public Class FormPoka1Kubota
             If isWN = False Then MyDialogError.ShowDialog()
             lblCount.Text = getRecordCount(tblNamePoka1)
             txtTKHMCD.Focus()
+
+            flgConfirm = False
 
         End If
     End Sub
