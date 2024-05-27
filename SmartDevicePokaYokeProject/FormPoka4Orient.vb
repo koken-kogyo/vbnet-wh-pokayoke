@@ -73,6 +73,7 @@ Public Class FormPoka4Orient
         txtTKHMCD.Text = ""
         lblTKHMCD.Text = ""
         txtQTY.Text = "" ' 24.05.10 add y.w
+        lblHIASU.Text = "" '24.05.20 add y.w
         lblCount.Text = getRecordCount(tblNamePoka4)
         txtHMCD.Focus()
         flgConfirm = False
@@ -131,6 +132,25 @@ Public Class FormPoka4Orient
                 txtTKHMCD.Focus()
             Case System.Windows.Forms.Keys.Enter
                 If txtHMCD.Text <> "" Then
+                    Dim wSKHIASU As String = ""
+                    Dim wCOLOR As String = ""
+                    Dim wSU As String = ""
+                    Dim ret As Boolean
+                    lblHIASU.Text = ""
+                    ' 品目マスターチェック
+                    ret = getSKHIASU(txtHMCD.Text, wSKHIASU, wCOLOR, wSU)
+                    If ret And wSKHIASU <> "" Then
+
+                        ' ラベル表示
+                        lblHIASU.Text = wSKHIASU
+
+                        ' 色指定あり＆数が２本以上の場合、ポップアップ画面を出す
+                        If wCOLOR <> "" And Convert.ToInt32(wSU) > 1 Then
+                            Dim myDialog As MyDialogHIASU
+                            myDialog = New MyDialogHIASU(wSKHIASU, wCOLOR, wSU)
+                            myDialog.ShowDialog()
+                        End If
+                    End If
                     txtTKHMCD.Focus()
                 End If
         End Select

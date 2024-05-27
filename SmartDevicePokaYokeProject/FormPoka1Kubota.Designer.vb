@@ -37,6 +37,7 @@ Partial Public Class FormPoka1Kubota
         Me.chkTe = New System.Windows.Forms.CheckBox
         Me.lblQTY = New System.Windows.Forms.Label
         Me.txtQTY = New System.Windows.Forms.TextBox
+        Me.lblHIASU = New System.Windows.Forms.Label
         Me.SuspendLayout()
         '
         'btnF1
@@ -207,6 +208,15 @@ Partial Public Class FormPoka1Kubota
         Me.txtQTY.Size = New System.Drawing.Size(65, 46)
         Me.txtQTY.TabIndex = 145
         '
+        'lblHIASU
+        '
+        Me.lblHIASU.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 9.0!, System.Drawing.FontStyle.Regular)
+        Me.lblHIASU.ForeColor = System.Drawing.SystemColors.ControlDark
+        Me.lblHIASU.Location = New System.Drawing.Point(11, 219)
+        Me.lblHIASU.Name = "lblHIASU"
+        Me.lblHIASU.Size = New System.Drawing.Size(100, 20)
+        Me.lblHIASU.Text = "ｱｵ 5"
+        '
         'FormPoka1Kubota
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -232,6 +242,7 @@ Partial Public Class FormPoka1Kubota
         Me.Controls.Add(Me.lblTKHMCD)
         Me.Controls.Add(Me.lblTKHMCDTitle)
         Me.Controls.Add(Me.lblHMCDTitle)
+        Me.Controls.Add(Me.lblHIASU)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
         Me.Name = "FormPoka1Kubota"
         Me.ResumeLayout(False)
@@ -255,4 +266,5 @@ Partial Public Class FormPoka1Kubota
     Friend WithEvents chkTe As System.Windows.Forms.CheckBox
     Friend WithEvents lblQTY As System.Windows.Forms.Label
     Friend WithEvents txtQTY As System.Windows.Forms.TextBox
+    Friend WithEvents lblHIASU As System.Windows.Forms.Label
 End Class

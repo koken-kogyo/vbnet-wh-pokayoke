@@ -35,6 +35,7 @@ Partial Public Class FormPoka2Yanmar
         Me.lblTKHMCD = New System.Windows.Forms.Label
         Me.lblQTY = New System.Windows.Forms.Label
         Me.txtQTY = New System.Windows.Forms.TextBox
+        Me.lblHIASU = New System.Windows.Forms.Label
         Me.SuspendLayout()
         '
         'btnF4
@@ -184,6 +185,15 @@ Partial Public Class FormPoka2Yanmar
         Me.txtQTY.Size = New System.Drawing.Size(65, 46)
         Me.txtQTY.TabIndex = 133
         '
+        'lblHIASU
+        '
+        Me.lblHIASU.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 9.0!, System.Drawing.FontStyle.Regular)
+        Me.lblHIASU.ForeColor = System.Drawing.SystemColors.ControlDark
+        Me.lblHIASU.Location = New System.Drawing.Point(11, 219)
+        Me.lblHIASU.Name = "lblHIASU"
+        Me.lblHIASU.Size = New System.Drawing.Size(100, 20)
+        Me.lblHIASU.Text = "ｷ 10"
+        '
         'FormPoka2Yanmar
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -207,6 +217,7 @@ Partial Public Class FormPoka2Yanmar
         Me.Controls.Add(Me.btnF2)
         Me.Controls.Add(Me.btnF1)
         Me.Controls.Add(Me.lblTKHMCD)
+        Me.Controls.Add(Me.lblHIASU)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.Name = "FormPoka2Yanmar"
         Me.Text = "Form1"
@@ -229,4 +240,5 @@ Partial Public Class FormPoka2Yanmar
     Friend WithEvents lblTKHMCD As System.Windows.Forms.Label
     Friend WithEvents lblQTY As System.Windows.Forms.Label
     Friend WithEvents txtQTY As System.Windows.Forms.TextBox
+    Friend WithEvents lblHIASU As System.Windows.Forms.Label
 End Class

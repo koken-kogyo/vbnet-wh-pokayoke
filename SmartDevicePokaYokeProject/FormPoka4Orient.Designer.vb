@@ -35,6 +35,7 @@ Partial Public Class FormPoka4Orient
         Me.btnF2 = New System.Windows.Forms.Button
         Me.txtQTY = New System.Windows.Forms.TextBox
         Me.lblQTY = New System.Windows.Forms.Label
+        Me.lblHIASU = New System.Windows.Forms.Label
         Me.SuspendLayout()
         '
         'LabelMenu
@@ -184,6 +185,15 @@ Partial Public Class FormPoka4Orient
         Me.lblQTY.Size = New System.Drawing.Size(64, 29)
         Me.lblQTY.Text = "数量："
         '
+        'lblHIASU
+        '
+        Me.lblHIASU.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 9.0!, System.Drawing.FontStyle.Regular)
+        Me.lblHIASU.ForeColor = System.Drawing.SystemColors.ControlDark
+        Me.lblHIASU.Location = New System.Drawing.Point(11, 219)
+        Me.lblHIASU.Name = "lblHIASU"
+        Me.lblHIASU.Size = New System.Drawing.Size(100, 20)
+        Me.lblHIASU.Text = "ﾐﾄﾞ 5"
+        '
         'FormPoka4Orient
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -207,6 +217,7 @@ Partial Public Class FormPoka4Orient
         Me.Controls.Add(Me.btnF1)
         Me.Controls.Add(Me.LabelMenu)
         Me.Controls.Add(Me.lblTKHMCD)
+        Me.Controls.Add(Me.lblHIASU)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.Name = "FormPoka4Orient"
         Me.Text = "FormPoka4Orient"
@@ -229,4 +240,5 @@ Partial Public Class FormPoka4Orient
     Friend WithEvents btnF2 As System.Windows.Forms.Button
     Friend WithEvents txtQTY As System.Windows.Forms.TextBox
     Friend WithEvents lblQTY As System.Windows.Forms.Label
+    Friend WithEvents lblHIASU As System.Windows.Forms.Label
 End Class
