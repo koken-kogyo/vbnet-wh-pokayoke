@@ -289,8 +289,8 @@ Public Class FormMain
         Dim modeSet As UInt32 = BT_PW_RESET ' リセット（Warm ブート） 
 
         Try
-            ' If MessageBox.Show("サスペンドを実行してよろしいですか？", "パワーOFF(マニュアル)", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) = DialogResult.OK Then
-            If MessageBox.Show("端末リセットを実行してよろしいですか？", "パワーOFF(マニュアル)", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) = DialogResult.OK Then
+            'If MessageBox.Show("端末リセットを実行してよろしいですか？", "パワーOFF(マニュアル)", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MsgBoxStyle.DefaultButton1) = DialogResult.OK Then
+            If MessageBox.Show("再起動していいですか？", "パワーOFF(マニュアル)", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MsgBoxStyle.DefaultButton1) = Windows.Forms.DialogResult.Yes Then
 
                 '-----------------------------------------------------------
                 ' 設定

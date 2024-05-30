@@ -103,6 +103,12 @@
     <Compile Include="FormDialog.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FormPokaModify.Designer.vb">
+      <DependentUpon>FormPokaModify.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FormPokaModify.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MyDialogWarn.Designer.vb">
       <DependentUpon>MyDialogWarn.vb</DependentUpon>
     </Compile>
@@ -190,6 +196,9 @@
   <ItemGroup>
     <EmbeddedResource Include="FormDialog.resx">
       <DependentUpon>FormDialog.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormPokaModify.resx">
+      <DependentUpon>FormPokaModify.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyDialogWarn.resx">
       <DependentUpon>MyDialogWarn.vb</DependentUpon>

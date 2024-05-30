@@ -446,6 +446,7 @@ FUNCEND:
         dt.Columns.Add(New DataColumn("ID"))
         dt.Columns.Add(New DataColumn(itemDATETIME))
         dt.Columns.Add(New DataColumn(itemHMCD))
+        dt.Columns.Add(New DataColumn(itemQTY)) ' 24.05.30 add y.w
         dt.Columns.Add(New DataColumn(itemRESULT))
 
         If logIdx <= 0 Then
@@ -456,7 +457,7 @@ FUNCEND:
         End If
 
         ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
-        Dim sql As New StringBuilder("SELECT ROWID, strftime('%d日%H:%M', 照合日付), 社内品番, 照合結果 as 結 FROM " & tableName & " order by 照合日付 desc;")
+        Dim sql As New StringBuilder("SELECT ROWID, strftime('%d日%H:%M', 照合日付), 社内品番, 数量 as 数, 照合結果 as 結 FROM " & tableName & " order by 照合日付 desc;")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)
@@ -509,6 +510,54 @@ FUNCEND:
 
         Bt.FileLib.SQLite.btSQLiteCmdDelete(cIdx)
         selectPokaX = dt
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' Update
+    '''//////////////////////////////////////////////////////////
+    Public Function updatePokaXMeisai(ByVal tableName As String, ByVal _rowid As Integer, ByVal _qty As String) As Boolean
+        If logIdx <= 0 Then
+            Return False
+        End If
+        If checkTableExists(tableName) = False Then
+            Return False
+        End If
+
+        Dim sql As New StringBuilder("UPDATE " & tableName & " SET " & itemQTY & " = '" & _qty & "' WHERE ROWID = " & _rowid & ";")
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
+        If ret = 0 Then
+            Return True
+        Else
+            setSQLErrorString()
+            MessageBox.Show("更新失敗:" & ret & vbCr & vbLf & _
+                            sql.ToString() & vbCr & vbLf & _
+                            sqliteErrorString)
+            Return False
+        End If
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' Delete
+    '''//////////////////////////////////////////////////////////
+    Public Function deletePokaXMeisai(ByVal tableName As String, ByVal _rowid As Integer) As Boolean
+        If logIdx <= 0 Then
+            Return False
+        End If
+        If checkTableExists(tableName) = False Then
+            Return False
+        End If
+
+        Dim sql As New StringBuilder("DELETE FROM " & tableName & " WHERE ROWID = " & _rowid & ";")
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
+        If ret = 0 Then
+            Return True
+        Else
+            setSQLErrorString()
+            MessageBox.Show("削除失敗:" & ret & vbCr & vbLf & _
+                            sql.ToString() & vbCr & vbLf & _
+                            sqliteErrorString)
+            Return False
+        End If
     End Function
 
     '''//////////////////////////////////////////////////////////

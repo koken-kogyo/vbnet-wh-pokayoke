@@ -16,14 +16,25 @@ Public Class FormPokaHistory
     ' DataGrid1を操作
     Public totalRow As Int32
 
-    Public Sub New(ByVal val As String)
+    Public Sub New(ByVal _tablename As String)
 
         ' この呼び出しは、Windows フォーム デザイナで必要です。
         InitializeComponent()
 
         ' InitializeComponent() 呼び出しの後で初期化を追加します。
-        tableName = val
+        tableName = _tablename
 
+    End Sub
+
+    Private Sub FormPokaHistory_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Load
+
+        ' フォーム上でキーダウンイベントを取得
+        Me.KeyPreview = True
+
+        ' インスタンス保持
+        FormPokaHistInstance = Me
+
+        viewData()
     End Sub
 
     '''//////////////////////////////////////////////////////////
@@ -41,14 +52,16 @@ Public Class FormPokaHistory
         DataGrid1.TableStyles.Add(ts)
         DataGrid1.TableStyles(tableName).GridColumnStyles("ID").Width = -1
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemDATETIME).Width = 75
-        DataGrid1.TableStyles(tableName).GridColumnStyles(itemHMCD).Width = 120
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemHMCD).Width = 90
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemQTY).Width = 30
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemRESULT).Width = 20
 
         totalRow = getRecordCount(tableName)
         lblCount.Text = totalRow.ToString() & "件"
-        If totalRow > 0 Then
-            DataGrid1.CurrentCell = New DataGridCell(0, 0)
-        End If
+        'If totalRow > 0 Then
+        '    DataGrid1.CurrentCell = New DataGridCell(0, 0)
+        '    DataGrid1.CurrentRowIndex = 0
+        'End If
 
     End Sub
 
@@ -83,7 +96,7 @@ Public Class FormPokaHistory
 
     End Sub
 
-    ' F1キー
+    ' F1キー (戻る)
     Private Sub btnF1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF1.Click
         Close()
     End Sub
@@ -103,13 +116,14 @@ Public Class FormPokaHistory
         Dim VK_F1 As Integer = Bt.LibDef.BT_VK_F1 '&H70(112)
 
         If totalRow > 0 Then
+            DataGrid1.CurrentRowIndex = totalRow - 1 ' 一度最下行にしてから最上部にもってくる 24.05.30 add y.w
             DataGrid1.CurrentRowIndex = 0
             DataGrid1.Focus()
         End If
 
     End Sub
 
-    ' F3キー
+    ' F3キー (最終行へ移動)
     Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
         If totalRow > 0 Then
             DataGrid1.CurrentRowIndex = totalRow - 1
@@ -117,23 +131,22 @@ Public Class FormPokaHistory
         End If
     End Sub
 
-    ' F4キー
+    ' F4キー (削除)
     Private Sub btnF4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF4.Click
-        MessageBox.Show("まだ作成が追いついていません")
+        Dim row As Long = DataGrid1.CurrentRowIndex
+        If DataGrid1.IsSelected(row) = False Then
+            MessageBox.Show("削除する明細を選択してください．")
+            Exit Sub
+        End If
+        If MessageBox.Show("削除してもよろしいですか？", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton1) = Windows.Forms.DialogResult.Yes Then
+            If deletePokaXMeisai(tableName, DataGrid1(row, 0).ToString()) Then
+                viewData() ' OK時、データを取得し直してDataGrid1を再表示
+            End If
+        End If
     End Sub
 
     Private Sub FormPokaHistory_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles MyBase.KeyDown
         Select Case e.KeyValue
-            'Case Bt.LibDef.BT_VK_UP
-            '    If DataGrid1.CurrentRowIndex > 0 Then
-            '        DataGrid1.CurrentCell = New DataGridCell(DataGrid1.CurrentRowIndex - 1, 1)
-            '        e.Handled = True
-            '    End If
-            'Case Bt.LibDef.BT_VK_DOWN
-            '    If DataGrid1.CurrentRowIndex < totalRow - 1 Then
-            '        DataGrid1.CurrentCell = New DataGridCell(DataGrid1.CurrentRowIndex + 1, 1)
-            '        e.Handled = True
-            '    End If
             Case Bt.LibDef.BT_VK_F1
                 Call btnF1_Click(sender, e)
             Case Bt.LibDef.BT_VK_F2
@@ -143,17 +156,6 @@ Public Class FormPokaHistory
             Case Bt.LibDef.BT_VK_F4
                 Call btnF4_Click(sender, e)
         End Select
-    End Sub
-
-    Private Sub FormPokaHistory_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Load
-
-        ' フォーム上でキーダウンイベントを取得
-        Me.KeyPreview = True
-
-        ' インスタンス保持
-        FormPokaHistInstance = Me
-
-        viewData()
     End Sub
 
     ' CrrentCell変更時はSelectをコードで一旦消してから変更しないといけないみたい
@@ -167,4 +169,24 @@ Public Class FormPokaHistory
         End If
     End Sub
 
+    ' 数量変更
+    Private Sub DataGrid1_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles DataGrid1.KeyDown
+        Select e.KeyCode
+            Case System.Windows.Forms.Keys.Enter
+                Dim row As Long = DataGrid1.CurrentRowIndex
+                If DataGrid1.IsSelected(row) Then
+                    Dim rowid As Integer = Integer.Parse(DataGrid1(row, 0).ToString())
+                    Dim hmcd As String = DataGrid1(row, 2).ToString()
+                    Dim qty As String = DataGrid1(row, 3).ToString()
+                    Dim form As FormPokaModify = New FormPokaModify(tableName, rowid, hmcd, qty)
+                    Dim result = form.ShowDialog()
+                    If result = Windows.Forms.DialogResult.OK Then
+                        viewData()
+                        DataGrid1.CurrentRowIndex = row
+                        DataGrid1.Focus()
+                    End If
+                End If
+        End Select
+
+    End Sub
 End Class

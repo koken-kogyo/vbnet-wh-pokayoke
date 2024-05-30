@@ -57,7 +57,7 @@ Partial Public Class FormPokaHistory
         Me.btnF3.Name = "btnF3"
         Me.btnF3.Size = New System.Drawing.Size(62, 34)
         Me.btnF3.TabIndex = 114
-        Me.btnF3.Text = ">>"
+        Me.btnF3.Text = "↓"
         '
         'btnF2
         '
@@ -68,7 +68,7 @@ Partial Public Class FormPokaHistory
         Me.btnF2.Name = "btnF2"
         Me.btnF2.Size = New System.Drawing.Size(62, 34)
         Me.btnF2.TabIndex = 113
-        Me.btnF2.Text = "<<"
+        Me.btnF2.Text = "↑"
         '
         'btnF1
         '

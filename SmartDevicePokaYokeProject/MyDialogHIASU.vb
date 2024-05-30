@@ -89,19 +89,19 @@ Public Class MyDialogHIASU
             Case "ｱｶ"
                 txtHIASU.BackColor = Color.Red
                 txtHIASU.ForeColor = Color.Yellow
-            Case "ｱｵ"
+            Case "ｱｵ", "ｱｵﾑﾗ"
                 txtHIASU.BackColor = Color.Blue
                 txtHIASU.ForeColor = Color.Yellow
-            Case "ﾑﾗｻｷ", "ﾑﾗ"
+            Case "ﾑﾗｻｷ", "ﾑﾗ", "ﾑﾗﾑﾗ"
                 txtHIASU.BackColor = Color.MediumOrchid
                 txtHIASU.ForeColor = Color.Yellow
-            Case "ﾐﾄﾞﾘ", "ﾐﾄﾞ"
+            Case "ﾐﾄﾞﾘ", "ﾐﾄﾞ", "ﾐﾄﾞﾑﾗ"
                 txtHIASU.BackColor = Color.ForestGreen
                 txtHIASU.ForeColor = Color.Gold
-            Case "ｼﾛ"
+            Case "ｼﾛ", "ｼﾛﾑﾗ"
                 txtHIASU.BackColor = Color.White
                 txtHIASU.ForeColor = Color.Gray
-            Case "ｷｲﾛ", "ｷ"
+            Case "ｷｲﾛ", "ｷ", "ｷﾑﾗ"
                 txtHIASU.BackColor = Color.Yellow
                 txtHIASU.ForeColor = Color.Red
             Case "ﾋﾟﾝｸ"

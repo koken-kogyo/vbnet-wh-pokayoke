@@ -57,10 +57,11 @@ Public Class FormPoka1Kubota
 
     End Sub
 
-    ' F3キー
+    ' F3キー (履歴表示)
     Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
         Dim frm As Form = New FormPokaHistory(tblNamePoka1)
-        frm.Show()
+        frm.ShowDialog()
+        lblCount.Text = getRecordCount(tblNamePoka1) ' 24.05.30 add y.w
     End Sub
 
     ' F4キー
