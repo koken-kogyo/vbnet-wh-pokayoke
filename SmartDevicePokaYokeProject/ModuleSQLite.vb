@@ -456,8 +456,8 @@ FUNCEND:
             Return dt
         End If
 
-        ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
-        Dim sql As New StringBuilder("SELECT ROWID, strftime('%d日%H:%M', 照合日付), 社内品番, 数量 as 数, 照合結果 as 結 FROM " & tableName & " order by 照合日付 desc;")
+        ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付 (旧：'%d日%H:%M')DataGrid列タイトルは[as ...]では変わらなかった
+        Dim sql As New StringBuilder("SELECT ROWID, strftime('%H%M', 照合日付), 社内品番, 数量, 照合結果 FROM " & tableName & " order by 照合日付 desc;")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)

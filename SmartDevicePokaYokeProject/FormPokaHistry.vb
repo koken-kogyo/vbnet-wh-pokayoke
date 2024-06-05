@@ -51,9 +51,13 @@ Public Class FormPokaHistory
         ts.MappingName = tableName
         DataGrid1.TableStyles.Add(ts)
         DataGrid1.TableStyles(tableName).GridColumnStyles("ID").Width = -1
-        DataGrid1.TableStyles(tableName).GridColumnStyles(itemDATETIME).Width = 75
-        DataGrid1.TableStyles(tableName).GridColumnStyles(itemHMCD).Width = 90
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemDATETIME).HeaderText = "時刻"
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemDATETIME).Width = 45
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemHMCD).HeaderText = "社内品番"
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemHMCD).Width = 120
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemQTY).HeaderText = "数"
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemQTY).Width = 30
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemRESULT).HeaderText = "結"
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemRESULT).Width = 20
 
         totalRow = getRecordCount(tableName)

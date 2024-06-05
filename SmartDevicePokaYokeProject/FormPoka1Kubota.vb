@@ -173,7 +173,7 @@ Public Class FormPoka1Kubota
                     End If
                     txtTKHMCD.Focus()
                 End If
-            Case 153 'SCAN
+            Case 152, 153 'サイドボタンVK_TRG:0x98(152)、SCAN:VK_CTRG:0x99(153)ボタン 24.05.31 mod y.w
                 flgSCAN = True
             Case Keys.NumPad0 To Keys.NumPad9   ' テンキーの0～9
                 flgSCAN = False

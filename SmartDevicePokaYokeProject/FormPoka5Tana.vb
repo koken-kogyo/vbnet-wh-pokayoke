@@ -1,4 +1,5 @@
 ﻿Imports System.Text
+Imports System.Threading
 Imports Bt.CommLib
 Imports Bt.SysLib
 Imports Bt
@@ -73,7 +74,7 @@ Public Class FormPoka5Tana
 
     ' F3キー
     Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
-        If MessageBox.Show("少々時間がかかります．" & vbCrLf & "実行してよろしいですか？", "マスターファイル受信", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) = DialogResult.OK Then
+        If MessageBox.Show("少々時間がかかります．" & vbCrLf & "実行してよろしいですか？", "マスターファイル受信", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MsgBoxStyle.DefaultButton1) = DialogResult.Yes Then
             Dim frm As Form = New FormDialog()
             frm.Show()
             Call receiveShelfStock(frm)
@@ -300,15 +301,17 @@ Public Class FormPoka5Tana
                 Return
             End If
 
-            Call MyDialogOK_Activated()
+            ' OKダイアログ表示
+            Thread.Sleep(300)
+            MyDialogOK.ShowDialog()
+            'Call MyDialogOK_Activated()
+
+            'lblStatus.Text = "OK"
+            'lblStatus.BackColor = Color.LimeGreen
+            'lblStatus.ForeColor = Color.Snow
 
             ' 次の照合へ
             Call txtClear()
-
-            ' OKダイアログ表示
-            lblStatus.Text = "OK"
-            lblStatus.BackColor = Color.LimeGreen
-            lblStatus.ForeColor = Color.Snow
 
         Else ' 照合ERROR
 
@@ -322,14 +325,15 @@ Public Class FormPoka5Tana
                 Return
             End If
 
-            ' 照合エラー
-            Call MyDialogError_Activated()
-
             lblCount.Text = getRecordCount(tblNamePoka5)
 
-            lblStatus.Text = "NG"
-            lblStatus.BackColor = Color.Red
-            lblStatus.ForeColor = Color.Yellow
+            ' 照合エラー
+            MyDialogError.ShowDialog()
+            'Call MyDialogError_Activated()
+
+            'lblStatus.Text = "NG"
+            'lblStatus.BackColor = Color.Red
+            'lblStatus.ForeColor = Color.Yellow
 
             txtHMCD.SelectionStart = 0
             txtHMCD.SelectionLength = txtHMCD.TextLength
