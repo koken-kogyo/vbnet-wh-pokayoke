@@ -15,13 +15,14 @@ Public Class FormPoka5Tana
     Private Sub FormPoka5Tana_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
         txtTANCD.Text = FormMain.txtTANCD.Text
-        txtClearAll()
 
         ' フォーム上でキーダウンイベントを取得
         Me.KeyPreview = True
 
         ' インスタンス保持
         FormPoka5Instance = Me
+
+        txtClear()
 
     End Sub
 
@@ -154,73 +155,14 @@ Public Class FormPoka5Tana
 
     ' F4キー
     Private Sub btnF4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF4.Click
-        If txtHMCD.Text <> "" Then
-            Call txtClear()
-        Else
-            Call txtClearAll()
-        End If
-    End Sub
-
-    Private Sub txtClearAll()
-        txtTANACD.Text = ""
-        txtHMCD.Text = ""
-        lblStatus.Text = ""
-        lblStatus.BackColor = Color.Silver
-        lblCount.Text = getRecordCount(tblNamePoka5)
-        txtTANACD.Focus()
+        Call txtClear()
     End Sub
 
     Private Sub txtClear()
         txtHMCD.Text = ""
-        lblStatus.Text = ""
-        lblStatus.BackColor = Color.Silver
+        txtTANACD.Text = ""
         lblCount.Text = getRecordCount(tblNamePoka5)
         txtHMCD.Focus()
-    End Sub
-
-    Private Sub txtTANACD_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTANACD.GotFocus
-        Dim modeSet As UInt32 = Bt.LibDef.BT_KEYINPUT_DIRECT
-        Dim ret As Int32 = Bt.SysLib.Display.btSetKeyCharacter(modeSet)
-        If ret <> 0 Then
-            MessageBox.Show("キー入力設定に失敗しました:" & ret)
-        End If
-        'Call setScanProperty(2) ' Code系, JAN系 のみ読み取り可能に設定
-        txtTANACD.SelectionStart = 0
-        txtTANACD.SelectionLength = txtTANACD.TextLength
-        txtTANACD.BackColor = Color.Aqua
-    End Sub
-
-    Private Sub txtTANACD_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTANACD.TextChanged
-        If txtTANACD.TextLength > 8 Then
-            txtTANACD.Text = Strings.Left(txtTANACD.Text, 8)
-            txtTANACD.SelectionStart = 8
-        End If
-    End Sub
-
-    Private Sub txtTANACD_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTANACD.LostFocus
-        If txtTANACD.Text = "" Then
-            txtTANACD.BackColor = Color.White
-        Else
-            If checkBUCD(txtTANACD.Text) Then
-                txtTANACD.BackColor = Color.White
-            Else
-                MessageBox.Show("棚番はマスタに存在しません．", "エラー")
-                txtTANACD.Focus()
-            End If
-        End If
-    End Sub
-
-    Private Sub txtTANACD_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtTANACD.KeyDown
-        Select Case e.KeyCode
-            Case System.Windows.Forms.Keys.Up
-                txtHMCD.Focus()
-            Case System.Windows.Forms.Keys.Down
-                txtHMCD.Focus()
-            Case System.Windows.Forms.Keys.Enter
-                If txtTANACD.Text <> "" Then
-                    txtHMCD.Focus()
-                End If
-        End Select
     End Sub
 
     Private Sub txtHMCD_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtHMCD.GotFocus
@@ -245,28 +187,66 @@ Public Class FormPoka5Tana
                 txtTANACD.Focus()
             Case Keys.Down
                 txtTANACD.Focus()
-            Case Keys.Back
-                If txtHMCD.Text = "" Then
-                    txtTANACD.Focus()
-                End If
-
             Case Keys.Enter
+                txtTANACD.Focus()
+        End Select
+    End Sub
 
+    Private Sub txtTANACD_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTANACD.GotFocus
+        Dim modeSet As UInt32 = Bt.LibDef.BT_KEYINPUT_DIRECT
+        Dim ret As Int32 = Bt.SysLib.Display.btSetKeyCharacter(modeSet)
+        If ret <> 0 Then
+            MessageBox.Show("キー入力設定に失敗しました:" & ret)
+        End If
+        'Call setScanProperty(2) ' Code系, JAN系 のみ読み取り可能に設定
+        txtTANACD.SelectionStart = 0
+        txtTANACD.SelectionLength = txtTANACD.TextLength
+        txtTANACD.BackColor = Color.Aqua
+    End Sub
+
+    Private Sub txtTANACD_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTANACD.TextChanged
+        If txtTANACD.TextLength > 8 Then
+            txtTANACD.Text = Strings.Left(txtTANACD.Text, 8)
+            txtTANACD.SelectionStart = 8
+        End If
+    End Sub
+
+    Private Sub txtTANACD_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtTANACD.LostFocus
+        txtTANACD.BackColor = Color.White
+    End Sub
+
+    Private Sub txtTANACD_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtTANACD.KeyDown
+        Select Case e.KeyCode
+            Case System.Windows.Forms.Keys.Up
+                txtHMCD.Focus()
+            Case System.Windows.Forms.Keys.Down
+                txtHMCD.Focus()
+            Case System.Windows.Forms.Keys.Enter
                 ' 入力チェック
+                If checkBUCD(txtTANACD.Text) = False Then
+                    MessageBox.Show("この倉庫棚番は" & vbCrLf & _
+                                    "マスタに存在しません．" & vbCrLf & _
+                                    "shelfstock ファイルを" & vbCrLf & "確認してください．", "エラー", _
+                                    MessageBoxButtons.OK, _
+                                    MessageBoxIcon.Exclamation, _
+                                    MessageBoxDefaultButton.Button1)
+                    txtTANACD.Focus()
+                    Return
+                End If
                 If txtHMCD.Text = "" Then
-                    'MessageBox.Show("社内品番をスキャンして下さい")
-                    'txtHMCD.Focus()
+                    MessageBox.Show("社内品番をスキャンして下さい")
+                    txtHMCD.Focus()
+                    Return
+                ElseIf txtHMCD.TextLength > 24 Then
+                    MessageBox.Show("正しい社内品番を読み取ってください")
+                    txtHMCD.Focus()
                     Return
                 ElseIf txtTANCD.Text = "" Then
                     MessageBox.Show("担当者ｺｰﾄﾞを確認してください")
                     Return
                 ElseIf txtTANACD.Text = "" Then
-                    MessageBox.Show("先に倉庫棚番をスキャンしてください")
+                    MessageBox.Show("倉庫棚番をスキャンしてください")
                     txtTANACD.Focus()
-                    Return
-                ElseIf txtHMCD.TextLength > 24 Then
-                    MessageBox.Show("正しい社内品番を読み取ってください")
-                    txtHMCD.Focus()
                     Return
                 End If
 
@@ -304,11 +284,6 @@ Public Class FormPoka5Tana
             ' OKダイアログ表示
             Thread.Sleep(300)
             MyDialogOK.ShowDialog()
-            'Call MyDialogOK_Activated()
-
-            'lblStatus.Text = "OK"
-            'lblStatus.BackColor = Color.LimeGreen
-            'lblStatus.ForeColor = Color.Snow
 
             ' 次の照合へ
             Call txtClear()
@@ -329,133 +304,11 @@ Public Class FormPoka5Tana
 
             ' 照合エラー
             MyDialogError.ShowDialog()
-            'Call MyDialogError_Activated()
-
-            'lblStatus.Text = "NG"
-            'lblStatus.BackColor = Color.Red
-            'lblStatus.ForeColor = Color.Yellow
 
             txtHMCD.SelectionStart = 0
             txtHMCD.SelectionLength = txtHMCD.TextLength
             txtHMCD.Focus()
         End If
-    End Sub
-
-    Private Sub MyDialogOK_Activated()
-        Dim ret As Int32 = 0
-        Dim disp As [String] = ""
-
-        ' ブザー制御構造体(Set)
-        ' 「500msオン、500msオフ」を3回繰り返す設定
-        Dim stBuzzerSet As New LibDef.BT_BUZZER_PARAM()
-        stBuzzerSet.dwOn = 100      ' 鳴動時間[ms] （1～5000）
-        stBuzzerSet.dwOff = 100     ' 停止時間[ms] （0～5000）
-        stBuzzerSet.dwCount = 1     ' 鳴動回数[回] （0～100）
-        stBuzzerSet.bTone = 16      ' 音階 （1～16）
-        stBuzzerSet.bVolume = 2     ' ブザー音量 （1～3）
-
-        ' バイブレータ制御構造体(Set)
-        ' 「500msオン、500msオフ」を3回繰り返す設定
-        Dim stVibSet As New LibDef.BT_VIBRATOR_PARAM()
-        stVibSet.dwOn = 500         ' 鳴動時間[ms] （1～5000）
-        stVibSet.dwOff = 500        ' 停止時間[ms] （0～5000）
-        stVibSet.dwCount = 1        ' 鳴動回数[回] （0～100）
-
-        ' LED制御構造体(Set)
-        ' 「500msオン、500msオフ」を3回繰り返す設定
-        Dim stLedSet As New LibDef.BT_LED_PARAM()
-        stLedSet.dwOn = 500         ' 鳴動時間[ms] （1～5000）
-        stLedSet.dwOff = 500        ' 停止時間[ms] （0～5000）
-        stLedSet.dwCount = 1        ' 鳴動回数[回] （0～100）
-        stLedSet.bColor = LibDef.BT_LED_GREEN ' 点灯色
-
-        Try
-            If FormMain.chkBuzzer.Checked Then ' 開発時ブザーは鳴らしたくない
-                ' btBuzzer 鳴動
-                ret = Device.btBuzzer(1, stBuzzerSet)
-                If ret <> LibDef.BT_OK Then
-                    disp = "btBuzzer error ret[" & ret & "]"
-                    MessageBox.Show(disp, "エラー")
-                    Return
-                End If
-            End If
-            ' btVibrator 鳴動
-            ret = Device.btVibrator(1, stVibSet)
-            If ret <> LibDef.BT_OK Then
-                disp = "btVibrator error ret[" & ret & "]"
-                MessageBox.Show(disp, "エラー")
-                Return
-            End If
-            ' btLED 点灯
-            ret = Device.btLED(1, stLedSet)
-            If ret <> LibDef.BT_OK Then
-                disp = "btLED error ret[" & ret & "]"
-                MessageBox.Show(disp, "エラー")
-                Return
-            End If
-        Catch ex As Exception
-            MessageBox.Show(ex.ToString())
-        End Try
-
-    End Sub
-
-    Private Sub MyDialogError_Activated()
-
-        Dim ret As Int32 = 0
-        Dim disp As [String] = ""
-
-        ' ブザー制御構造体(Set)
-        ' 「500msオン、500msオフ」を3回繰り返す設定
-        Dim stBuzzerSet As New LibDef.BT_BUZZER_PARAM()
-        stBuzzerSet.dwOn = 100      ' 鳴動時間[ms] （1～5000）
-        stBuzzerSet.dwOff = 100     ' 停止時間[ms] （0～5000）
-        stBuzzerSet.dwCount = 10    ' 鳴動回数[回] （0～100）
-        stBuzzerSet.bTone = 2       ' 音階 （1～16）
-        stBuzzerSet.bVolume = 3     ' ブザー音量 （1～3）
-
-        ' バイブレータ制御構造体(Set)
-        ' 「500msオン、500msオフ」を3回繰り返す設定
-        Dim stVibSet As New LibDef.BT_VIBRATOR_PARAM()
-        stVibSet.dwOn = 500         ' 鳴動時間[ms] （1～5000）
-        stVibSet.dwOff = 500        ' 停止時間[ms] （0～5000）
-        stVibSet.dwCount = 5        ' 鳴動回数[回] （0～100）
-
-        ' LED制御構造体(Set)
-        ' 「500msオン、500msオフ」を3回繰り返す設定
-        Dim stLedSet As New LibDef.BT_LED_PARAM()
-        stLedSet.dwOn = 500         ' 鳴動時間[ms] （1～5000）
-        stLedSet.dwOff = 500        ' 停止時間[ms] （0～5000）
-        stLedSet.dwCount = 5        ' 鳴動回数[回] （0～100）
-        stLedSet.bColor = LibDef.BT_LED_RED ' 点灯色
-
-        Try
-            ' btBuzzer 鳴動
-            If FormMain.chkBuzzer.Checked Then ' 開発時ブザーは鳴らしたくない
-                ret = Device.btBuzzer(1, stBuzzerSet)
-                If ret <> LibDef.BT_OK Then
-                    disp = "btBuzzer error ret[" & ret & "]"
-                    MessageBox.Show(disp, "エラー")
-                    Return
-                End If
-            End If
-            ' btVibrator 鳴動
-            ret = Device.btVibrator(1, stVibSet)
-            If ret <> LibDef.BT_OK Then
-                disp = "btVibrator error ret[" & ret & "]"
-                MessageBox.Show(disp, "エラー")
-                Return
-            End If
-            ' btLED 点灯
-            ret = Device.btLED(1, stLedSet)
-            If ret <> LibDef.BT_OK Then
-                disp = "btLED error ret[" & ret & "]"
-                MessageBox.Show(disp, "エラー")
-                Return
-            End If
-        Catch ex As Exception
-            MessageBox.Show(ex.ToString())
-        End Try
-
     End Sub
 
 End Class

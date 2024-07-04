@@ -31,8 +31,6 @@ Partial Public Class FormPoka5Tana
         Me.btnF3 = New System.Windows.Forms.Button
         Me.btnF2 = New System.Windows.Forms.Button
         Me.lblTANCD = New System.Windows.Forms.Label
-        Me.lblStatus = New System.Windows.Forms.Label
-        Me.Label1 = New System.Windows.Forms.Label
         Me.SuspendLayout()
         '
         'LabelMenu
@@ -90,32 +88,32 @@ Partial Public Class FormPoka5Tana
         'txtTANACD
         '
         Me.txtTANACD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 20.0!, System.Drawing.FontStyle.Regular)
-        Me.txtTANACD.Location = New System.Drawing.Point(103, 79)
+        Me.txtTANACD.Location = New System.Drawing.Point(11, 179)
         Me.txtTANACD.Name = "txtTANACD"
         Me.txtTANACD.Size = New System.Drawing.Size(124, 46)
-        Me.txtTANACD.TabIndex = 0
+        Me.txtTANACD.TabIndex = 1
         Me.txtTANACD.Text = "01-10-10"
         '
         'txtHMCD
         '
         Me.txtHMCD.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 20.0!, System.Drawing.FontStyle.Regular)
-        Me.txtHMCD.Location = New System.Drawing.Point(11, 144)
+        Me.txtHMCD.Location = New System.Drawing.Point(11, 104)
         Me.txtHMCD.Name = "txtHMCD"
         Me.txtHMCD.Size = New System.Drawing.Size(216, 46)
-        Me.txtHMCD.TabIndex = 1
+        Me.txtHMCD.TabIndex = 0
         '
         'lblTKHMCDTitle
         '
         Me.lblTKHMCDTitle.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
-        Me.lblTKHMCDTitle.Location = New System.Drawing.Point(8, 86)
+        Me.lblTKHMCDTitle.Location = New System.Drawing.Point(11, 154)
         Me.lblTKHMCDTitle.Name = "lblTKHMCDTitle"
-        Me.lblTKHMCDTitle.Size = New System.Drawing.Size(113, 32)
+        Me.lblTKHMCDTitle.Size = New System.Drawing.Size(113, 30)
         Me.lblTKHMCDTitle.Text = "倉庫棚番："
         '
         'lblHMCDTitle
         '
         Me.lblHMCDTitle.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
-        Me.lblHMCDTitle.Location = New System.Drawing.Point(8, 118)
+        Me.lblHMCDTitle.Location = New System.Drawing.Point(8, 80)
         Me.lblHMCDTitle.Name = "lblHMCDTitle"
         Me.lblHMCDTitle.Size = New System.Drawing.Size(121, 35)
         Me.lblHMCDTitle.Text = "社内品番："
@@ -151,29 +149,6 @@ Partial Public Class FormPoka5Tana
         Me.lblTANCD.Size = New System.Drawing.Size(121, 29)
         Me.lblTANCD.Text = "担当者："
         '
-        'lblStatus
-        '
-        Me.lblStatus.BackColor = System.Drawing.Color.LimeGreen
-        Me.lblStatus.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 44.0!, System.Drawing.FontStyle.Regular)
-        Me.lblStatus.ForeColor = System.Drawing.Color.Snow
-        Me.lblStatus.Location = New System.Drawing.Point(11, 199)
-        Me.lblStatus.Name = "lblStatus"
-        Me.lblStatus.Size = New System.Drawing.Size(164, 77)
-        Me.lblStatus.Text = "OK"
-        Me.lblStatus.TextAlign = System.Drawing.ContentAlignment.TopCenter
-        '
-        'Label1
-        '
-        Me.Label1.BackColor = System.Drawing.Color.Red
-        Me.Label1.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 44.0!, System.Drawing.FontStyle.Regular)
-        Me.Label1.ForeColor = System.Drawing.Color.Yellow
-        Me.Label1.Location = New System.Drawing.Point(59, 175)
-        Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(164, 77)
-        Me.Label1.Text = "NG"
-        Me.Label1.TextAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.Label1.Visible = False
-        '
         'FormPoka5Tana
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -181,8 +156,6 @@ Partial Public Class FormPoka5Tana
         Me.AutoScroll = True
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
-        Me.Controls.Add(Me.Label1)
-        Me.Controls.Add(Me.lblStatus)
         Me.Controls.Add(Me.lblTANCD)
         Me.Controls.Add(Me.txtTANCD)
         Me.Controls.Add(Me.btnF4)
@@ -213,6 +186,4 @@ Partial Public Class FormPoka5Tana
     Friend WithEvents btnF3 As System.Windows.Forms.Button
     Friend WithEvents btnF2 As System.Windows.Forms.Button
     Friend WithEvents lblTANCD As System.Windows.Forms.Label
-    Friend WithEvents lblStatus As System.Windows.Forms.Label
-    Friend WithEvents Label1 As System.Windows.Forms.Label
 End Class
