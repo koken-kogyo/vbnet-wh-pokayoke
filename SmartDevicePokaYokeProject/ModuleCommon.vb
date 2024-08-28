@@ -15,6 +15,18 @@ Module ModuleCommon
     ' iniファイル関連
     Private iniFileName As [String] = "PokaYoke.ini"
 
+    ' 担当者コード
+    Public mTANCD As [String] = "00000"
+
+    ' 出荷指示書消し込み対象の得意先コード
+    Public mSQLServer As String = ""
+    Public mTargetTKCDs As String = ""
+
+    ' オプション設定
+    Public mBuzzer As [String] = "1" ' 照合時ブザー音
+    Public mHandOK As [String] = "0" ' 社内品番手入力
+    Public mQROnly As [String] = "1" ' 得意先品番QRコードしか読み取らない
+
     Public Function getHTNAME() As String
         Dim ret As Int32 = 0
         Dim disp As [String] = ""
@@ -37,24 +49,30 @@ Module ModuleCommon
     '         * API  ：btIniReadString
     '*******************************************************************************
 
-    Public Function getSettings() As String
+    Public Sub getSettings()
         Dim ret As Int32 = 0
         Dim disp As [String] = ""
 
-        ' セクション
-        Dim sectionSet As New StringBuilder("TANTO")
-        ' キー
-        Dim keySet As New StringBuilder("tancd")
         ' INIファイル
         Dim filenameSet As New StringBuilder(mAppPath & "\" & iniFileName)
-        ' 既定値(ReadString用)
-        Dim strDefSet As New StringBuilder("000000")
         ' 取得値
         Dim bufaryGet As [Byte]() = New [Byte](LibDef.BT_INI_VALUE_MAXLEN - 1) {}
+
+        ' セクション
+        Dim sectionSet As New StringBuilder("")
+        ' キー
+        Dim keySet As New StringBuilder("")
+        ' 既定値(ReadString用)
+        Dim strDefSet As New StringBuilder("")
         ' サイズ
         Dim sizeSet As UInt32 = 0
         ' 取得値(ReadString用)
         Dim strGet As [String] = ""
+
+        ' 担当者コード取得
+        sectionSet = New StringBuilder("TANTO")
+        keySet = New StringBuilder("TANCD")
+        strDefSet = New StringBuilder(mTANCD)
         Try
             '-----------------------------------------------------------
             ' 読み出し
@@ -65,13 +83,103 @@ Module ModuleCommon
                 disp = "btIniReadString error ret[" & ret & "]"
                 MessageBox.Show(disp, "エラー")
             End If
-            strGet = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
-            Return strGet
+            mTANCD = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
         Catch ex As Exception
             MessageBox.Show(ex.ToString())
         End Try
-        Return strDefSet.ToString
-    End Function
+
+        ' 出荷指示書関連設定
+        sectionSet = New StringBuilder("SHIPMENT")
+        ' SQLServer
+        keySet = New StringBuilder("SQLSERVER")
+        strDefSet = New StringBuilder(mSQLServer)
+        Try
+            '-----------------------------------------------------------
+            ' 読み出し（必須ではない）
+            '-----------------------------------------------------------
+            sizeSet = LibDef.BT_INI_VALUE_MAXLEN
+            ret = Ini.btIniReadString(sectionSet, keySet, strDefSet, bufaryGet, sizeSet, filenameSet)
+            If ret = 0 Then
+                mSQLServer = ""
+            Else
+                mSQLServer = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+        ' 対象得意先コード取得
+        keySet = New StringBuilder("TARGETTKCDS")
+        strDefSet = New StringBuilder(mTargetTKCDs)
+        Try
+            '-----------------------------------------------------------
+            ' 読み出し（必須ではない）
+            '-----------------------------------------------------------
+            sizeSet = LibDef.BT_INI_VALUE_MAXLEN
+            ret = Ini.btIniReadString(sectionSet, keySet, strDefSet, bufaryGet, sizeSet, filenameSet)
+            If ret = 0 Then
+                mTargetTKCDs = ""
+            Else
+                mTargetTKCDs = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+
+        ' オプション設定
+        sectionSet = New StringBuilder("OPTION")
+        ' Buzzer ON
+        keySet = New StringBuilder("BUZZER")
+        strDefSet = New StringBuilder(mBuzzer)
+        Try
+            '-----------------------------------------------------------
+            ' 読み出し
+            '-----------------------------------------------------------
+            sizeSet = LibDef.BT_INI_VALUE_MAXLEN
+            ret = Ini.btIniReadString(sectionSet, keySet, strDefSet, bufaryGet, sizeSet, filenameSet)
+            If ret = 0 Then
+                disp = "btIniReadString error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+            End If
+            mBuzzer = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+        ' Hand OK
+        keySet = New StringBuilder("HANDOK")
+        strDefSet = New StringBuilder(mHandOK)
+        Try
+            '-----------------------------------------------------------
+            ' 読み出し
+            '-----------------------------------------------------------
+            sizeSet = LibDef.BT_INI_VALUE_MAXLEN
+            ret = Ini.btIniReadString(sectionSet, keySet, strDefSet, bufaryGet, sizeSet, filenameSet)
+            If ret = 0 Then
+                disp = "btIniReadString error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+            End If
+            mHandOK = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+        ' QR Only
+        keySet = New StringBuilder("QRONLY")
+        strDefSet = New StringBuilder(mQROnly)
+        Try
+            '-----------------------------------------------------------
+            ' 読み出し
+            '-----------------------------------------------------------
+            sizeSet = LibDef.BT_INI_VALUE_MAXLEN
+            ret = Ini.btIniReadString(sectionSet, keySet, strDefSet, bufaryGet, sizeSet, filenameSet)
+            If ret = 0 Then
+                disp = "btIniReadString error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+            End If
+            mQROnly = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+
+    End Sub
 
     '*******************************************************************************
     '         * 機能 ：iniファイルで1行単位のWriteを行います。
@@ -85,7 +193,7 @@ Module ModuleCommon
         ' セクション
         Dim sectionSet As New StringBuilder("TANTO")
         ' キー
-        Dim keySet As New StringBuilder("tancd")
+        Dim keySet As New StringBuilder("TANCD")
         ' INIファイル
         Dim filenameSet As New StringBuilder(mAppPath & "\" & iniFileName)
         ' 書き込み用
@@ -107,6 +215,137 @@ Module ModuleCommon
             End If
             disp = "書き込み:" & strSet.ToString()
             'MessageBox.Show(disp, "Iniファイル(文字列)")
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+    End Sub
+
+    Public Sub saveSettingTANCD(ByVal iTancd As String)
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Dim sectionSet As New StringBuilder("TANTO")
+        Dim keySet As New StringBuilder("TANCD")
+        Dim filenameSet As New StringBuilder(mAppPath & "\" & iniFileName)
+        Dim strSet As New StringBuilder(iTancd)
+        Try
+            ret = Ini.btIniWriteString(sectionSet, keySet, strSet, filenameSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btIniWriteString error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+    End Sub
+
+    Public Sub saveSettingBuzzer(ByVal checked As Boolean)
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Dim sectionSet As New StringBuilder("OPTION")
+        Dim keySet As New StringBuilder("BUZZER")
+        Dim filenameSet As New StringBuilder(mAppPath & "\" & iniFileName)
+        Dim strSet As New StringBuilder(If(checked, "1", "0"))
+        Try
+            ret = Ini.btIniWriteString(sectionSet, keySet, strSet, filenameSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btIniWriteString error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+    End Sub
+
+    Public Sub saveSettingHandOK(ByVal checked As Boolean)
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Dim sectionSet As New StringBuilder("OPTION")
+        Dim keySet As New StringBuilder("HANDOK")
+        Dim filenameSet As New StringBuilder(mAppPath & "\" & iniFileName)
+        Dim strSet As New StringBuilder(If(checked, "1", "0"))
+        Try
+            ret = Ini.btIniWriteString(sectionSet, keySet, strSet, filenameSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btIniWriteString error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+    End Sub
+
+    Public Sub saveSettingQROnly(ByVal checked As Boolean)
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Dim sectionSet As New StringBuilder("OPTION")
+        Dim keySet As New StringBuilder("QRONLY")
+        Dim filenameSet As New StringBuilder(mAppPath & "\" & iniFileName)
+        Dim strSet As New StringBuilder(If(checked, "1", "0"))
+        Try
+            ret = Ini.btIniWriteString(sectionSet, keySet, strSet, filenameSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btIniWriteString error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+    End Sub
+
+    '*******************************************************************************
+    '         * 機能 ：オートパワーオフ動作の有効／無効を取得します。
+    '         * API  ：btGetAutoPowerOFF
+    '*******************************************************************************
+    Public Function getAutoPowerOFF() As UInteger
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Dim intervalDef As UInt32 = 0
+
+        Try
+            '-----------------------------------------------------------
+            ' 設定前取得
+            '-----------------------------------------------------------
+            ret = Power.btGetAutoPowerOFF(intervalDef)
+            If ret <> LibDef.BT_OK Then
+                disp = "btGetAutoPowerOFF error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return 0
+            End If
+            'disp = "パワーオフ時間[s]  :" & intervalDef & vbCr & vbLf
+            'MessageBox.Show(disp, "パワーOFF(オート)(設定前)")
+            Return intervalDef
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+            Return 0
+        End Try
+    End Function
+
+    '*******************************************************************************
+    '         * 機能 ：オートパワーオフ動作の有効／無効を設定します。
+    '         * API  ：btSetAutoPowerOFF, btGetAutoPowerOFF
+    '*******************************************************************************
+    Public Sub setAutoPowerOFF(ByVal iSec As UInteger)
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Try
+            '-----------------------------------------------------------
+            ' 設定
+            '-----------------------------------------------------------
+            ret = Power.btSetAutoPowerOFF(iSec)
+            If ret <> LibDef.BT_OK Then
+                disp = "btSetAutoPowerOFF error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+            End If
         Catch ex As Exception
             MessageBox.Show(ex.ToString())
         End Try

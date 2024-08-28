@@ -1,0 +1,6 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\Comm\Tcpip\Hosts\PC901N]
+"ipaddr"=hex:\
+      c0,a8,6F,64
+

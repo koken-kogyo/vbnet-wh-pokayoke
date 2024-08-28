@@ -131,13 +131,14 @@ Public Class FormPoka3Hitati
                 txtTKHMCD.Focus()
             Case System.Windows.Forms.Keys.Enter
                 If txtHMCD.Text <> "" Then
+                    Dim wTKCD As String = ""
                     Dim wSKHIASU As String = ""
                     Dim wCOLOR As String = ""
                     Dim wSU As String = ""
                     Dim ret As Boolean
                     lblHIASU.Text = ""
                     ' 品目マスターチェック
-                    ret = getSKHIASU(txtHMCD.Text, wSKHIASU, wCOLOR, wSU)
+                    ret = getM0500(txtHMCD.Text, wTKCD, wSKHIASU, wCOLOR, wSU)
                     If ret And wSKHIASU <> "" Then
 
                         ' ラベル表示
@@ -256,6 +257,7 @@ Public Class FormPoka3Hitati
                     rec.TKHMCD = txtTKHMCD.Text
                     rec.QTY = txtQTY.Text
                     rec.RESULT = "OK"
+                    rec.DATABASE = "-"
                     ret = insertPokaX(tblNamePoka3, rec)
                     If ret <> SQLITE_OK Then
                         MessageBox.Show(sqliteErrorString & vbCrLf & _
@@ -341,6 +343,7 @@ Public Class FormPoka3Hitati
             rec.TKHMCD = txtTKHMCD.Text
             rec.QTY = ""
             rec.RESULT = "NG"
+            rec.DATABASE = "-"
             ret = insertPokaX(tblNamePoka3, rec)
             If ret <> SQLITE_OK Then
                 MessageBox.Show(sqliteErrorString & vbCrLf & _

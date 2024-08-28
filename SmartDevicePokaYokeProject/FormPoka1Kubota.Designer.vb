@@ -38,6 +38,7 @@ Partial Public Class FormPoka1Kubota
         Me.lblQTY = New System.Windows.Forms.Label
         Me.txtQTY = New System.Windows.Forms.TextBox
         Me.lblHIASU = New System.Windows.Forms.Label
+        Me.TimerWiFiUpdater = New System.Windows.Forms.Timer
         Me.SuspendLayout()
         '
         'btnF1
@@ -217,6 +218,10 @@ Partial Public Class FormPoka1Kubota
         Me.lblHIASU.Size = New System.Drawing.Size(100, 20)
         Me.lblHIASU.Text = "ｱｵ 5"
         '
+        'TimerWiFiUpdater
+        '
+        Me.TimerWiFiUpdater.Interval = 5000
+        '
         'FormPoka1Kubota
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -267,4 +272,5 @@ Partial Public Class FormPoka1Kubota
     Friend WithEvents lblQTY As System.Windows.Forms.Label
     Friend WithEvents txtQTY As System.Windows.Forms.TextBox
     Friend WithEvents lblHIASU As System.Windows.Forms.Label
+    Friend WithEvents TimerWiFiUpdater As System.Windows.Forms.Timer
 End Class

@@ -30,12 +30,15 @@ Public Class FormMain
     Private Sub FormMain_Closed(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Closed
 
         ' 担当者コード保存
-        setSettings(txtTANCD.Text)
+        saveSettingTANCD(txtTANCD.Text)
+
+        ' ブザー設定保存
+        saveSettingBuzzer(chkBuzzer.Checked)
 
         ' スキャナ設定初期値に戻す
         restoreScanProperty()
 
-        ' データベースクローズ
+        ' SQLiteデータベースクローズ
         closeDB()
 
         ' インスタンス破棄
@@ -73,7 +76,9 @@ Public Class FormMain
 
         ' 初期画面設定
         'txtTANCD.Text = selectTanto()
-        txtTANCD.Text = getSettings()
+        Call getSettings()
+        txtTANCD.Text = mTANCD
+        chkBuzzer.Checked = If(mBuzzer = "1", True, False)
 
         ' インスタンス保持
         FormMainInstance = Me
@@ -99,6 +104,10 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad7
+                Dim ping As New FormPing
+                ping.ShowDialog()
+                btnKUBOTA.Focus()
             Case Keys.NumPad8
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9

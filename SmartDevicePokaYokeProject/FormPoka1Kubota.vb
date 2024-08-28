@@ -1,5 +1,6 @@
 ﻿Imports System.Threading
 Imports System.Runtime.InteropServices
+Imports System.Data
 
 Public Class FormPoka1Kubota
 
@@ -8,11 +9,16 @@ Public Class FormPoka1Kubota
 
     Dim flgSCAN As Boolean = False ' 社内品番のキー入力禁止フラグ
     Dim flgConfirm As Boolean = False ' 照合済みフラグ
+    Dim gTKCD As String = "" ' 社内品番Enter時に得意先コードを保持
+    Dim gWaitRec() As DBPokaRecord
+    Dim gRetry As Integer = 0 ' Timerイベント回数
+    Dim gInterval As UInt32 ' オートパワーオフ設定値を保存
 
     Private Sub FormPoka1Kubota_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
         txtTANCD.Text = FormMain.txtTANCD.Text
-        chkQR.Checked = True
+        chkTe.Checked = If(mHandOK = "1", True, False)
+        chkQR.Checked = If(mQROnly = "1", True, False)
         txtClear()
 
         ' フォーム上でキーダウンイベントを取得
@@ -21,6 +27,11 @@ Public Class FormPoka1Kubota
         ' インスタンス保持
         FormPoka1Instance = Me
 
+    End Sub
+
+    Private Sub FormPoka1Kubota_Closed(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Closed
+        Call saveSettingHandOK(chkTe.Checked)
+        Call saveSettingQROnly(chkQR.Checked)
     End Sub
 
     ' F1キー
@@ -157,8 +168,9 @@ Public Class FormPoka1Kubota
                     Dim wSU As String = ""
                     Dim ret As Boolean
                     lblHIASU.Text = ""
+                    gTKCD = "" ' 後々使う得意先コードをここで取得
                     ' 品目マスターチェック
-                    ret = getSKHIASU(txtHMCD.Text, wSKHIASU, wCOLOR, wSU)
+                    ret = getM0500(txtHMCD.Text, gTKCD, wSKHIASU, wCOLOR, wSU)
                     If ret And wSKHIASU <> "" Then
 
                         ' ラベル表示
@@ -239,79 +251,6 @@ Public Class FormPoka1Kubota
                 Call Judge()
 
         End Select
-    End Sub
-
-    Private Sub txtQTY_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtQTY.GotFocus
-        Dim modeSet As UInt32 = Bt.LibDef.BT_KEYINPUT_DIRECT
-        Dim ret As Int32 = Bt.SysLib.Display.btSetKeyCharacter(modeSet)
-        If ret <> 0 Then
-            MessageBox.Show("キー入力設定に失敗しました:" & ret)
-        End If
-
-        txtQTY.SelectionStart = 0
-        txtQTY.SelectionLength = txtQTY.TextLength
-        txtQTY.BackColor = Color.Aqua
-    End Sub
-
-    Private Sub txtQTY_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtQTY.KeyDown
-        Select Case e.KeyCode
-            Case System.Windows.Forms.Keys.Up
-                txtTKHMCD.Focus()
-            Case System.Windows.Forms.Keys.Down
-                txtHMCD.Focus()
-            Case System.Windows.Forms.Keys.Back
-                If txtQTY.Text = "" Then
-                    txtTKHMCD.Focus()
-                End If
-            Case System.Windows.Forms.Keys.Enter
-                If txtTANCD.Text = "" Then
-                    MessageBox.Show("担当者ｺｰﾄﾞを確認してください")
-                    Return
-                ElseIf txtHMCD.Text = "" Then
-                    MessageBox.Show("社内品番を入力してください")
-                    txtHMCD.Focus()
-                    Return
-                ElseIf txtTKHMCD.Text = "" Then
-                    MessageBox.Show("メーカー品番をスキャンしてください")
-                    txtTKHMCD.Focus()
-                    Return
-                ElseIf IsNumeric(txtQTY.Text) = False Then
-                    MessageBox.Show("数値を入力してください")
-                    txtQTY.Focus()
-                    Return
-                End If
-
-                ' 照合せず数量入力された場合に備える
-                If flgConfirm = False Then Call Judge()
-
-                ' 品番照合OKを出力 SQLite Insert
-                If flgConfirm Then
-                    Dim rec As DBPokaRecord
-                    Dim ret As Int32
-                    rec.MAKER = "KUBOTA"
-                    rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
-                    rec.TANCD = txtTANCD.Text
-                    rec.HMCD = txtHMCD.Text
-                    rec.TKHMCD = txtTKHMCD.Text
-                    rec.QTY = txtQTY.Text
-                    rec.RESULT = "OK"
-                    ret = insertPokaX(tblNamePoka1, rec)
-                    If ret <> SQLITE_OK Then
-                        MessageBox.Show(sqliteErrorString & vbCrLf & _
-                            "データベースの登録に失敗しました" & vbCrLf & _
-                            "システム担当者に連絡してください")
-                        Return
-                    End If
-
-                    ' 次の照合へ
-                    Call txtClear()
-                End If
-
-        End Select
-    End Sub
-
-    Private Sub txtQTY_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtQTY.LostFocus
-        txtQTY.BackColor = Color.White
     End Sub
 
     ' 品番照合
@@ -446,6 +385,7 @@ Public Class FormPoka1Kubota
             rec.TKHMCD = txtTKHMCD.Text
             rec.QTY = ""
             rec.RESULT = "NG"
+            rec.DATABASE = ""
             ret = insertPokaX(tblNamePoka1, rec)
             If ret <> SQLITE_OK Then
                 MessageBox.Show(sqliteErrorString & vbCrLf & _
@@ -464,6 +404,103 @@ Public Class FormPoka1Kubota
         End If
     End Sub
 
+    Private Sub txtQTY_GotFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtQTY.GotFocus
+        Dim modeSet As UInt32 = Bt.LibDef.BT_KEYINPUT_DIRECT
+        Dim ret As Int32 = Bt.SysLib.Display.btSetKeyCharacter(modeSet)
+        If ret <> 0 Then
+            MessageBox.Show("キー入力設定に失敗しました:" & ret)
+        End If
+
+        txtQTY.SelectionStart = 0
+        txtQTY.SelectionLength = txtQTY.TextLength
+        txtQTY.BackColor = Color.Aqua
+    End Sub
+
+    Private Sub txtQTY_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtQTY.KeyDown
+        Select Case e.KeyCode
+            Case System.Windows.Forms.Keys.Up
+                txtTKHMCD.Focus()
+            Case System.Windows.Forms.Keys.Down
+                txtHMCD.Focus()
+            Case System.Windows.Forms.Keys.Back
+                If txtQTY.Text = "" Then
+                    txtTKHMCD.Focus()
+                End If
+            Case System.Windows.Forms.Keys.Enter
+                If txtTANCD.Text = "" Then
+                    MessageBox.Show("担当者ｺｰﾄﾞを確認してください")
+                    Return
+                ElseIf txtHMCD.Text = "" Then
+                    MessageBox.Show("社内品番を入力してください")
+                    txtHMCD.Focus()
+                    Return
+                ElseIf txtTKHMCD.Text = "" Then
+                    MessageBox.Show("メーカー品番をスキャンしてください")
+                    txtTKHMCD.Focus()
+                    Return
+                ElseIf IsNumeric(txtQTY.Text) = False Then
+                    MessageBox.Show("数値を入力してください")
+                    txtQTY.Focus()
+                    Return
+                End If
+
+                ' 照合せず数量入力された場合、ここで照合処理を入れる
+                If flgConfirm = False Then Call Judge()
+
+                ' 品番照合OKを出力 
+                If flgConfirm Then
+
+                    ' SQLite Insert
+                    Dim rec As DBPokaRecord
+                    Dim ret As Int32
+                    rec.MAKER = "KUBOTA"
+                    rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
+                    rec.TANCD = txtTANCD.Text
+                    rec.HMCD = txtHMCD.Text
+                    rec.TKHMCD = txtTKHMCD.Text
+                    rec.QTY = txtQTY.Text
+                    rec.RESULT = "OK"
+                    If gTKCD <> "" And InStr(mTargetTKCDs, gTKCD) > 0 Then
+                        rec.DATABASE = "WAIT"
+                    Else
+                        rec.DATABASE = "-"
+                    End If
+                    ret = insertPokaX(tblNamePoka1, rec)
+                    If ret <> SQLITE_OK Then
+                        MessageBox.Show(sqliteErrorString & vbCrLf & _
+                            "Pokaデータベースの登録に失敗しました" & vbCrLf & _
+                            "システム担当者に連絡してください")
+                        Return
+                    End If
+                    ' 出荷指示テーブルの更新処理はタイマーで遅延して行なわせる
+                    ' （スリープ解除後の、Wi-Fi起動～Pingの応答があるまで時間が掛かるので
+                    ' 　リアルタイム更新失敗の確率が高かった（画面が固まる））
+                    If rec.DATABASE = "WAIT" Then
+                        If gWaitRec Is Nothing Then
+                            ReDim gWaitRec(0)
+                            gWaitRec(0) = rec
+                        Else
+                            Dim idx As Integer = UBound(gWaitRec)
+                            ReDim Preserve gWaitRec(idx + 1)
+                            gWaitRec(idx + 1) = rec
+                        End If
+                        gRetry = 3
+                        gInterval = getAutoPowerOFF()
+                        Call setAutoPowerOFF(0)
+                        TimerWiFiUpdater.Enabled = True
+                    End If
+
+                    ' 次の照合へ
+                    Call txtClear()
+                End If
+
+        End Select
+    End Sub
+
+    Private Sub txtQTY_LostFocus(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtQTY.LostFocus
+        txtQTY.BackColor = Color.White
+    End Sub
+
     Private Sub chkTe_CheckStateChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkTe.CheckStateChanged
         txtHMCD.Focus()
     End Sub
@@ -472,4 +509,56 @@ Public Class FormPoka1Kubota
         txtTKHMCD.Focus()
     End Sub
 
+    ' Microsoft SQL Server 2008 R8 出荷指示テーブル更新
+    Private Sub TimerWiFiUpdater_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TimerWiFiUpdater.Tick
+
+        ' 疎通確認（リトライ２回）
+        If gRetry = 0 Or gWaitRec Is Nothing Then
+            TimerWiFiUpdater.Enabled = False
+            Call setAutoPowerOFF(gInterval)
+            Exit Sub
+        Else
+            Dim fm As New FormWaiting
+            fm.Show()
+            Refresh()
+            Application.DoEvents()
+
+            Dim ret As Boolean = checkSQLServer()
+            Refresh()
+            fm.Dispose()
+            If ret = False Then GoTo Retry
+        End If
+
+        ' デバッグ中に再度呼び出されないようここでタイマーをオフ
+        TimerWiFiUpdater.Enabled = False
+        Call setAutoPowerOFF(gInterval)
+
+        ' 溜まっている、WAITレコードを全て読み込む
+        Dim idx As Integer
+        For idx = 0 To UBound(gWaitRec)
+
+            ' 出荷指示テーブルの更新 (SQL Server 2008 R2)
+            Dim status As String = UpdateSHIPMENT(gWaitRec(idx).HMCD, gWaitRec(idx).QTY, txtTANCD.Text)
+
+            ' 照合履歴ファイルの更新 (SQLite)
+            Call updatePokaXDatabase(tblNamePoka1, gWaitRec(idx), status)
+
+            gWaitRec(idx).DATABASE = status
+        Next
+        If gWaitRec.Where(Function(r) r.DATABASE = "WAIT").Count = 0 Then
+            gWaitRec = Nothing
+        Else
+            ' LINQを使用して要素を削除する（配列のサイズ変更）
+            ' もう、ここを通ることは無くなったがカッコいいのでとっておく
+            gWaitRec = gWaitRec.Where(Function(r) r.DATABASE = "WAIT").ToArray
+        End If
+
+        Exit Sub
+
+Retry:
+        TimerWiFiUpdater.Enabled = False
+        TimerWiFiUpdater.Enabled = True
+        gRetry = gRetry - 1
+
+    End Sub
 End Class

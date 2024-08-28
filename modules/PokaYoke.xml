@@ -6,25 +6,7 @@ PokaYoke
 </name>
 </assembly>
 <members>
-<member name="P:PokaYoke.My.Resources.Resources.ResourceManager">
-	<summary>
-  このクラスで使用されているキャッシュされた ResourceManager インスタンスを返します。
-</summary>
-</member><member name="P:PokaYoke.My.Resources.Resources.Culture">
-	<summary>
-  厳密に型指定されたこのリソース クラスを使用して、すべての検索リソースに対し、
-  現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
-</summary>
-</member><member name="T:PokaYoke.My.Resources.Resources">
-	<summary>
-  ローカライズされた文字列などを検索するための、厳密に型指定されたリソース クラスです。
-</summary>
-</member><member name="M:PokaYoke.FormPokaHistory.viewData">
-//////////////////////////////////////////////////////////
- View data
-//////////////////////////////////////////////////////////
-
-</member><member name="M:PokaYoke.ModuleSQLite.openDB">
+<member name="M:PokaYoke.ModuleSQLite.openDB">
 //////////////////////////////////////////////////////////
  Open
 //////////////////////////////////////////////////////////
@@ -114,6 +96,11 @@ PokaYoke
  Update
 //////////////////////////////////////////////////////////
 
+</member><member name="M:PokaYoke.ModuleSQLite.updatePokaXDatabase(System.String,PokaYoke.ModuleSQLite.DBPokaRecord,System.String)">
+//////////////////////////////////////////////////////////
+ Update
+//////////////////////////////////////////////////////////
+
 </member><member name="M:PokaYoke.ModuleSQLite.deletePokaXMeisai(System.String,System.Int32)">
 //////////////////////////////////////////////////////////
  Delete
@@ -144,11 +131,29 @@ PokaYoke
  自動倉庫マスタチェック
 //////////////////////////////////////////////////////////
 
-</member><member name="M:PokaYoke.ModuleSQLite.getSKHIASU(System.String,System.String@,System.String@,System.String@)">
+</member><member name="M:PokaYoke.ModuleSQLite.getM0500(System.String,System.String@,System.String@,System.String@,System.String@)">
 //////////////////////////////////////////////////////////
  紐色＆数取得
 //////////////////////////////////////////////////////////
 
+</member><member name="M:PokaYoke.FormPokaHistory.viewData">
+//////////////////////////////////////////////////////////
+ View data
+//////////////////////////////////////////////////////////
+
+</member><member name="P:PokaYoke.My.Resources.Resources.ResourceManager">
+	<summary>
+  このクラスで使用されているキャッシュされた ResourceManager インスタンスを返します。
+</summary>
+</member><member name="P:PokaYoke.My.Resources.Resources.Culture">
+	<summary>
+  厳密に型指定されたこのリソース クラスを使用して、すべての検索リソースに対し、
+  現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
+</summary>
+</member><member name="T:PokaYoke.My.Resources.Resources">
+	<summary>
+  ローカライズされた文字列などを検索するための、厳密に型指定されたリソース クラスです。
+</summary>
 </member>
 </members>
 </doc>

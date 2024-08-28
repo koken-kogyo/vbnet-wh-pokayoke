@@ -4,7 +4,7 @@ Imports System.Runtime.InteropServices
 
 Module ModuleSQLite
 
-    ' データベース関連
+    ' SQLiteデータベース関連
     Private accPath As [String] = "\FlashDisk\BT_FILES\drv1"
 
     Private dbFile As [String] = "KokenMaster.DB"
@@ -30,6 +30,7 @@ Module ModuleSQLite
     Public itemTANACD As [String] = "倉庫棚番"
     Public itemQTY As [String] = "数量" ' 24.05 add y.w
     Public itemRESULT As [String] = "照合結果"
+    Public itemDB As [String] = "データベース" ' 24.07 add y.w
 
     ' エラー詳細を保持
     Public sqliteErrorString As String = ""
@@ -56,6 +57,7 @@ Module ModuleSQLite
         Public TKHMCD As String
         Public QTY As String ' 24.05 追加 y.w
         Public RESULT As String
+        Public DATABASE As String '24.07 追加 y.w
     End Structure
 
     Public Structure DBTanaRecord
@@ -146,7 +148,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka1 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -162,7 +164,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka2 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -178,7 +180,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka3 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -194,7 +196,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka4 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -312,7 +314,7 @@ FUNCEND:
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim val As String = rec.MAKER & "', '" & rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.TKHMCD & "', '" & rec.QTY & "', '" & rec.RESULT
+        Dim val As String = rec.MAKER & "', '" & rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.TKHMCD & "', '" & rec.QTY & "', '" & rec.RESULT & "', '" & rec.DATABASE
         Dim sql As New StringBuilder("INSERT INTO " & tableName & " VALUES('" & val & "');")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -457,7 +459,8 @@ FUNCEND:
         End If
 
         ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付 (旧：'%d日%H:%M')DataGrid列タイトルは[as ...]では変わらなかった
-        Dim sql As New StringBuilder("SELECT ROWID, strftime('%H%M', 照合日付), 社内品番, 数量, 照合結果 FROM " & tableName & " order by 照合日付 desc;")
+        ' 品番は15桁で切るとListViewに上手く表示される
+        Dim sql As New StringBuilder("SELECT ROWID, strftime('%H%M', 照合日付), CASE データベース WHEN 'NG' THEN '×' WHEN 'WAIT' THEN '待' ELSE '' END||substr(社内品番,1,15) as 社内品番, 数量, 照合結果 FROM " & tableName & " order by 照合日付 desc;")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)
@@ -524,6 +527,37 @@ FUNCEND:
         End If
 
         Dim sql As New StringBuilder("UPDATE " & tableName & " SET " & itemQTY & " = '" & _qty & "' WHERE ROWID = " & _rowid & ";")
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
+        If ret = 0 Then
+            Return True
+        Else
+            setSQLErrorString()
+            MessageBox.Show("更新失敗:" & ret & vbCr & vbLf & _
+                            sql.ToString() & vbCr & vbLf & _
+                            sqliteErrorString)
+            Return False
+        End If
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' Update
+    '''//////////////////////////////////////////////////////////
+    Public Function updatePokaXDatabase(ByVal tableName As String, ByVal iRec As DBPokaRecord, ByVal iStr As String) As Boolean
+        If logIdx <= 0 Then
+            Return False
+        End If
+        If checkTableExists(tableName) = False Then
+            Return False
+        End If
+
+        Dim wWhere As String
+        wWhere = itemDATETIME & "='" & iRec.DATATIME & "' and " & _
+                itemMAKER & "='" & iRec.MAKER & "' and " & _
+                itemTANCD & "='" & iRec.TANCD & "' and " & _
+                itemHMCD & "='" & iRec.HMCD & "' and " & _
+                itemQTY & "='" & iRec.QTY & "' and " & _
+                itemDB & "='WAIT';"
+        Dim sql As New StringBuilder("UPDATE " & tableName & " SET " & itemDB & " = '" & iStr & "' WHERE " & wWhere)
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret = 0 Then
             Return True
@@ -832,13 +866,13 @@ FUNCEND:
     '''//////////////////////////////////////////////////////////
     ''' 紐色＆数取得
     '''//////////////////////////////////////////////////////////
-    Public Function getSKHIASU(ByVal _HMCD As String, _
-        ByRef _SKHIASU As String, ByRef _COLOR As String, ByRef _SU As String) As Boolean
+    Public Function getM0500(ByVal iHMCD As String, _
+        ByRef oTKCD As String, ByRef oSKHIASU As String, ByRef oCOLOR As String, ByRef oSU As String) As Boolean
 
         Dim wFlg As Boolean
 
         ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
-        Dim sql As New StringBuilder("SELECT SKHIASU, IFNULL(COLOR,'-') AS COLOR, IFNULL(SU,0) AS SU FROM M0500 WHERE HMCD='" & _HMCD & "';")
+        Dim sql As New StringBuilder("SELECT TKCD, SKHIASU, IFNULL(COLOR,'-') AS COLOR, IFNULL(SU,0) AS SU FROM M0500 WHERE HMCD='" & iHMCD & "';")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(dbIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR M0500 btSQLiteCmdCreate:" & cIdx)
@@ -861,7 +895,7 @@ FUNCEND:
                 Dim data As IntPtr
                 Dim ret2 As Integer
 
-                ' HIASU取得
+                ' TKCD取得
                 data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
                 ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 0, data, 8192)
                 If ret2 <> 0 Then
@@ -869,10 +903,10 @@ FUNCEND:
                     Marshal.FreeCoTaskMem(data)
                     GoTo FUNCEND
                 End If
-                _SKHIASU = Marshal.PtrToStringUni(data)
+                oTKCD = Marshal.PtrToStringUni(data)
                 Marshal.FreeCoTaskMem(data)
 
-                ' COLOR取得
+                ' HIASU取得
                 data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
                 ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 1, data, 8192)
                 If ret2 <> 0 Then
@@ -880,10 +914,10 @@ FUNCEND:
                     Marshal.FreeCoTaskMem(data)
                     GoTo FUNCEND
                 End If
-                _COLOR = Marshal.PtrToStringUni(data)
+                oSKHIASU = Marshal.PtrToStringUni(data)
                 Marshal.FreeCoTaskMem(data)
 
-                ' SU取得
+                ' COLOR取得
                 data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
                 ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 2, data, 8192)
                 If ret2 <> 0 Then
@@ -891,7 +925,18 @@ FUNCEND:
                     Marshal.FreeCoTaskMem(data)
                     GoTo FUNCEND
                 End If
-                _SU = Marshal.PtrToStringUni(data)
+                oCOLOR = Marshal.PtrToStringUni(data)
+                Marshal.FreeCoTaskMem(data)
+
+                ' SU取得
+                data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
+                ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 3, data, 8192)
+                If ret2 <> 0 Then
+                    MessageBox.Show("ERROR btSQLiteCmdGetValue(3):" & ret2)
+                    Marshal.FreeCoTaskMem(data)
+                    GoTo FUNCEND
+                End If
+                oSU = Marshal.PtrToStringUni(data)
                 Marshal.FreeCoTaskMem(data)
 
                 wFlg = True
