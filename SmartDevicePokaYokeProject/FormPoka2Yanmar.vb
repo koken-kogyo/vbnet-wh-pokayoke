@@ -280,6 +280,7 @@ Public Class FormPoka2Yanmar
     ' 品番照合
     ' lblHMCD(ハイフンが除去されたもの)とtxtTKHMCDを照合
     Private Sub Judge()
+        Dim rec As DBPokaRecord
         Dim ret As Int32
 
         Dim _HMCD As String = txtHMCD.Text.Replace("-", "")         ' ハイフンは除去
@@ -323,13 +324,36 @@ Public Class FormPoka2Yanmar
             Thread.Sleep(300)
             MyDialogOK.ShowDialog()
 
-            txtQTY.Focus()
-            flgConfirm = True
+            If txtHMCD.Text = "PROOFREAD-OK" Then
+                ' 朝一校正処理 24.09.03 add y.w
+                rec.MAKER = "YANMAR"
+                rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
+                rec.TANCD = txtTANCD.Text
+                rec.HMCD = txtHMCD.Text
+                rec.TKHMCD = txtTKHMCD.Text
+                rec.QTY = ""
+                rec.RESULT = "OK"
+                rec.DATABASE = "-"
+                ret = insertPokaX(tblNamePoka2, rec)
+                If ret <> SQLITE_OK Then
+                    MessageBox.Show(sqliteErrorString & vbCrLf & _
+                        "Pokaデータベースの登録に失敗しました" & vbCrLf & _
+                        "システム担当者に連絡してください")
+                    Return
+                End If
+                Call txtClear()
+            Else
+                ' 数量入力へ
+                txtQTY.Focus()
+                flgConfirm = True
+            End If
 
         Else ' 照合ERROR
 
+            ' 照合エラー
+            MyDialogError.ShowDialog()
+
             ' 照合結果出力 SQLite Insert
-            Dim rec As DBPokaRecord
             rec.MAKER = "YANMAR"
             rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
             rec.TANCD = txtTANCD.Text
@@ -346,12 +370,15 @@ Public Class FormPoka2Yanmar
                 Return
             End If
 
-            ' 照合エラー
-            MyDialogError.ShowDialog()
-            lblCount.Text = getRecordCount(tblNamePoka2)
-            txtTKHMCD.Focus()
-
-            flgConfirm = False
+            If txtHMCD.Text = "PROOFREAD-NG" Then
+                ' 朝一校正処理 24.09.03 add y.w
+                Call txtClear()
+            Else
+                ' メーカー品番へ
+                lblCount.Text = getRecordCount(tblNamePoka2)
+                txtTKHMCD.Focus()
+                flgConfirm = False
+            End If
 
         End If
     End Sub

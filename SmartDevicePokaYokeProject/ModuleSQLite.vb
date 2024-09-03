@@ -229,7 +229,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim sql As New StringBuilder("SELECT COUNT(*) FROM " & tableName & ";")
+        Dim sql As New StringBuilder("SELECT COUNT(*) FROM " & tableName & " where 社内品番 not like 'PROOFREAD%';") ' 24.09.03 mod y.w 朝一校正は件数にカウントしない
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             Return SQLITE_GET_RECORDE_ERROR
