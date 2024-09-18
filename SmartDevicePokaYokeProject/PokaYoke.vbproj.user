@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <DeployDeviceID>a6595fdd-147d-4b31-8f9a-65dd7bc0c11dddf5734-7c8f-43a7-bbbf-6f8154d0a5a9</DeployDeviceID>
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
 </Project>

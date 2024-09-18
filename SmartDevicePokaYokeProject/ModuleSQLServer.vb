@@ -22,7 +22,7 @@ Module ModuleSQLServer
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ' 出荷指示テーブル更新
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    Public Function UpdateSHIPMENT(ByVal iHMCD As String, ByVal iQTY As Integer, ByVal iTANCD As String) As String
+    Public Function UpdateKD8330(ByVal iHMCD As String, ByVal iQTY As Integer, ByVal iTANCD As String) As String
 
         Dim stConnectionString As String = _
             "Data Source=" & mSQLServer & "\KOKEN;" & _
@@ -55,15 +55,15 @@ Module ModuleSQLServer
                 Dim wComp As Integer = 0
 
                 ' 出荷日が当日以上で指示数と出荷準備数が相違するレコードを抽出
-                ' select 自動採番,指示数,出荷準備数 from SHIPMENT where 得意先品番='a' or 社内品番='a'
-                wSQL = "select top 1 自動採番,指示数,出荷準備数 from SHIPMENT where (得意先品番='" & iHMCD & "' or 社内品番='" & iHMCD & "') " & _
-                        "and 指示数<>出荷準備数 and 出荷日>=convert(date,getdate())"
+                ' select 自動採番,指示数,出荷準備数 from KD8330 where 得意先品番='a' or 社内品番='a'
+                wSQL = "select top 1 AUTONO,ODRQTY,HTJUQTY from KD8330 where (TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') " & _
+                        "and ODRQTY<>HTJUQTY and SHIPDT>=convert(date,getdate())"
                 hCommand.CommandText = wSQL
                 sr = hCommand.ExecuteReader()
                 While sr.Read
-                    wAutoNo = sr.Item("自動採番")
-                    wOrder = sr.Item("指示数")
-                    wComp = sr.Item("出荷準備数")
+                    wAutoNo = sr.Item("AUTONO")
+                    wOrder = sr.Item("ODRQTY")
+                    wComp = sr.Item("HTJUQTY")
                 End While
                 sr.Close()
                 If wAutoNo = 0 Then
@@ -71,16 +71,16 @@ Module ModuleSQLServer
                 End If
 
                 ' 出荷準備数の更新とw数量を減算
-                wSQL = "update SHIPMENT set 出荷準備担当=' " & iTANCD & "',出荷準備日付=getdate()"
+                wSQL = "update KD8330 set HTTANCD=' " & iTANCD & "',HTJUDT=getdate()"
                 If (wOrder - wComp) <= wQTY Then
                     ' 指示数-出荷準備数 <= 数量 ・・・ 指示数でDB更新、
                     ' 数量から(指示数-出荷準備数)を引く
-                    hCommand.CommandText = wSQL & ",出荷準備数=" & wOrder & " where 自動採番=" & wAutoNo
+                    hCommand.CommandText = wSQL & ",HTJUQTY=" & wOrder & " where AUTONO=" & wAutoNo
                     wQTY = wQTY - (wOrder - wComp)
                 Else
                     ' 指示数-出荷準備数  > 数量 ・・・ 出荷準備数＋数量で更新
                     ' 数量を0
-                    hCommand.CommandText = wSQL & ",出荷準備数=出荷準備数+" & wQTY & " where 自動採番=" & wAutoNo
+                    hCommand.CommandText = wSQL & ",HTJUQTY=HTJUQTY+" & wQTY & " where AUTONO=" & wAutoNo
                     wQTY = 0
                 End If
                 hCommand.ExecuteNonQuery()

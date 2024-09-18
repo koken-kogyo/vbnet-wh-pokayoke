@@ -18,7 +18,8 @@
 - Windows Mobile デバイスセンター 6.1  
 - BT-WHD1 BT-W_Series SDK for HandyTerminal  
 - USB-COM Driver [BT-W Series] (※本体ファームウェアVer3.000 以前の場合)  
-
+- 追記
+- Microsoft SQL Server Compact Edition v3.5
 
 ## PCデバッグ環境 (実機を用いない開発に必要なモジュール群)  
 
@@ -93,6 +94,9 @@
 │      btLibDefNet.dll				# .NET用データ定義  
 │      btScanLibNet.dll			# 読み取り制御ライブラリ  
 │      btSysLibNet.dll				# システム制御ライブラリ  
+- 追記
+│      dbnetlib.dll				# MSSQLServerCompact3.5(SP2)  
+│      System.Data.SqlClient.dll	# MSSQLServerCompactEdition\v3.5\Device\Client\wce500\armv4i  
 │      
 └─ specification  
         [物流現場] 品番照合 機能仕様書_Ver.1.0.0.0.xlsx  
@@ -102,14 +106,14 @@
 
 ## データベース  
 
-- KokenMaster.DB (マスタ)  
+- KokenMaster.DB (SQLiteマスタ)  
 
 | Table    | Name                      |  
 | :------: | :------------------------ |  
 | M0500    | 品目マスタ                |  
 | M0600    | 得意先マスタ              |  
 
-- PokaYoke.DB (ログ)  
+- PokaYoke.DB (SQLiteログ)  
 
 | Table    | Name                      |  
 | :------: | :------------------------ |  
@@ -118,6 +122,12 @@
 | Poka3    | 日立建機照合データ        |  
 | Poka4    | オリエント照合データ      |  
 | Poka5    | 棚番照合データ            |  
+
+- KOKEN (InstanceName)  
+
+| Table    | Name                      |  
+| :------: | :------------------------ |  
+| kd8330   | 物流出荷指示書ファイル    |  
 
 
 ## 設定ファイル  

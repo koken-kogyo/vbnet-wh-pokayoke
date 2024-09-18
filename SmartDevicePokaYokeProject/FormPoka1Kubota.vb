@@ -565,7 +565,7 @@ Public Class FormPoka1Kubota
         For idx = 0 To UBound(gWaitRec)
 
             ' 出荷指示テーブルの更新 (SQL Server 2008 R2)
-            Dim status As String = UpdateSHIPMENT(gWaitRec(idx).HMCD, gWaitRec(idx).QTY, txtTANCD.Text)
+            Dim status As String = UpdateKD8330(gWaitRec(idx).HMCD, gWaitRec(idx).QTY, txtTANCD.Text)
 
             ' 照合履歴ファイルの更新 (SQLite)
             Call updatePokaXDatabase(tblNamePoka1, gWaitRec(idx), status)
@@ -584,8 +584,8 @@ Public Class FormPoka1Kubota
 
 Retry:
         TimerWiFiUpdater.Enabled = False
-        TimerWiFiUpdater.Enabled = True
         gRetry = gRetry - 1
+        If gRetry <> 0 Then TimerWiFiUpdater.Enabled = True
 
     End Sub
 End Class
