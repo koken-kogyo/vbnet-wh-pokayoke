@@ -446,10 +446,12 @@ FUNCEND:
     Public Function selectPokaX(ByVal tableName As String) As DataTable
         Dim dt As New DataTable(tableName)
         dt.Columns.Add(New DataColumn("ID"))
+        dt.Columns.Add(New DataColumn(itemMAKER))   ' 24.09.29 add y.w
         dt.Columns.Add(New DataColumn(itemDATETIME))
         dt.Columns.Add(New DataColumn(itemHMCD))
-        dt.Columns.Add(New DataColumn(itemQTY)) ' 24.05.30 add y.w
+        dt.Columns.Add(New DataColumn(itemQTY))     ' 24.05.30 add y.w
         dt.Columns.Add(New DataColumn(itemRESULT))
+        dt.Columns.Add(New DataColumn(itemDB))      ' 24.09.29 add y.w
 
         If logIdx <= 0 Then
             Return dt
@@ -460,7 +462,7 @@ FUNCEND:
 
         ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付 (旧：'%d日%H:%M')DataGrid列タイトルは[as ...]では変わらなかった
         ' 品番は15桁で切るとListViewに上手く表示される
-        Dim sql As New StringBuilder("SELECT ROWID, strftime('%H%M', 照合日付), CASE データベース WHEN 'NG' THEN '×' WHEN 'WAIT' THEN '待' ELSE '' END||substr(社内品番,1,15) as 社内品番, 数量, 照合結果 FROM " & tableName & " order by 照合日付 desc;")
+        Dim sql As New StringBuilder("SELECT ROWID, メーカー, strftime('%H%M', 照合日付), CASE データベース WHEN 'NG' THEN '×' WHEN 'NONTARGET' THEN '△' WHEN 'WAIT' THEN '待' ELSE '' END||substr(社内品番,1,15) as 社内品番, 数量, 照合結果, データベース FROM " & tableName & " order by 照合日付 desc;")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)
@@ -516,9 +518,9 @@ FUNCEND:
     End Function
 
     '''//////////////////////////////////////////////////////////
-    ''' Update
+    ''' Update 数量変更
     '''//////////////////////////////////////////////////////////
-    Public Function updatePokaXMeisai(ByVal tableName As String, ByVal _rowid As Integer, ByVal _qty As String) As Boolean
+    Public Function updatePokaXMeisai(ByVal tableName As String, ByVal _rowid As Integer, ByVal _qty As String, ByVal _newstatus As String) As Boolean
         If logIdx <= 0 Then
             Return False
         End If
@@ -526,7 +528,7 @@ FUNCEND:
             Return False
         End If
 
-        Dim sql As New StringBuilder("UPDATE " & tableName & " SET " & itemQTY & " = '" & _qty & "' WHERE ROWID = " & _rowid & ";")
+        Dim sql As New StringBuilder("UPDATE " & tableName & " SET " & itemQTY & "='" & _qty & "'," & itemDB & "='" & _newstatus & "' WHERE ROWID = " & _rowid & ";")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret = 0 Then
             Return True
@@ -542,7 +544,7 @@ FUNCEND:
     '''//////////////////////////////////////////////////////////
     ''' Update
     '''//////////////////////////////////////////////////////////
-    Public Function updatePokaXDatabase(ByVal tableName As String, ByVal iRec As DBPokaRecord, ByVal iStr As String) As Boolean
+    Public Function updatePokaXDatabase(ByVal tableName As String, ByVal iRec As DBPokaRecord, ByVal iNewStatus As String) As Boolean
         If logIdx <= 0 Then
             Return False
         End If
@@ -557,7 +559,7 @@ FUNCEND:
                 itemHMCD & "='" & iRec.HMCD & "' and " & _
                 itemQTY & "='" & iRec.QTY & "' and " & _
                 itemDB & "='WAIT';"
-        Dim sql As New StringBuilder("UPDATE " & tableName & " SET " & itemDB & " = '" & iStr & "' WHERE " & wWhere)
+        Dim sql As New StringBuilder("UPDATE " & tableName & " SET " & itemDB & "='" & iNewStatus & "' WHERE " & wWhere)
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret = 0 Then
             Return True
@@ -592,6 +594,82 @@ FUNCEND:
                             sqliteErrorString)
             Return False
         End If
+    End Function
+
+    '''//////////////////////////////////////////////////////////
+    ''' select WaitRec Waitレコードを取得し返却
+    '''//////////////////////////////////////////////////////////
+    Public Function selectPokaWait() As DBPokaRecord()
+
+        Dim rec() As DBPokaRecord
+        rec = Nothing
+        If logIdx <= 0 Then
+            Return rec
+        End If
+        If checkTableExists(tblNamePoka1) = False Then
+            Return rec
+        End If
+
+        Dim sql As New StringBuilder("SELECT メーカー, 照合日付, 担当者, 社内品番, 社外品番, 数量, 照合結果, データベース FROM " & tblNamePoka1 & " where データベース='WAIT';")
+        Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
+        If cIdx <= 0 Then
+            MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)
+            Return rec
+        End If
+
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteCmdSetCommandText(cIdx, sql)
+        If ret <> 0 Then
+            setSQLErrorString()
+            MessageBox.Show(sqliteErrorString)
+            MessageBox.Show("ERROR btSQLiteCmdSetCommandText:" & ret & vbCr & vbLf & sql.ToString())
+            GoTo FUNCEND
+        End If
+
+        ret = Bt.FileLib.SQLite.btSQLiteCmdExecuteReader(cIdx)
+
+        Dim reccnt As Integer = 0
+        Do
+            ret = Bt.FileLib.SQLite.btSQLiteCmdRead(cIdx)
+            If ret < 0 Then
+                MessageBox.Show("ERROR btSQLiteCmdRead:" & ret & vbCr & vbLf & sql.ToString())
+                GoTo FUNCEND
+            ElseIf ret = 1 Then
+                Dim cnt As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValueCount(cIdx)
+                If cnt < 0 Then
+                    MessageBox.Show("ERROR btSQLiteCmdGetValueCount:" & ret)
+                    GoTo FUNCEND
+                End If
+                ReDim Preserve rec(reccnt)
+                Dim i As Integer
+                For i = 0 To 7
+                    Dim data As IntPtr
+                    data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
+                    Dim ret2 As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, i, data, 8192)
+                    If ret2 <> 0 Then
+                        MessageBox.Show("ERROR btSQLiteCmdGetValue:" & ret2)
+                        Marshal.FreeCoTaskMem(data)
+                        GoTo FUNCEND
+                    End If
+                    Select Case i
+                        Case 0 : rec(reccnt).MAKER = Marshal.PtrToStringUni(data)
+                        Case 1 : rec(reccnt).DATATIME = Marshal.PtrToStringUni(data)
+                        Case 2 : rec(reccnt).TANCD = Marshal.PtrToStringUni(data)
+                        Case 3 : rec(reccnt).HMCD = Marshal.PtrToStringUni(data)
+                        Case 4 : rec(reccnt).TKHMCD = Marshal.PtrToStringUni(data)
+                        Case 5 : rec(reccnt).QTY = Marshal.PtrToStringUni(data)
+                        Case 6 : rec(reccnt).RESULT = Marshal.PtrToStringUni(data)
+                        Case 7 : rec(reccnt).DATABASE = Marshal.PtrToStringUni(data)
+                    End Select
+                    Marshal.FreeCoTaskMem(data)
+                Next
+                reccnt += 1
+            End If
+        Loop While ret = 1
+
+FUNCEND:
+
+        Bt.FileLib.SQLite.btSQLiteCmdDelete(cIdx)
+        selectPokaWait = rec
     End Function
 
     '''//////////////////////////////////////////////////////////

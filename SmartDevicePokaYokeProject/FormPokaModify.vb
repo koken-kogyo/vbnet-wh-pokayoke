@@ -3,8 +3,16 @@
     ' SQLite
     Private rowId As Integer = 0
     Private tableName As [String] = ""
+    Private tkcd As [String] = ""
+    Private tancd As [String] = ""
+    Private dbstatus As [String] = ""
 
-    Public Sub New(ByVal _tablename As String, ByVal _rowid As Integer, ByVal _hmcd As String, ByVal _qty As String)
+    Public Sub New(ByVal _tablename As String, ByVal _rowid As Integer, _
+                   ByVal _tkcd As String, _
+                   ByVal _hmcd As String, _
+                   ByVal _qty As String, _
+                   ByVal _tancd As String, _
+                   ByVal _db As String)
 
         ' この呼び出しは、Windows フォーム デザイナで必要です。
         InitializeComponent()
@@ -12,9 +20,12 @@
         ' InitializeComponent() 呼び出しの後で初期化を追加します。
         tableName = _tablename
         rowId = _rowid
-        txtHMCD.Text = _hmcd
+        tkcd = _tkcd
+        txtHMCD.Text = Replace(Replace(Replace(_hmcd, "待", ""), "×", ""), "△", "")
         txtQTYbefore.Text = _qty
         txtQTY.Text = _qty
+        tancd = _tancd
+        dbstatus = _db
 
     End Sub
 
@@ -41,7 +52,20 @@
             txtQTY.Focus()
             Exit Sub
         End If
-        If updatePokaXMeisai(tableName, rowId, txtQTY.Text) Then
+        If dbstatus = "OK" And txtQTYbefore.Text = txtQTY.Text Then
+            MessageBox.Show("変更がありません．", "入力チェック", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
+            txtQTY.Focus()
+            Exit Sub
+        End If
+        Dim newstatus As String = "-"
+        ' SQLServer側が既に更新されていたら差分で更新し直す
+        If dbstatus <> "-" Then
+            Dim badqty As String = "0"  ' エラーだった場合は新規更新
+            If dbstatus = "OK" Then badqty = txtQTYbefore.Text '更新済みの場合は差分で更新
+            newstatus = UpdateKD8330(tkcd, txtHMCD.Text, badqty, txtQTY.Text, tancd)
+        End If
+        ' ローカルSQLiteデータベースを更新
+        If updatePokaXMeisai(tableName, rowId, txtQTY.Text, newstatus) Then
             Me.DialogResult = Windows.Forms.DialogResult.OK
             Me.Close() ' 更新OK時このダイアログは閉じる
         End If

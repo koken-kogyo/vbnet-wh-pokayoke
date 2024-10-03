@@ -58,7 +58,7 @@ Public Class FormPoka2Yanmar
 
     ' F3キー (履歴表示)
     Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
-        Dim frm As Form = New FormPokaHistory(tblNamePoka2)
+        Dim frm As Form = New FormPokaHistory(tblNamePoka2, txtTANCD.Text)
         frm.ShowDialog()
         lblCount.Text = getRecordCount(tblNamePoka2) ' 24.05.30 add y.w
     End Sub

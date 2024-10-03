@@ -91,9 +91,9 @@ PokaYoke
  View data
 //////////////////////////////////////////////////////////
 
-</member><member name="M:PokaYoke.ModuleSQLite.updatePokaXMeisai(System.String,System.Int32,System.String)">
+</member><member name="M:PokaYoke.ModuleSQLite.updatePokaXMeisai(System.String,System.Int32,System.String,System.String)">
 //////////////////////////////////////////////////////////
- Update
+ Update 数量変更
 //////////////////////////////////////////////////////////
 
 </member><member name="M:PokaYoke.ModuleSQLite.updatePokaXDatabase(System.String,PokaYoke.ModuleSQLite.DBPokaRecord,System.String)">
@@ -104,6 +104,11 @@ PokaYoke
 </member><member name="M:PokaYoke.ModuleSQLite.deletePokaXMeisai(System.String,System.Int32)">
 //////////////////////////////////////////////////////////
  Delete
+//////////////////////////////////////////////////////////
+
+</member><member name="M:PokaYoke.ModuleSQLite.selectPokaWait">
+//////////////////////////////////////////////////////////
+ select WaitRec Waitレコードを取得し返却
 //////////////////////////////////////////////////////////
 
 </member><member name="M:PokaYoke.ModuleSQLite.SQLite2CSV(System.String)">

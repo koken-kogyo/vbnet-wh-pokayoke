@@ -13,16 +13,19 @@ Public Class FormPokaHistory
     ' SQLite
     Private tableName As [String] = ""
 
+    Private tancd As [String] = ""
+
     ' DataGrid1を操作
     Public totalRow As Int32
 
-    Public Sub New(ByVal _tablename As String)
+    Public Sub New(ByVal _tablename As String, ByVal _tancd As String)
 
         ' この呼び出しは、Windows フォーム デザイナで必要です。
         InitializeComponent()
 
         ' InitializeComponent() 呼び出しの後で初期化を追加します。
         tableName = _tablename
+        tancd = _tancd
 
     End Sub
 
@@ -51,6 +54,7 @@ Public Class FormPokaHistory
         ts.MappingName = tableName
         DataGrid1.TableStyles.Add(ts)
         DataGrid1.TableStyles(tableName).GridColumnStyles("ID").Width = -1
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemMAKER).Width = -1
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemDATETIME).HeaderText = "時刻"
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemDATETIME).Width = 35
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemHMCD).HeaderText = "社内品番"
@@ -59,6 +63,7 @@ Public Class FormPokaHistory
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemQTY).Width = 27
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemRESULT).HeaderText = "結"
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemRESULT).Width = 18
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemDB).Width = -1
 
         totalRow = getRecordCount(tableName)
         lblCount.Text = totalRow.ToString() & "件"
@@ -143,6 +148,15 @@ Public Class FormPokaHistory
             Exit Sub
         End If
         If MessageBox.Show("削除してもよろしいですか？", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton1) = Windows.Forms.DialogResult.Yes Then
+            Dim rowid As Integer = Integer.Parse(DataGrid1(row, 0).ToString())
+            Dim tkcd As String = DataGrid1(row, 1).ToString()
+            Dim hmcd As String = DataGrid1(row, 3).ToString()
+            Dim qty As String = DataGrid1(row, 4).ToString()
+            Dim db As String = DataGrid1(row, 6).ToString()
+            ' SQLServer側が既に更新されていたら0で更新し直す
+            If db = "OK" Then
+                UpdateKD8330(tkcd, hmcd, qty, 0, tancd)
+            End If
             If deletePokaXMeisai(tableName, DataGrid1(row, 0).ToString()) Then
                 viewData() ' OK時、データを取得し直してDataGrid1を再表示
             End If
@@ -180,9 +194,11 @@ Public Class FormPokaHistory
                 Dim row As Long = DataGrid1.CurrentRowIndex
                 If DataGrid1.IsSelected(row) Then
                     Dim rowid As Integer = Integer.Parse(DataGrid1(row, 0).ToString())
-                    Dim hmcd As String = DataGrid1(row, 2).ToString()
-                    Dim qty As String = DataGrid1(row, 3).ToString()
-                    Dim form As FormPokaModify = New FormPokaModify(tableName, rowid, hmcd, qty)
+                    Dim tkcd As String = DataGrid1(row, 1).ToString()
+                    Dim hmcd As String = DataGrid1(row, 3).ToString()
+                    Dim qty As String = DataGrid1(row, 4).ToString()
+                    Dim db As String = DataGrid1(row, 6).ToString()
+                    Dim form As FormPokaModify = New FormPokaModify(tableName, rowid, tkcd, hmcd, qty, tancd, db)
                     Dim result = form.ShowDialog()
                     If result = Windows.Forms.DialogResult.OK Then
                         viewData()

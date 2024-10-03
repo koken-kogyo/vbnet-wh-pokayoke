@@ -7,12 +7,15 @@ Public Class FormPoka1Kubota
     ' このWindowのインスタンス
     Public Shared FormPoka1Instance As FormPoka1Kubota
 
-    Dim flgSCAN As Boolean = False ' 社内品番のキー入力禁止フラグ
-    Dim flgConfirm As Boolean = False ' 照合済みフラグ
-    Dim gTKCD As String = "" ' 社内品番Enter時に得意先コードを保持
-    Dim gWaitRec() As DBPokaRecord
-    Dim gRetry As Integer = 0 ' Timerイベント回数
-    Dim gInterval As UInt32 ' オートパワーオフ設定値を保存
+    Dim flgSCAN As Boolean = False      ' 社内品番のキー入力禁止フラグ
+    Dim flgConfirm As Boolean = False   ' 照合済みフラグ
+    Dim gTKCD As String = ""            ' 社内品番Enter時に得意先コードを保持・・・ゆくゆくは画面上でスキャン入力してもらう
+    ' SQLServer遅延更新関連
+    Dim gWaitRec() As DBPokaRecord      ' 更新すべきレコードを配列に保持
+    Dim gRetryCnt As Integer = 0        ' Timerイベント回数（リトライ1回でもうざいので0にして廃止）
+    Dim gDisableMin As Integer = 60     ' 次回Timerイベント発生OKまでの時間を分で指定
+    Dim gRetryDt As DateTime = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終疎通時間を保持
+    Dim gInterval As UInt32             ' オートパワーオフ設定値を保存
 
     Private Sub FormPoka1Kubota_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
@@ -20,6 +23,10 @@ Public Class FormPoka1Kubota
         chkTe.Checked = If(mHandOK = "1", True, False)
         chkQR.Checked = If(mQROnly = "1", True, False)
         txtClear()
+
+        ' SQLServer遅延更新関連の初期設定
+        gWaitRec = selectPokaWait()
+        gInterval = getAutoPowerOFF()
 
         ' フォーム上でキーダウンイベントを取得
         Me.KeyPreview = True
@@ -70,7 +77,7 @@ Public Class FormPoka1Kubota
 
     ' F3キー (履歴表示)
     Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
-        Dim frm As Form = New FormPokaHistory(tblNamePoka1)
+        Dim frm As Form = New FormPokaHistory(tblNamePoka1, txtTANCD.Text)
         frm.ShowDialog()
         lblCount.Text = getRecordCount(tblNamePoka1) ' 24.05.30 add y.w
     End Sub
@@ -402,7 +409,7 @@ Public Class FormPoka1Kubota
             If isWN = False Then MyDialogError.ShowDialog()
 
             ' 照合結果出力 SQLite Insert
-            rec.MAKER = "KUBOTA"
+            rec.MAKER = gTKCD   ' 24.09.29 mod y.w 得意先コードに変更
             rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
             rec.TANCD = txtTANCD.Text
             rec.HMCD = txtHMCD.Text
@@ -480,7 +487,7 @@ Public Class FormPoka1Kubota
                     ' SQLite Insert
                     Dim rec As DBPokaRecord
                     Dim ret As Int32
-                    rec.MAKER = "KUBOTA"
+                    rec.MAKER = gTKCD   ' 24.09.29 mod y.w 得意先コードに変更
                     rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
                     rec.TANCD = txtTANCD.Text
                     rec.HMCD = txtHMCD.Text
@@ -511,8 +518,6 @@ Public Class FormPoka1Kubota
                             ReDim Preserve gWaitRec(idx + 1)
                             gWaitRec(idx + 1) = rec
                         End If
-                        gRetry = 3
-                        gInterval = getAutoPowerOFF()
                         Call setAutoPowerOFF(0)
                         TimerWiFiUpdater.Enabled = True
                     End If
@@ -539,53 +544,68 @@ Public Class FormPoka1Kubota
     ' Microsoft SQL Server 2008 R8 出荷指示テーブル更新
     Private Sub TimerWiFiUpdater_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TimerWiFiUpdater.Tick
 
-        ' 疎通確認（リトライ２回）
-        If gRetry = 0 Or gWaitRec Is Nothing Then
+        If gWaitRec Is Nothing Then Exit Sub
+
+        ' 疎通確認失敗後の2回目以降の制御（前回疎通失敗時刻＋指定時間(60分)の間はチェックを行なわない）
+        If DateTime.Now < gRetryDt.AddMinutes(gDisableMin) Then
             TimerWiFiUpdater.Enabled = False
             Call setAutoPowerOFF(gInterval)
             Exit Sub
-        Else
-            Dim fm As New FormWaiting
-            fm.Show()
-            Refresh()
-            Application.DoEvents()
-
-            Dim ret As Boolean = checkSQLServer()
-            Refresh()
-            fm.Dispose()
-            If ret = False Then GoTo Retry
         End If
 
-        ' デバッグ中に再度呼び出されないようここでタイマーをオフ
+        ' Wait画面表示
+        Dim fm As New FormWaiting
+        fm.Show()
+        Refresh()
+        Application.DoEvents()
+
+        ' 疎通確認中に変な事にならないようタイマーをオフ
         TimerWiFiUpdater.Enabled = False
         Call setAutoPowerOFF(gInterval)
+
+        ' 疎通確認
+        Dim ret As Boolean = checkSQLServer()
+        Refresh()
+        fm.Dispose()
+        If ret = False Then GoTo Retry
+
+        gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終疎通時間をクリア
 
         ' 溜まっている、WAITレコードを全て読み込む
         Dim idx As Integer
         For idx = 0 To UBound(gWaitRec)
 
             ' 出荷指示テーブルの更新 (SQL Server 2008 R2)
-            Dim status As String = UpdateKD8330(gWaitRec(idx).HMCD, gWaitRec(idx).QTY, txtTANCD.Text)
+            Dim dbstatus As String = UpdateKD8330(gWaitRec(idx).MAKER, gWaitRec(idx).HMCD, 0, gWaitRec(idx).QTY, txtTANCD.Text)
 
             ' 照合履歴ファイルの更新 (SQLite)
-            Call updatePokaXDatabase(tblNamePoka1, gWaitRec(idx), status)
+            Call updatePokaXDatabase(tblNamePoka1, gWaitRec(idx), dbstatus)
 
-            gWaitRec(idx).DATABASE = status
+            gWaitRec(idx).DATABASE = dbstatus
         Next
         If gWaitRec.Where(Function(r) r.DATABASE = "WAIT").Count = 0 Then
             gWaitRec = Nothing
         Else
-            ' LINQを使用して要素を削除する（配列のサイズ変更）
-            ' もう、ここを通ることは無くなったがカッコいいのでとっておく
+            ' LINQを使用してgWaitRec要素を再作成
             gWaitRec = gWaitRec.Where(Function(r) r.DATABASE = "WAIT").ToArray
         End If
 
         Exit Sub
 
 Retry:
-        TimerWiFiUpdater.Enabled = False
-        gRetry = gRetry - 1
-        If gRetry <> 0 Then TimerWiFiUpdater.Enabled = True
-
+        If gRetryCnt > 0 Then
+            TimerWiFiUpdater.Enabled = True
+            Call setAutoPowerOFF(0)
+        End If
+        gRetryCnt = gRetryCnt - 1
+        ' リトライ回数分が全て失敗に終わった場合、次回TimerまでのDisable時間を設定
+        If gRetryCnt < 0 Then
+            Dim msg As String = _
+                "データベースの更新失敗．" + vbCrLf + _
+                "システム担当者に連絡を．" + vbCrLf + _
+                "以降" + gDisableMin.ToString + "分間更新しません．"
+            Dim result As Integer = MessageBox.Show(msg, "システム更新", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1)
+            gRetryDt = DateTime.Now
+        End If
     End Sub
 End Class
