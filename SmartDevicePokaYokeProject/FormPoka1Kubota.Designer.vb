@@ -227,6 +227,7 @@ Partial Public Class FormPoka1Kubota
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.AutoScroll = True
+        Me.BackColor = System.Drawing.Color.Silver
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
         Me.Controls.Add(Me.txtQTY)

@@ -1,5 +1,4 @@
 ﻿Imports System.Threading
-Imports System.Runtime.InteropServices
 
 Public Class FormPoka4Orient
 
@@ -133,14 +132,13 @@ Public Class FormPoka4Orient
                 txtTKHMCD.Focus()
             Case System.Windows.Forms.Keys.Enter
                 If txtHMCD.Text <> "" Then
-                    Dim wTKCD As String = ""
                     Dim wSKHIASU As String = ""
                     Dim wCOLOR As String = ""
                     Dim wSU As String = ""
                     Dim ret As Boolean
                     lblHIASU.Text = ""
                     ' 品目マスターチェック
-                    ret = getM0500(txtHMCD.Text, wTKCD, wSKHIASU, wCOLOR, wSU)
+                    ret = getM0500(txtHMCD.Text, wSKHIASU, wCOLOR, wSU)
                     If ret And wSKHIASU <> "" Then
 
                         ' ラベル表示

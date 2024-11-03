@@ -136,7 +136,7 @@ PokaYoke
  自動倉庫マスタチェック
 //////////////////////////////////////////////////////////
 
-</member><member name="M:PokaYoke.ModuleSQLite.getM0500(System.String,System.String@,System.String@,System.String@,System.String@)">
+</member><member name="M:PokaYoke.ModuleSQLite.getM0500(System.String,System.String@,System.String@,System.String@)">
 //////////////////////////////////////////////////////////
  紐色＆数取得
 //////////////////////////////////////////////////////////

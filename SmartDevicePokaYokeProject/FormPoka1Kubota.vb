@@ -1,6 +1,5 @@
-﻿Imports System.Threading
-Imports System.Runtime.InteropServices
-Imports System.Data
+﻿Imports System.Data
+Imports System.Threading
 
 Public Class FormPoka1Kubota
 
@@ -9,7 +8,6 @@ Public Class FormPoka1Kubota
 
     Dim flgSCAN As Boolean = False      ' 社内品番のキー入力禁止フラグ
     Dim flgConfirm As Boolean = False   ' 照合済みフラグ
-    Dim gTKCD As String = ""            ' 社内品番Enter時に得意先コードを保持・・・ゆくゆくは画面上でスキャン入力してもらう
     ' SQLServer遅延更新関連
     Dim gWaitRec() As DBPokaRecord      ' 更新すべきレコードを配列に保持
     Dim gRetryCnt As Integer = 0        ' Timerイベント回数（リトライ1回でもうざいので0にして廃止）
@@ -22,11 +20,16 @@ Public Class FormPoka1Kubota
         txtTANCD.Text = FormMain.txtTANCD.Text
         chkTe.Checked = If(mHandOK = "1", True, False)
         chkQR.Checked = If(mQROnly = "1", True, False)
+        Dim bkKD8330Mode As String = mKD8330Mode
         txtClear()
 
         ' SQLServer遅延更新関連の初期設定
         gWaitRec = selectPokaWait()
         gInterval = getAutoPowerOFF()
+
+        ' 出荷指示書システム用変数初期化 ver.24.11.04 y.w
+        Call createKD8330()
+        If bkKD8330Mode <> "" Then Call setupKD8330(bkKD8330Mode) ' 出荷指示モードの復元
 
         ' フォーム上でキーダウンイベントを取得
         Me.KeyPreview = True
@@ -41,12 +44,12 @@ Public Class FormPoka1Kubota
         Call saveSettingQROnly(chkQR.Checked)
     End Sub
 
-    ' F1キー
+    ' F1キー(戻る)
     Private Sub btnF1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF1.Click
         Close()
     End Sub
 
-    ' F2キー
+    ' F2キー(送信)
     Private Sub btnF2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF2.Click
 
         If getRecordCount(tblNamePoka1) = 0 Then
@@ -82,12 +85,19 @@ Public Class FormPoka1Kubota
         lblCount.Text = getRecordCount(tblNamePoka1) ' 24.05.30 add y.w
     End Sub
 
-    ' F4キー
+    ' F4キー(クリア)
     Private Sub btnF4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF4.Click
         Call txtClear()
     End Sub
 
     Private Sub txtClear()
+        If txtHMCD.Text = "" Then
+            ' 出荷指示モードをクリア ver.24.11.04 y.w
+            Me.LabelMenu.Text = "クボタ照合"
+            mKD8330Mode = ""
+            Me.BackColor = Color.LightGray
+        End If
+
         txtHMCD.Text = ""
         lblHMCD.Text = ""
         txtTKHMCD.Text = ""
@@ -169,29 +179,37 @@ Public Class FormPoka1Kubota
             Case System.Windows.Forms.Keys.Down
                 txtTKHMCD.Focus()
             Case System.Windows.Forms.Keys.Enter
-                If txtHMCD.Text <> "" Then
-                    Dim wSKHIASU As String = ""
-                    Dim wCOLOR As String = ""
-                    Dim wSU As String = ""
-                    Dim ret As Boolean
-                    lblHIASU.Text = ""
-                    gTKCD = "" ' 後々使う得意先コードをここで取得
-                    ' 品目マスターチェック
-                    ret = getM0500(txtHMCD.Text, gTKCD, wSKHIASU, wCOLOR, wSU)
-                    If ret And wSKHIASU <> "" Then
-
-                        ' ラベル表示
-                        lblHIASU.Text = wSKHIASU
-
-                        ' 色指定あり＆数が２本以上の場合、ポップアップ画面を出す
-                        If wCOLOR <> "" And Convert.ToInt32(wSU) > 1 Then
-                            Dim myDialog As MyDialogHIASU
-                            myDialog = New MyDialogHIASU(wSKHIASU, wCOLOR, wSU)
-                            myDialog.ShowDialog()
-                        End If
-                    End If
+                If txtHMCD.Text = "" Then
                     txtTKHMCD.Focus()
+                    Exit Sub
+                Else
+                    ' 出荷指示モードを判定 ver.24.11.04 y.w
+                    If InStr(mTargetTKCDs, Split(txtHMCD.Text, "-")(0) & "|") > 0 Then
+                        Call setupKD8330(txtHMCD.Text)
+                        txtHMCD.Text = ""
+                        Exit Sub
+                    End If
                 End If
+
+                Dim wSKHIASU As String = ""
+                Dim wCOLOR As String = ""
+                Dim wSU As String = ""
+                lblHIASU.Text = ""
+                ' 品目マスターチェック
+                Dim ret As Boolean = getM0500(txtHMCD.Text, wSKHIASU, wCOLOR, wSU)
+                If ret And wSKHIASU <> "" Then
+
+                    ' ラベル表示
+                    lblHIASU.Text = wSKHIASU
+
+                    ' 色指定あり＆数が２本以上の場合、ポップアップ画面を出す
+                    If wCOLOR <> "" And Convert.ToInt32(wSU) > 1 Then
+                        Dim myDialog As MyDialogHIASU
+                        myDialog = New MyDialogHIASU(wSKHIASU, wCOLOR, wSU)
+                        myDialog.ShowDialog()
+                    End If
+                End If
+                txtTKHMCD.Focus()
             Case 152, 153 'サイドボタンVK_TRG:0x98(152)、SCAN:VK_CTRG:0x99(153)ボタン 24.05.31 mod y.w
                 flgSCAN = True
             Case Keys.NumPad0 To Keys.NumPad9   ' テンキーの0～9
@@ -409,7 +427,7 @@ Public Class FormPoka1Kubota
             If isWN = False Then MyDialogError.ShowDialog()
 
             ' 照合結果出力 SQLite Insert
-            rec.MAKER = gTKCD   ' 24.09.29 mod y.w 得意先コードに変更
+            rec.MAKER = "KUBOTA"
             rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
             rec.TANCD = txtTANCD.Text
             rec.HMCD = txtHMCD.Text
@@ -481,20 +499,67 @@ Public Class FormPoka1Kubota
                 ' 照合せず数量入力された場合、ここで照合処理を入れる
                 If flgConfirm = False Then Call Judge()
 
+                ' 出荷指示書システムへの数量チェックを行なう ver.24.11.04 y.w
+                If mKD8330Mode <> "" Then
+                    ' 数量判定
+                    Dim rec = mKD8330dt.AsEnumerable.Where(Function(dr) _
+                            (dr.Field(Of String)(1) = txtHMCD.Text Or _
+                             dr.Field(Of String)(2) = txtHMCD.Text) _
+                            ).ToArray()
+                    Dim qty As Integer = Integer.Parse(txtQTY.Text)
+                    Dim odrttl As Integer = 0   ' 同一品番を集計（出荷指示書の指示数）
+                    Dim htttl As Integer = 0    ' 同一品番を集計（HTで更新した数量）
+                    For wI = 0 To rec.Length - 1
+                        '0:.Columns.Add(New DataColumn("NO"))
+                        '1:.Columns.Add(New DataColumn("TKHMCD"))
+                        '2:.Columns.Add(New DataColumn("HMCD"))
+                        '3:.Columns.Add(New DataColumn("ODRQTY"))
+                        '4:.Columns.Add(New DataColumn("INSUU"))
+                        '5:.Columns.Add(New DataColumn("HTTANCD"))
+                        '6:.Columns.Add(New DataColumn("HTJUDT"))
+                        '7:.Columns.Add(New DataColumn("HTJUQTY"))
+                        If IsNumeric(rec(wI)(3)) And IsNumeric(rec(wI)(4)) And IsNumeric(rec(wI)(7)) Then
+                            Dim odrqty As Integer = Integer.Parse(rec(wI)(3))
+                            Dim insuu As Integer = Integer.Parse(rec(wI)(4))
+                            Dim htqty As Integer = Integer.Parse(rec(wI)(7))
+                            If insuu = 0 Then insuu = odrqty
+                            If odrqty < qty Or insuu > qty Or qty Mod insuu <> 0 Then
+                                MsgBox("梱包数[" & insuu & "]に対して" & vbCrLf & _
+                                       "入力数量が不整合です．" & vbCrLf & vbCrLf & _
+                                       "確認してください！", MsgBoxStyle.Exclamation)
+                                Exit Sub
+                            End If
+                            odrttl += odrqty
+                            htttl += htqty
+                        End If
+                    Next
+                    If odrttl = htttl Then
+                        MsgBox("既に出荷準備されています．" & vbCrLf & vbCrLf & _
+                               "確認してください！", MsgBoxStyle.Exclamation)
+                        Exit Sub
+                    ElseIf odrttl < htttl + qty Then
+                        MsgBox("指示数[" & odrttl & "(" & htttl & "済)]を" & vbCrLf & _
+                               "超える数量は入力出来ません．" & vbCrLf & vbCrLf & _
+                               "確認してください！", MsgBoxStyle.Exclamation)
+                        Exit Sub
+                    End If
+
+                End If
+
                 ' 品番照合OKを出力 
                 If flgConfirm Then
 
                     ' SQLite Insert
                     Dim rec As DBPokaRecord
                     Dim ret As Int32
-                    rec.MAKER = gTKCD   ' 24.09.29 mod y.w 得意先コードに変更
+                    rec.MAKER = "KUBOTA"
                     rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
                     rec.TANCD = txtTANCD.Text
                     rec.HMCD = txtHMCD.Text
                     rec.TKHMCD = txtTKHMCD.Text
                     rec.QTY = txtQTY.Text
                     rec.RESULT = "OK"
-                    If gTKCD <> "" And InStr(mTargetTKCDs, gTKCD) > 0 Then
+                    If mKD8330Mode <> "" Then
                         rec.DATABASE = "WAIT"
                     Else
                         rec.DATABASE = "-"
@@ -541,6 +606,39 @@ Public Class FormPoka1Kubota
         txtTKHMCD.Focus()
     End Sub
 
+    ' 出荷指示書システム用にSQLServerから出荷指示書データを取得し、画面モードも変える ver.24.11.04 y.w
+    Private Sub setupKD8330(ByVal iMode As String)
+        Dim wTKCD As String = Split(iMode, "-")(0)
+        Dim wMode As String = Split(iMode, "-")(1)
+        Dim ret = getKD8330(wTKCD, wMode)
+        If ret = False Then
+            MsgBox("出荷指示書読み込みで" & vbCrLf & _
+                   "異常が発生しました．", MsgBoxStyle.Critical)
+            MsgBox("通常モードに戻して" & vbCrLf & _
+                   "処理を続行させます．", MsgBoxStyle.Information)
+            mKD8330Mode = ""
+            Me.LabelMenu.Text = "クボタ照合"
+            Me.BackColor = Color.LightGray
+
+        ElseIf mKD8330dt.Rows.Count = 0 Then
+            MsgBox("消込対象の出荷指示書が" & vbCrLf & _
+                   "見つかりませんでした．" & vbCrLf & _
+                   "[" & iMode & "]" & vbCrLf & vbCrLf & _
+                   "通常モードに戻して" & vbCrLf & _
+                   "処理を続行させます．", MsgBoxStyle.Information)
+            mKD8330Mode = ""
+            Me.LabelMenu.Text = "クボタ照合"
+            Me.BackColor = Color.LightGray
+
+        Else
+            ' 出荷指示モードを変更
+            mKD8330Mode = iMode
+            Me.LabelMenu.Text = IIf(wTKCD = "C0105", "枚方", IIf(wTKCD = "C0101", "堺　", "不明")) & mDLVRDT & "納期分"
+            Me.BackColor = Color.LightGreen
+        End If
+
+    End Sub
+
     ' Microsoft SQL Server 2008 R8 出荷指示テーブル更新
     Private Sub TimerWiFiUpdater_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TimerWiFiUpdater.Tick
 
@@ -578,6 +676,11 @@ Public Class FormPoka1Kubota
             ' 出荷指示テーブルの更新 (SQL Server 2008 R2)
             Dim dbstatus As String = UpdateKD8330(gWaitRec(idx).MAKER, gWaitRec(idx).HMCD, 0, gWaitRec(idx).QTY, txtTANCD.Text)
 
+            ' 出荷指示モードテーブルを再取得(最新のHTQTY情報がほしい為) ver.24.11.04 y.w
+            If dbstatus = "OK" Then
+                Call setupKD8330(mKD8330Mode)
+            End If
+
             ' 照合履歴ファイルの更新 (SQLite)
             Call updatePokaXDatabase(tblNamePoka1, gWaitRec(idx), dbstatus)
 
@@ -608,4 +711,5 @@ Retry:
             gRetryDt = DateTime.Now
         End If
     End Sub
+
 End Class

@@ -1,6 +1,5 @@
 ﻿Imports System.Text
 Imports System.Data
-Imports System.Runtime.InteropServices
 Imports System
 Imports System.Windows.Forms
 Imports Microsoft.WindowsCE.Forms
@@ -156,7 +155,9 @@ Public Class FormPokaHistory
             ' SQLServer側が既に更新されていたら0で更新し直す
             If db = "OK" Then
                 UpdateKD8330(tkcd, hmcd, qty, 0, tancd)
+                Call refreshKD8330() ' 出荷指示テーブル再取得 ver.24.11.04 y.w
             End If
+
             If deletePokaXMeisai(tableName, DataGrid1(row, 0).ToString()) Then
                 viewData() ' OK時、データを取得し直してDataGrid1を再表示
             End If

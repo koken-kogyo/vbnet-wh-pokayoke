@@ -945,12 +945,12 @@ FUNCEND:
     ''' 紐色＆数取得
     '''//////////////////////////////////////////////////////////
     Public Function getM0500(ByVal iHMCD As String, _
-        ByRef oTKCD As String, ByRef oSKHIASU As String, ByRef oCOLOR As String, ByRef oSU As String) As Boolean
+        ByRef oSKHIASU As String, ByRef oCOLOR As String, ByRef oSU As String) As Boolean
 
         Dim wFlg As Boolean
 
         ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
-        Dim sql As New StringBuilder("SELECT TKCD, SKHIASU, IFNULL(COLOR,'-') AS COLOR, IFNULL(SU,0) AS SU FROM M0500 WHERE HMCD='" & iHMCD & "';")
+        Dim sql As New StringBuilder("SELECT SKHIASU, IFNULL(COLOR,'-') AS COLOR, IFNULL(SU,0) AS SU FROM M0500 WHERE HMCD='" & iHMCD & "';")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(dbIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR M0500 btSQLiteCmdCreate:" & cIdx)
@@ -973,22 +973,11 @@ FUNCEND:
                 Dim data As IntPtr
                 Dim ret2 As Integer
 
-                ' TKCD取得
+                ' HIASU取得
                 data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
                 ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 0, data, 8192)
                 If ret2 <> 0 Then
                     MessageBox.Show("ERROR btSQLiteCmdGetValue(0):" & ret2)
-                    Marshal.FreeCoTaskMem(data)
-                    GoTo FUNCEND
-                End If
-                oTKCD = Marshal.PtrToStringUni(data)
-                Marshal.FreeCoTaskMem(data)
-
-                ' HIASU取得
-                data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
-                ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 1, data, 8192)
-                If ret2 <> 0 Then
-                    MessageBox.Show("ERROR btSQLiteCmdGetValue(1):" & ret2)
                     Marshal.FreeCoTaskMem(data)
                     GoTo FUNCEND
                 End If
@@ -997,9 +986,9 @@ FUNCEND:
 
                 ' COLOR取得
                 data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
-                ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 2, data, 8192)
+                ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 1, data, 8192)
                 If ret2 <> 0 Then
-                    MessageBox.Show("ERROR btSQLiteCmdGetValue(2):" & ret2)
+                    MessageBox.Show("ERROR btSQLiteCmdGetValue(1):" & ret2)
                     Marshal.FreeCoTaskMem(data)
                     GoTo FUNCEND
                 End If
@@ -1008,9 +997,9 @@ FUNCEND:
 
                 ' SU取得
                 data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
-                ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 3, data, 8192)
+                ret2 = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 2, data, 8192)
                 If ret2 <> 0 Then
-                    MessageBox.Show("ERROR btSQLiteCmdGetValue(3):" & ret2)
+                    MessageBox.Show("ERROR btSQLiteCmdGetValue(2):" & ret2)
                     Marshal.FreeCoTaskMem(data)
                     GoTo FUNCEND
                 End If

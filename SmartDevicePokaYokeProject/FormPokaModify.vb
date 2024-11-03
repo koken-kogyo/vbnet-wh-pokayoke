@@ -63,6 +63,7 @@
             Dim badqty As String = "0"  ' エラーだった場合は新規更新
             If dbstatus = "OK" Then badqty = txtQTYbefore.Text '更新済みの場合は差分で更新
             newstatus = UpdateKD8330(tkcd, txtHMCD.Text, badqty, txtQTY.Text, tancd)
+            Call refreshKD8330() ' ver.24.11.04 y.w
         End If
         ' ローカルSQLiteデータベースを更新
         If updatePokaXMeisai(tableName, rowId, txtQTY.Text, newstatus) Then

@@ -1,4 +1,4 @@
-﻿Imports System.Runtime.InteropServices
+﻿Imports System.Data
 Imports System.Data.SqlClient.SqlCommand
 
 Module ModuleSQLServer
@@ -19,6 +19,38 @@ Module ModuleSQLServer
 
     Private Const cTitle As String = "出荷指示テーブル更新"
 
+    ' 出荷指示モード時の保存変数 ver.24.11.04 y.w
+    Public mKD8330Mode As String = ""   ' 出荷指示書システム用変数（処理モード["C0101-Y","C0105-G"]等を保持）
+    Public mKD8330dt As DataTable       ' 出荷指示テーブルをデータテーブルに保持して運用
+    Public mDLVRDT As String            ' 受注納期を別途保持 [MM/dd(11)形式]（タイトル文字列に使用）
+
+    ' 出荷指示テーブル初期化 ver.24.11.04
+    Public Sub createKD8330()
+        If mKD8330dt Is Nothing Then
+            mKD8330dt = New DataTable("KD8330")
+            With mKD8330dt
+                .Columns.Add(New DataColumn("NO"))
+                .Columns.Add(New DataColumn("TKHMCD"))
+                .Columns.Add(New DataColumn("HMCD"))
+                .Columns.Add(New DataColumn("ODRQTY"))
+                .Columns.Add(New DataColumn("INSUU"))
+                .Columns.Add(New DataColumn("HTTANCD"))
+                .Columns.Add(New DataColumn("HTJUDT"))
+                .Columns.Add(New DataColumn("HTJUQTY"))
+            End With
+        End If
+    End Sub
+
+    Private Function getConnectionString() As String
+        getConnectionString = _
+            "Data Source=" & mSQLServer & "\KOKEN;" & _
+            "Initial Catalog=KOKEN;" & _
+            "Integrated Security=False;" & _
+            "User Id = KOKEN_1;" & _
+            "Password = KOKEN_1;" & _
+            "Connection Timeout=5"
+    End Function
+
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ' 出荷指示テーブル更新
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,15 +58,7 @@ Module ModuleSQLServer
                                  ByVal iBADQTY As Integer, ByVal iMODQTY As Integer, _
                                  ByVal iTANCD As String) As String
 
-        Dim stConnectionString As String = _
-            "Data Source=" & mSQLServer & "\KOKEN;" & _
-            "Initial Catalog=KOKEN;" & _
-            "Integrated Security=False;" & _
-            "User Id = KOKEN_1;" & _
-            "Password = KOKEN_1;" & _
-            "Connection Timeout=5"
-
-        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(stConnectionString)
+        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString)
         Dim hCommand As New System.Data.SqlClient.SqlCommand()
 
         Try
@@ -178,13 +202,7 @@ Module ModuleSQLServer
     End Function
 
     Public Function checkSQLServer() As Boolean
-        Dim stConnectionString As String = _
-            "Data Source=" & mSQLServer & "\KOKEN;" & _
-            "Initial Catalog=KOKEN;" & _
-            "Integrated Security=False;" & _
-            "User Id = KOKEN_1;" & _
-            "Password = KOKEN_1;" & _
-            "Connection Timeout=5"
+        Dim stConnectionString As String = getConnectionString()
         Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(stConnectionString)
         Try
             cSqlConnection.Open()
@@ -195,5 +213,97 @@ Module ModuleSQLServer
             Return False
         End Try
     End Function
+
+    '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ' 出荷指示テーブル取得 ver.24.11.04 y.w
+    '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Public Function getKD8330(ByVal iTKCD As String, ByVal iMode As String) As Boolean
+
+        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString)
+        Dim hCommand As New System.Data.SqlClient.SqlCommand()
+
+        Try
+            ' データベースオープン
+            cSqlConnection.Open()
+
+            Dim sr As System.Data.SqlClient.SqlDataReader
+            Dim wSQL As String = ""
+
+            hCommand = cSqlConnection.CreateCommand()
+            hCommand.CommandTimeout = 20
+
+            ' カレンダーマスタより稼働日を取得
+            wSQL = "select TOP 4 YMD from (" & _
+                    "select convert(date,getdate()) 'YMD' union " & _
+                    "select YMD from S0820 where CALTYP='00001' and WKKBN='1' " & _
+                    "and YMD between convert(date,getdate()) and dateadd(day, 14, getdate()) " & _
+                    ") S0820 order by YMD asc"
+            hCommand.CommandText = wSQL
+            sr = hCommand.ExecuteReader()
+            Dim wTargetDate As Date
+            Dim wRow As Integer = 0
+            While sr.Read
+                If iMode = "Y" And wRow = 0 Then wTargetDate = sr.Item("YMD")
+                If iMode = "G" And wRow = 1 Then wTargetDate = sr.Item("YMD")
+                If iMode = "W" And wRow = 2 Then wTargetDate = sr.Item("YMD")
+                wRow = wRow + 1
+            End While
+            sr.Close()
+
+            ' 出荷指示テーブル
+            mKD8330dt.Rows.Clear()
+
+            ' 出荷指示書テーブルを抽出
+            wSQL = "select NO,TKHMCD,HMCD,ODRQTY,INSUU,HTTANCD,HTJUDT,HTJUQTY" & _
+                    ",right(convert(nvarchar, DLVRDT, 11),5) 'DLVRDT' from KD8330 where " & _
+                    "TKCD='" & iTKCD & "' and SHIPDT='" & wTargetDate & "' " & _
+                    "order by NO asc"
+            hCommand.CommandText = wSQL
+            sr = hCommand.ExecuteReader()
+            While sr.Read
+                Dim dr As DataRow
+                dr = mKD8330dt.NewRow()
+                dr(0) = sr.Item("NO")
+                dr(1) = sr.Item("TKHMCD")
+                dr(2) = sr.Item("HMCD")
+                dr(3) = sr.Item("ODRQTY")
+                dr(4) = sr.Item("INSUU")
+                dr(5) = sr.Item("HTTANCD")
+                dr(6) = sr.Item("HTJUDT")
+                dr(7) = sr.Item("HTJUQTY")
+                mKD8330dt.Rows.Add(dr)
+                If mKD8330dt.Rows.Count = 1 Then
+                    mDLVRDT = sr.Item("DLVRDT")
+                End If
+            End While
+            sr.Close()
+            ' データベースクローズ
+            cSqlConnection.Close()
+            cSqlConnection.Dispose()
+
+            getKD8330 = True
+
+        Catch ex As Exception
+
+            If cSqlConnection.State = Data.ConnectionState.Open Then
+                hCommand.Dispose()
+                ' コネクションを閉じて開放
+                cSqlConnection.Close()
+                cSqlConnection.Dispose()
+            End If
+
+            getKD8330 = False
+
+        End Try
+
+    End Function
+
+    ' 出荷指示書システム用にSQLServerから出荷指示書データを取得 ver.24.11.04 y.w
+    Public Sub refreshKD8330()
+        If mKD8330Mode = "" Then Exit Sub
+        Dim wTKCD As String = Split(mKD8330Mode, "-")(0)
+        Dim wMode As String = Split(mKD8330Mode, "-")(1)
+        Call getKD8330(wTKCD, wMode)
+    End Sub
 
 End Module
