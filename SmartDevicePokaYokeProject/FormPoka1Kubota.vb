@@ -634,7 +634,13 @@ Public Class FormPoka1Kubota
             ' 出荷指示モードを変更
             mKD8330Mode = iMode
             Me.LabelMenu.Text = IIf(wTKCD = "C0105", "枚方", IIf(wTKCD = "C0101", "堺　", "不明")) & mDLVRDT & "納期分"
-            Me.BackColor = Color.LightGreen
+            If wMode = "Y" Then
+                Me.BackColor = Color.Yellow
+            ElseIf wMode = "G" Then
+                Me.BackColor = Color.LightGreen
+            Else
+                Me.BackColor = Color.LightGray
+            End If
         End If
 
     End Sub
