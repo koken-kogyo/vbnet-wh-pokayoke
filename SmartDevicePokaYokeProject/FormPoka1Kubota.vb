@@ -523,12 +523,13 @@ Public Class FormPoka1Kubota
                             Dim insuu As Integer = Integer.Parse(rec(wI)(4))
                             Dim htqty As Integer = Integer.Parse(rec(wI)(7))
                             If insuu = 0 Then insuu = odrqty
-                            If odrqty < qty Or insuu > qty Or qty Mod insuu <> 0 Then
-                                MsgBox("梱包数[" & insuu & "]に対して" & vbCrLf & _
-                                       "入力数量が不整合です．" & vbCrLf & vbCrLf & _
-                                       "確認してください！", MsgBoxStyle.Exclamation)
-                                Exit Sub
-                            End If
+                            '' 数量チェックの廃止 2024.11.07 y.w
+                            ''If odrqty < qty Or insuu > qty Or qty Mod insuu <> 0 Then
+                            ''    MsgBox("梱包数[" & insuu & "]に対して" & vbCrLf & _
+                            ''           "入力数量が不整合です．" & vbCrLf & vbCrLf & _
+                            ''           "確認してください！", MsgBoxStyle.Exclamation)
+                            ''    Exit Sub
+                            ''End If
                             odrttl += odrqty
                             htttl += htqty
                         End If
@@ -538,10 +539,8 @@ Public Class FormPoka1Kubota
                                "確認してください！", MsgBoxStyle.Exclamation)
                         Exit Sub
                     ElseIf odrttl < htttl + qty Then
-                        MsgBox("指示数[" & odrttl & "(" & htttl & "済)]を" & vbCrLf & _
-                               "超える数量は入力出来ません．" & vbCrLf & vbCrLf & _
-                               "確認してください！", MsgBoxStyle.Exclamation)
-                        Exit Sub
+                        MsgBox("指示数[" & odrttl & "(" & htttl & "済)]を超えて" & vbCrLf & _
+                               "います確認してください．", MsgBoxStyle.Exclamation)
                     End If
 
                 End If
