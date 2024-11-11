@@ -185,7 +185,18 @@ Public Class FormPoka1Kubota
                 Else
                     ' 出荷指示モードを判定 ver.24.11.04 y.w
                     If InStr(mTargetTKCDs, Split(txtHMCD.Text, "-")(0) & "|") > 0 Then
-                        Call setupKD8330(txtHMCD.Text)
+
+                        ' Wi-Fi通信経路確認ダイアログボックス表示
+                        Dim dialog As New FormWiFiCheck
+                        If dialog.ShowDialog() = System.Windows.Forms.DialogResult.OK Then
+                            Call setupKD8330(txtHMCD.Text)
+                        Else
+                            MsgBox("通常モードに戻して" & vbCrLf & _
+                                   "処理を続行させます．", MsgBoxStyle.Information)
+                            mKD8330Mode = ""
+                            Me.LabelMenu.Text = "クボタ照合"
+                            Me.BackColor = Color.LightGray
+                        End If
                         txtHMCD.Text = ""
                         Exit Sub
                     End If

@@ -125,6 +125,12 @@
     <Compile Include="FormWaiting.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FormWiFiCheck.Designer.vb">
+      <DependentUpon>FormWiFiCheck.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FormWiFiCheck.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ModuleSQLServer.vb" />
     <Compile Include="MyDialogWarn.Designer.vb">
       <DependentUpon>MyDialogWarn.vb</DependentUpon>
@@ -222,6 +228,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormWaiting.resx">
       <DependentUpon>FormWaiting.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormWiFiCheck.resx">
+      <DependentUpon>FormWiFiCheck.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyDialogWarn.resx">
       <DependentUpon>MyDialogWarn.vb</DependentUpon>

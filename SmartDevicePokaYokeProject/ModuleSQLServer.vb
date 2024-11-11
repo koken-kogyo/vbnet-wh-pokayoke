@@ -41,14 +41,27 @@ Module ModuleSQLServer
         End If
     End Sub
 
-    Private Function getConnectionString() As String
+    Private Function getConnectionString(ByVal iSec As UInt16) As String
         getConnectionString = _
             "Data Source=" & mSQLServer & "\KOKEN;" & _
             "Initial Catalog=KOKEN;" & _
             "Integrated Security=False;" & _
             "User Id = KOKEN_1;" & _
             "Password = KOKEN_1;" & _
-            "Connection Timeout=5"
+            "Connection Timeout=" & iSec
+    End Function
+
+    Public Function checkSQLServer() As Boolean
+        Dim stConnectionString As String = getConnectionString(1)
+        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(stConnectionString)
+        Try
+            cSqlConnection.Open()
+            cSqlConnection.Close()
+            cSqlConnection.Dispose()
+            Return True
+        Catch ex As Exception
+            Return False
+        End Try
     End Function
 
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +71,7 @@ Module ModuleSQLServer
                                  ByVal iBADQTY As Integer, ByVal iMODQTY As Integer, _
                                  ByVal iTANCD As String) As String
 
-        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString)
+        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString(3))
         Dim hCommand As New System.Data.SqlClient.SqlCommand()
 
         Try
@@ -201,25 +214,12 @@ Module ModuleSQLServer
 
     End Function
 
-    Public Function checkSQLServer() As Boolean
-        Dim stConnectionString As String = getConnectionString()
-        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(stConnectionString)
-        Try
-            cSqlConnection.Open()
-            cSqlConnection.Close()
-            cSqlConnection.Dispose()
-            Return True
-        Catch ex As Exception
-            Return False
-        End Try
-    End Function
-
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ' 出荷指示テーブル取得 ver.24.11.04 y.w
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     Public Function getKD8330(ByVal iTKCD As String, ByVal iMode As String) As Boolean
 
-        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString)
+        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString(3))
         Dim hCommand As New System.Data.SqlClient.SqlCommand()
 
         Try
