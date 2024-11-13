@@ -104,6 +104,10 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad6
+                Dim receive As New FormReceive
+                receive.ShowDialog()
+                btnKUBOTA.Focus()
             Case Keys.NumPad7
                 Dim ping As New FormPing
                 ping.ShowDialog()
@@ -131,6 +135,14 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad6
+                Dim receive As New FormReceive
+                receive.ShowDialog()
+                btnYANMAR.Focus()
+            Case Keys.NumPad7
+                Dim ping As New FormPing
+                ping.ShowDialog()
+                btnYANMAR.Focus()
             Case Keys.NumPad8
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
@@ -154,6 +166,14 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad6
+                Dim receive As New FormReceive
+                receive.ShowDialog()
+                btnHITATI.Focus()
+            Case Keys.NumPad7
+                Dim ping As New FormPing
+                ping.ShowDialog()
+                btnHITATI.Focus()
             Case Keys.NumPad8
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
@@ -200,6 +220,14 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad6
+                Dim receive As New FormReceive
+                receive.ShowDialog()
+                btnTANA.Focus()
+            Case Keys.NumPad7
+                Dim ping As New FormPing
+                ping.ShowDialog()
+                btnTANA.Focus()
             Case Keys.NumPad8
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
@@ -255,6 +283,12 @@ Public Class FormMain
                 '    btnORIENT_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
+            Case Keys.NumPad6
+                Dim receive As New FormReceive
+                receive.ShowDialog()
+            Case Keys.NumPad7
+                Dim ping As New FormPing
+                ping.ShowDialog()
             Case Keys.NumPad8
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9

@@ -107,6 +107,12 @@
     <Compile Include="FormDialog.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FormReceive.Designer.vb">
+      <DependentUpon>FormReceive.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FormReceive.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="FormPing.Designer.vb">
       <DependentUpon>FormPing.vb</DependentUpon>
     </Compile>
@@ -219,6 +225,9 @@
   <ItemGroup>
     <EmbeddedResource Include="FormDialog.resx">
       <DependentUpon>FormDialog.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormReceive.resx">
+      <DependentUpon>FormReceive.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormPing.resx">
       <DependentUpon>FormPing.vb</DependentUpon>

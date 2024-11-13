@@ -648,8 +648,12 @@ Public Class FormPoka1Kubota
                 Me.BackColor = Color.Yellow
             ElseIf wMode = "G" Then
                 Me.BackColor = Color.LightGreen
-            Else
+            ElseIf wMode = "W" Then
                 Me.BackColor = Color.LightGray
+            ElseIf wMode = "1W" Then
+                Me.BackColor = Color.DarkGray
+            Else
+                Me.BackColor = Color.Silver
             End If
         End If
 
