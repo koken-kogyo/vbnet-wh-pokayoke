@@ -3,11 +3,13 @@
     ' SQLite
     Private rowId As Integer = 0
     Private tableName As [String] = ""
+    Private dlvrdt As [String] = ""
     Private tkcd As [String] = ""
     Private tancd As [String] = ""
     Private dbstatus As [String] = ""
 
     Public Sub New(ByVal _tablename As String, ByVal _rowid As Integer, _
+                   ByVal _dlvrdt As String, _
                    ByVal _tkcd As String, _
                    ByVal _hmcd As String, _
                    ByVal _qty As String, _
@@ -20,6 +22,7 @@
         ' InitializeComponent() 呼び出しの後で初期化を追加します。
         tableName = _tablename
         rowId = _rowid
+        dlvrdt = _dlvrdt
         tkcd = _tkcd
         txtHMCD.Text = Replace(Replace(Replace(_hmcd, "待", ""), "×", ""), "△", "")
         txtQTYbefore.Text = _qty
@@ -62,7 +65,7 @@
         If dbstatus <> "-" Then
             Dim badqty As String = "0"  ' エラーだった場合は新規更新
             If dbstatus = "OK" Then badqty = txtQTYbefore.Text '更新済みの場合は差分で更新
-            newstatus = UpdateKD8330(tkcd, txtHMCD.Text, badqty, txtQTY.Text, tancd)
+            newstatus = UpdateKD8330(dlvrdt, tkcd, txtHMCD.Text, badqty, txtQTY.Text, tancd)
             Call refreshKD8330() ' ver.24.11.04 y.w
         End If
         ' ローカルSQLiteデータベースを更新

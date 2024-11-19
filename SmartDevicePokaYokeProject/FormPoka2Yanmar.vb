@@ -255,6 +255,7 @@ Public Class FormPoka2Yanmar
                     rec.TKHMCD = txtTKHMCD.Text
                     rec.QTY = txtQTY.Text
                     rec.RESULT = "OK"
+                    rec.DLVRDT = "-"
                     rec.DATABASE = "-"
                     ret = insertPokaX(tblNamePoka2, rec)
                     If ret <> SQLITE_OK Then
@@ -331,6 +332,7 @@ Public Class FormPoka2Yanmar
                 rec.TKHMCD = txtTKHMCD.Text
                 rec.QTY = ""
                 rec.RESULT = "OK"
+                rec.DLVRDT = "-"
                 rec.DATABASE = "-"
                 ret = insertPokaX(tblNamePoka2, rec)
                 If ret <> SQLITE_OK Then
@@ -359,6 +361,7 @@ Public Class FormPoka2Yanmar
             rec.TKHMCD = txtTKHMCD.Text
             rec.QTY = ""
             rec.RESULT = "NG"
+            rec.DLVRDT = "-"
             rec.DATABASE = "-"
             ret = insertPokaX(tblNamePoka2, rec)
             If ret <> SQLITE_OK Then

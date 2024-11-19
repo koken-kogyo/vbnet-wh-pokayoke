@@ -88,8 +88,9 @@ Public Class FormReceive
     ' マスタファイル受信
     '************************************************************
     Private Sub receiveMaster(ByRef frm As FormDialog)
+        Dim flgOK As Boolean = False
         Dim ret As Integer
-        Dim gInterval As UInt32             ' オートパワーオフ設定値を保存
+        Dim defInterval As UInt32             ' オートパワーオフ設定値を保存
 
         ' 通信経路設定
         frm.lblMessage.Text = "通信経路設定"
@@ -112,11 +113,20 @@ Public Class FormReceive
         closeDB()
 
         ' オートパワーオフ設定を退避し、処理中はパワーオフなしで運用
-        gInterval = getAutoPowerOFF()
+        defInterval = getAutoPowerOFF()
         Call setAutoPowerOFF(0)
 
+        ' LCD バックライト設定を退避し、処理中はスタンバイ移行なしで運用
+        Dim stPropDef As New LibDef.BT_LCD_BACKLIGHT()
+        Dim stPropSet As New LibDef.BT_LCD_BACKLIGHT()
+        Dim lcdFlg As Boolean = getLCDBacklight(stPropDef) ' 退避
+        stPropSet.dwNormal = stPropDef.dwNormal
+        stPropSet.dwStandby = stPropDef.dwStandby
+        stPropSet.dwTimeout = 0
+        If lcdFlg Then Call setLCDBacklight(stPropSet)
+
+        ' PCからマスタファイル①を受信 (タイムアウト10秒)
         If chkMaster.Checked Then
-            ' PCからファイルを受信 (タイムアウト10秒)
             frm.lblMessage.Text = "マスタ1受信中"
             Dim localFile As StringBuilder
             localFile = New StringBuilder(MST_PATH & MST_KOKEN)
@@ -142,8 +152,8 @@ Public Class FormReceive
             End If
         End If
 
+        ' PCからマスタファイル②を受信 (タイムアウト10秒)
         If chkShelf.Checked Then
-            ' PCからファイルを受信 (タイムアウト10秒)
             frm.lblMessage.Text = "マスタ2受信中"
             Dim localFile As StringBuilder
             localFile = New StringBuilder(MST_PATH & MST_SHELF)
@@ -169,11 +179,14 @@ Public Class FormReceive
             End If
         End If
 
-        MessageBox.Show("マスタファイルを受信しました．")
+        flgOK = True
 
 FUNCEND:
         ' オートパワーオフ設定を元に戻す
-        Call setAutoPowerOFF(gInterval)
+        Call setAutoPowerOFF(defInterval)
+
+        ' LCD バックライト設定を元に戻す
+        If lcdFlg Then Call setLCDBacklight(stPropDef)
 
         ' SQLite 再オープン
         frm.lblMessage.Text = "DB再オープン"
@@ -190,6 +203,8 @@ FUNCEND:
             MessageBox.Show("切断エラー: ret[" & ret & "]")
             Exit Sub
         End If
+
+        If flgOK Then MessageBox.Show("マスタファイルを受信しました．")
 
     End Sub
 

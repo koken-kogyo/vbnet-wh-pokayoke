@@ -30,6 +30,7 @@ Module ModuleSQLite
     Public itemTANACD As [String] = "倉庫棚番"
     Public itemQTY As [String] = "数量" ' 24.05 add y.w
     Public itemRESULT As [String] = "照合結果"
+    Public itemDLVRDT As [String] = "納期" ' 2024.11.16 add y.w
     Public itemDB As [String] = "データベース" ' 24.07 add y.w
 
     ' エラー詳細を保持
@@ -57,6 +58,7 @@ Module ModuleSQLite
         Public TKHMCD As String
         Public QTY As String ' 24.05 追加 y.w
         Public RESULT As String
+        Public DLVRDT As String ' 2024.11.16 add y.w
         Public DATABASE As String '24.07 追加 y.w
     End Structure
 
@@ -148,7 +150,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDB
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDLVRDT & ", " & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka1 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -164,7 +166,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDB
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDLVRDT & ", " & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka2 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -180,7 +182,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDB
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDLVRDT & ", " & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka3 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -196,7 +198,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDB
+        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDLVRDT & ", " & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka4 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -314,7 +316,7 @@ FUNCEND:
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim val As String = rec.MAKER & "', '" & rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.TKHMCD & "', '" & rec.QTY & "', '" & rec.RESULT & "', '" & rec.DATABASE
+        Dim val As String = rec.MAKER & "', '" & rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.TKHMCD & "', '" & rec.QTY & "', '" & rec.RESULT & "', '" & rec.DLVRDT & "', '" & rec.DATABASE
         Dim sql As New StringBuilder("INSERT INTO " & tableName & " VALUES('" & val & "');")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -451,6 +453,7 @@ FUNCEND:
         dt.Columns.Add(New DataColumn(itemHMCD))
         dt.Columns.Add(New DataColumn(itemQTY))     ' 24.05.30 add y.w
         dt.Columns.Add(New DataColumn(itemRESULT))
+        dt.Columns.Add(New DataColumn(itemDLVRDT))  ' 2024.11.16 add y.w
         dt.Columns.Add(New DataColumn(itemDB))      ' 24.09.29 add y.w
 
         If logIdx <= 0 Then
@@ -462,7 +465,7 @@ FUNCEND:
 
         ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付 (旧：'%d日%H:%M')DataGrid列タイトルは[as ...]では変わらなかった
         ' 品番は15桁で切るとListViewに上手く表示される
-        Dim sql As New StringBuilder("SELECT ROWID, メーカー, strftime('%H%M', 照合日付), CASE データベース WHEN 'NG' THEN '×' WHEN 'NONTARGET' THEN '△' WHEN 'WAIT' THEN '待' ELSE '' END||substr(社内品番,1,15) as 社内品番, 数量, 照合結果, データベース FROM " & tableName & " order by 照合日付 desc;")
+        Dim sql As New StringBuilder("SELECT ROWID, メーカー, strftime('%H%M', 照合日付), CASE データベース WHEN 'NG' THEN '×' WHEN 'NONTARGET' THEN '△' WHEN 'WAIT' THEN '待' ELSE '' END||substr(社内品番,1,15) as 社内品番, 数量, 照合結果, 納期, データベース FROM " & tableName & " order by 照合日付 desc;")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)
@@ -558,6 +561,7 @@ FUNCEND:
                 itemTANCD & "='" & iRec.TANCD & "' and " & _
                 itemHMCD & "='" & iRec.HMCD & "' and " & _
                 itemQTY & "='" & iRec.QTY & "' and " & _
+                itemDLVRDT & "='" & iRec.DLVRDT & "' and " & _
                 itemDB & "='WAIT';"
         Dim sql As New StringBuilder("UPDATE " & tableName & " SET " & itemDB & "='" & iNewStatus & "' WHERE " & wWhere)
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
@@ -610,7 +614,7 @@ FUNCEND:
             Return rec
         End If
 
-        Dim sql As New StringBuilder("SELECT メーカー, 照合日付, 担当者, 社内品番, 社外品番, 数量, 照合結果, データベース FROM " & tblNamePoka1 & " where データベース='WAIT';")
+        Dim sql As New StringBuilder("SELECT メーカー, 照合日付, 担当者, 社内品番, 社外品番, 数量, 照合結果, 納期, データベース FROM " & tblNamePoka1 & " where データベース='WAIT';")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)
@@ -641,7 +645,7 @@ FUNCEND:
                 End If
                 ReDim Preserve rec(reccnt)
                 Dim i As Integer
-                For i = 0 To 7
+                For i = 0 To 8
                     Dim data As IntPtr
                     data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
                     Dim ret2 As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, i, data, 8192)
@@ -658,7 +662,8 @@ FUNCEND:
                         Case 4 : rec(reccnt).TKHMCD = Marshal.PtrToStringUni(data)
                         Case 5 : rec(reccnt).QTY = Marshal.PtrToStringUni(data)
                         Case 6 : rec(reccnt).RESULT = Marshal.PtrToStringUni(data)
-                        Case 7 : rec(reccnt).DATABASE = Marshal.PtrToStringUni(data)
+                        Case 7 : rec(reccnt).DLVRDT = Marshal.PtrToStringUni(data)
+                        Case 8 : rec(reccnt).DATABASE = Marshal.PtrToStringUni(data)
                     End Select
                     Marshal.FreeCoTaskMem(data)
                 Next

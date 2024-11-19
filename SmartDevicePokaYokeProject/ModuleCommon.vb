@@ -351,4 +351,67 @@ Module ModuleCommon
         End Try
     End Sub
 
+    '*******************************************************************************
+    '         * 機能 ：LCDバックライト動作を取得します。
+    '         * API  ：btGetLCDBacklight
+    '*******************************************************************************
+    Public Function getLCDBacklight(ByRef stPropGet As LibDef.BT_LCD_BACKLIGHT) As Boolean
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Dim modeGet As UInt32 = 0
+
+        Try
+            '-----------------------------------------------------------
+            ' 設定前取得
+            '-----------------------------------------------------------
+            ret = Device.btGetLCDBacklight(modeGet, stPropGet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btGetLCDBacklight error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return False
+            End If
+            disp = "動作モード     :" & modeGet & vbCr & vbLf & _
+                   "通常時         :" & stPropGet.dwNormal & vbCr & vbLf & _
+                   "スタンバイ時   :" & stPropGet.dwStandby & vbCr & vbLf & _
+                   "スタンバイ時移行時間[s]   :" & stPropGet.dwTimeout
+            'MessageBox.Show(disp, "LCDバックライト(設定後)")
+            Return True
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+            Return False
+        End Try
+    End Function
+
+    '*******************************************************************************
+    '         * 機能 ：LCDバックライト動作を設定します。
+    '         * API  ：btSetLCDBacklight
+    '*******************************************************************************
+    Public Sub setLCDBacklight(ByRef stPropSet As LibDef.BT_LCD_BACKLIGHT)
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Dim modeSet As UInt32 = 0
+
+        Try
+            '-----------------------------------------------------------
+            ' 設定
+            '-----------------------------------------------------------
+            modeSet = LibDef.BT_LCD_BL_MANUAL
+            ret = Device.btSetLCDBacklight(modeSet, stPropSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btSetLCDBacklight error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+            disp = "動作モード     :" & modeSet & vbCr & vbLf & _
+                   "通常時         :" & stPropSet.dwNormal & vbCr & vbLf & _
+                   "スタンバイ時   :" & stPropSet.dwStandby & vbCr & vbLf & _
+                   "スタンバイ時移行時間[s]   :" & stPropSet.dwTimeout
+            'MessageBox.Show(disp, "LCDバックライト(設定後)")
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+    End Sub
+
 End Module

@@ -95,6 +95,7 @@ Public Class FormPoka1Kubota
             ' 出荷指示モードをクリア ver.24.11.04 y.w
             Me.LabelMenu.Text = "クボタ照合"
             mKD8330Mode = ""
+            mDLVRDT = ""
             Me.BackColor = Color.LightGray
         End If
 
@@ -417,6 +418,7 @@ Public Class FormPoka1Kubota
                 rec.TKHMCD = txtTKHMCD.Text
                 rec.QTY = ""
                 rec.RESULT = "OK"
+                rec.DLVRDT = "-"
                 rec.DATABASE = "-"
                 ret = insertPokaX(tblNamePoka1, rec)
                 If ret <> SQLITE_OK Then
@@ -445,6 +447,7 @@ Public Class FormPoka1Kubota
             rec.TKHMCD = txtTKHMCD.Text
             rec.QTY = ""
             rec.RESULT = "NG"
+            rec.DLVRDT = "-"
             rec.DATABASE = "-"
             ret = insertPokaX(tblNamePoka1, rec)
             If ret <> SQLITE_OK Then
@@ -562,7 +565,11 @@ Public Class FormPoka1Kubota
                     ' SQLite Insert
                     Dim rec As DBPokaRecord
                     Dim ret As Int32
-                    rec.MAKER = "KUBOTA"
+                    Dim wTKCD As String = "KUBOTA"
+                    If mKD8330Mode <> "" Then
+                        wTKCD = Split(mKD8330Mode, "-")(0)
+                    End If
+                    rec.MAKER = wTKCD
                     rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
                     rec.TANCD = txtTANCD.Text
                     rec.HMCD = txtHMCD.Text
@@ -570,8 +577,10 @@ Public Class FormPoka1Kubota
                     rec.QTY = txtQTY.Text
                     rec.RESULT = "OK"
                     If mKD8330Mode <> "" Then
+                        rec.DLVRDT = mDLVRDT
                         rec.DATABASE = "WAIT"
                     Else
+                        rec.DLVRDT = "-"
                         rec.DATABASE = "-"
                     End If
                     ret = insertPokaX(tblNamePoka1, rec)
@@ -643,7 +652,7 @@ Public Class FormPoka1Kubota
         Else
             ' 出荷指示モードを変更
             mKD8330Mode = iMode
-            Me.LabelMenu.Text = IIf(wTKCD = "C0105", "枚方", IIf(wTKCD = "C0101", "堺　", "不明")) & mDLVRDT & "納期分"
+            Me.LabelMenu.Text = IIf(wTKCD = "C0105", "枚方", IIf(wTKCD = "C0101", "堺", "不明")) & Strings.Right(mDLVRDT, 5) & "納期分"
             If wMode = "Y" Then
                 Me.BackColor = Color.Yellow
             ElseIf wMode = "G" Then
@@ -677,9 +686,9 @@ Public Class FormPoka1Kubota
         Refresh()
         Application.DoEvents()
 
-        ' 疎通確認中に変な事にならないようタイマーをオフ
+        ' 疎通確認中に変な事にならないようタイマーをオフ、パワーオフ設定をしない
         TimerWiFiUpdater.Enabled = False
-        Call setAutoPowerOFF(gInterval)
+        Call setAutoPowerOFF(0)
 
         ' 疎通確認
         Dim ret As Boolean = checkSQLServer()
@@ -694,7 +703,7 @@ Public Class FormPoka1Kubota
         For idx = 0 To UBound(gWaitRec)
 
             ' 出荷指示テーブルの更新 (SQL Server 2008 R2)
-            Dim dbstatus As String = UpdateKD8330(gWaitRec(idx).MAKER, gWaitRec(idx).HMCD, 0, gWaitRec(idx).QTY, txtTANCD.Text)
+            Dim dbstatus As String = UpdateKD8330(mDLVRDT, gWaitRec(idx).MAKER, gWaitRec(idx).HMCD, 0, gWaitRec(idx).QTY, txtTANCD.Text)
 
             ' 出荷指示モードテーブルを再取得(最新のHTQTY情報がほしい為) ver.24.11.04 y.w
             If dbstatus = "OK" Then
@@ -713,6 +722,7 @@ Public Class FormPoka1Kubota
             gWaitRec = gWaitRec.Where(Function(r) r.DATABASE = "WAIT").ToArray
         End If
 
+        Call setAutoPowerOFF(gInterval)
         Exit Sub
 
 Retry:
@@ -721,8 +731,10 @@ Retry:
             Call setAutoPowerOFF(0)
         End If
         gRetryCnt = gRetryCnt - 1
-        ' リトライ回数分が全て失敗に終わった場合、次回TimerまでのDisable時間を設定
+        ' リトライ回数分が全て失敗に終わった場合、最終疎通チェック時間をセットして終了
         If gRetryCnt < 0 Then
+            TimerWiFiUpdater.Enabled = False
+            Call setAutoPowerOFF(gInterval)
             Dim msg As String = _
                 "データベースの更新失敗．" + vbCrLf + _
                 "システム担当者に連絡を．" + vbCrLf + _

@@ -22,7 +22,7 @@ Module ModuleSQLServer
     ' 出荷指示モード時の保存変数 ver.24.11.04 y.w
     Public mKD8330Mode As String = ""   ' 出荷指示書システム用変数（処理モード["C0101-Y","C0105-G"]等を保持）
     Public mKD8330dt As DataTable       ' 出荷指示テーブルをデータテーブルに保持して運用
-    Public mDLVRDT As String            ' 受注納期を別途保持 [MM/dd(11)形式]（タイトル文字列に使用）
+    Public mDLVRDT As String            ' 受注納期を別途保持 [yyyy/MM/dd(111)形式]（タイトル文字列、DB更新用に使用）
 
     ' 出荷指示テーブル初期化 ver.24.11.04
     Public Sub createKD8330()
@@ -67,8 +67,11 @@ Module ModuleSQLServer
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ' 出荷指示テーブル更新
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    Public Function UpdateKD8330(ByVal iTKCD As String, ByVal iHMCD As String, _
-                                 ByVal iBADQTY As Integer, ByVal iMODQTY As Integer, _
+    Public Function UpdateKD8330(ByVal iDLVRDT As String, _
+                                 ByVal iTKCD As String, _
+                                 ByVal iHMCD As String, _
+                                 ByVal iBADQTY As Integer, _
+                                 ByVal iMODQTY As Integer, _
                                  ByVal iTANCD As String) As String
 
         Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString(3))
@@ -97,8 +100,11 @@ Module ModuleSQLServer
 
                     ' 出荷日が当日以上で指示数と出荷準備数が相違するレコードを1件だけ抽出
                     ' select 自動採番,指示数,出荷準備数 from KD8330 where 得意先品番='a' or 社内品番='a'
-                    wSQL = "select top 1 AUTONO,ODRQTY,HTJUQTY from KD8330 where (TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') " & _
-                            "and ODRQTY<>HTJUQTY and SHIPDT>=convert(date,getdate())" & _
+                    wSQL = "select top 1 AUTONO,ODRQTY,HTJUQTY from KD8330 where " & _
+                            "DLVRDT='" & iDLVRDT & "' " & _
+                            "and TKCD='" & iTKCD & "' " & _
+                            "and (TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') " & _
+                            "and ODRQTY<>HTJUQTY " & _
                             "order by SHIPDT asc,NO asc"
                     hCommand.CommandText = wSQL
                     sr = hCommand.ExecuteReader()
@@ -138,8 +144,11 @@ Module ModuleSQLServer
 
                     ' 出荷日が当日以上で出荷準備数が存在するレコードを1件だけ抽出
                     ' select 自動採番,出荷準備数 from KD8330 where 得意先品番='a' or 社内品番='a'
-                    wSQL = "select top 1 AUTONO,HTJUQTY from KD8330 where (TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') " & _
-                            "and HTJUQTY>0 and SHIPDT>=convert(date,getdate()) " & _
+                    wSQL = "select top 1 AUTONO,HTJUQTY from KD8330 where " & _
+                            "DLVRDT='" & iDLVRDT & "' " & _
+                            "and TKCD='" & iTKCD & "' " & _
+                            "and (TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') " & _
+                            "and HTJUQTY>0 " & _
                             "order by SHIPDT desc,NO desc"
                     hCommand.CommandText = wSQL
                     sr = hCommand.ExecuteReader()
@@ -246,6 +255,7 @@ Module ModuleSQLServer
                 If iMode = "Y" And wRow = 0 Then wTargetDate = sr.Item("YMD")
                 If iMode = "G" And wRow = 1 Then wTargetDate = sr.Item("YMD")
                 If iMode = "W" And wRow = 2 Then wTargetDate = sr.Item("YMD")
+                If iMode = "1W" And wRow = 3 Then wTargetDate = sr.Item("YMD")
                 wRow = wRow + 1
             End While
             sr.Close()
@@ -255,7 +265,7 @@ Module ModuleSQLServer
 
             ' 出荷指示書テーブルを抽出
             wSQL = "select NO,TKHMCD,HMCD,ODRQTY,INSUU,HTTANCD,HTJUDT,HTJUQTY" & _
-                    ",right(convert(nvarchar, DLVRDT, 11),5) 'DLVRDT' from KD8330 where " & _
+                    ",convert(nvarchar, DLVRDT, 111) 'DLVRDT' from KD8330 where " & _
                     "TKCD='" & iTKCD & "' and SHIPDT='" & wTargetDate & "' " & _
                     "order by NO asc"
             hCommand.CommandText = wSQL

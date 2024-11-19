@@ -32,6 +32,7 @@ Partial Public Class FormReceive
         Me.chkShelf = New System.Windows.Forms.CheckBox
         Me.chkMaster = New System.Windows.Forms.CheckBox
         Me.Label6 = New System.Windows.Forms.Label
+        Me.Label7 = New System.Windows.Forms.Label
         Me.Panel1.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -159,10 +160,19 @@ Partial Public Class FormReceive
         'Label6
         '
         Me.Label6.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 8.0!, System.Drawing.FontStyle.Regular)
-        Me.Label6.Location = New System.Drawing.Point(24, 254)
+        Me.Label6.Location = New System.Drawing.Point(14, 263)
         Me.Label6.Name = "Label6"
-        Me.Label6.Size = New System.Drawing.Size(203, 20)
-        Me.Label6.Text = "ｵｰﾄﾊﾟﾜｰｵﾌを解除してから実行します．"
+        Me.Label6.Size = New System.Drawing.Size(213, 20)
+        Me.Label6.Text = " 151:ｵｰﾄﾊﾟﾜｰｵﾌ設定、142:ﾊﾞｯｸﾗｲﾄ設定"
+        '
+        'Label7
+        '
+        Me.Label7.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 8.0!, System.Drawing.FontStyle.Regular)
+        Me.Label7.ForeColor = System.Drawing.Color.Red
+        Me.Label7.Location = New System.Drawing.Point(3, 244)
+        Me.Label7.Name = "Label7"
+        Me.Label7.Size = New System.Drawing.Size(234, 20)
+        Me.Label7.Text = "  受信中は以下の設定を解除して実行します."
         '
         'FormReceive
         '
@@ -171,6 +181,7 @@ Partial Public Class FormReceive
         Me.AutoScroll = True
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
+        Me.Controls.Add(Me.Label7)
         Me.Controls.Add(Me.Label6)
         Me.Controls.Add(Me.Panel1)
         Me.Controls.Add(Me.btnF4)
@@ -197,4 +208,5 @@ Partial Public Class FormReceive
     Friend WithEvents Label5 As System.Windows.Forms.Label
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents Label6 As System.Windows.Forms.Label
+    Friend WithEvents Label7 As System.Windows.Forms.Label
 End Class
