@@ -69,6 +69,7 @@ Public Class FormPokaHistory
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemRESULT).HeaderText = "結"
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemRESULT).Width = 18
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemDLVRDT).Width = -1
+        DataGrid1.TableStyles(tableName).GridColumnStyles(itemODRNO).Width = -1
         DataGrid1.TableStyles(tableName).GridColumnStyles(itemDB).Width = -1
 
         totalRow = getRecordCount(tableName)
@@ -160,11 +161,13 @@ Public Class FormPokaHistory
             Dim hmcd As String = DataGrid1(row, 3).ToString()
             Dim qty As String = DataGrid1(row, 4).ToString()
             Dim dlvrdt As String = DataGrid1(row, 6).ToString()
-            Dim db As String = DataGrid1(row, 7).ToString()
+            Dim odrno As String = DataGrid1(row, 7).ToString()
+            Dim db As String = DataGrid1(row, 8).ToString()
+            hmcd = Replace(Replace(Replace(Replace(hmcd, "待", ""), "◎", ""), "△", ""), "×", "")
             ' SQLServer側が既に更新されていたら0で更新し直す
             If db = "OK" Then
-                UpdateKD8330(dlvrdt, tkcd, hmcd, qty, 0, tancd)
-                Call refreshKD8330() ' 出荷指示テーブル再取得 ver.24.11.04 y.w
+                UpdateKD8330(tkcd, dlvrdt, odrno, hmcd, qty, 0, tancd)
+                Call getKD8330() ' 出荷指示テーブル再取得 ver.24.11.04 y.w
             End If
 
             If deletePokaXMeisai(tableName, DataGrid1(row, 0).ToString()) Then
@@ -217,8 +220,10 @@ Public Class FormPokaHistory
                     Dim hmcd As String = DataGrid1(row, 3).ToString()
                     Dim qty As String = DataGrid1(row, 4).ToString()
                     Dim dlvrdt As String = DataGrid1(row, 6).ToString()
-                    Dim db As String = DataGrid1(row, 7).ToString()
-                    Dim form As FormPokaModify = New FormPokaModify(tableName, rowid, dlvrdt, tkcd, hmcd, qty, tancd, db)
+                    Dim odrno As String = DataGrid1(row, 7).ToString()
+                    Dim db As String = DataGrid1(row, 8).ToString()
+                    hmcd = Replace(Replace(Replace(Replace(hmcd, "待", ""), "◎", ""), "△", ""), "×", "")
+                    Dim form As FormPokaModify = New FormPokaModify(tableName, rowid, tkcd, dlvrdt, odrno, hmcd, qty, tancd, db)
                     Dim result = form.ShowDialog()
                     If result = Windows.Forms.DialogResult.OK Then
                         viewData()

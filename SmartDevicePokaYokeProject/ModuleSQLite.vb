@@ -28,10 +28,11 @@ Module ModuleSQLite
     Public itemTKHMCD As [String] = "社外品番"
     Public itemBUCD As [String] = "伝票棚番"
     Public itemTANACD As [String] = "倉庫棚番"
-    Public itemQTY As [String] = "数量" ' 24.05 add y.w
+    Public itemQTY As [String] = "数量"         ' 2024.05    add y.w
     Public itemRESULT As [String] = "照合結果"
-    Public itemDLVRDT As [String] = "納期" ' 2024.11.16 add y.w
-    Public itemDB As [String] = "データベース" ' 24.07 add y.w
+    Public itemDLVRDT As [String] = "納期"      ' 2024.11.16 add y.w
+    Public itemODRNO As [String] = "注番"       ' 2024.12.05 add y.w
+    Public itemDB As [String] = "データベース"  ' 2024.07    add y.w
 
     ' エラー詳細を保持
     Public sqliteErrorString As String = ""
@@ -56,10 +57,11 @@ Module ModuleSQLite
         Public TANCD As String
         Public HMCD As String
         Public TKHMCD As String
-        Public QTY As String ' 24.05 追加 y.w
+        Public QTY As String        ' 2024.05    add y.w
         Public RESULT As String
-        Public DLVRDT As String ' 2024.11.16 add y.w
-        Public DATABASE As String '24.07 追加 y.w
+        Public DLVRDT As String     ' 2024.11.16 add y.w
+        Public ODRNO As String      ' 2024.12.05 add y.w
+        Public DATABASE As String   ' 2024.07    add y.w
     End Structure
 
     Public Structure DBTanaRecord
@@ -150,7 +152,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDLVRDT & ", " & itemDB
+        Dim columns As [String] = itemMAKER & "," & itemDATETIME & "," & itemTANCD & "," & itemHMCD & "," & itemTKHMCD & "," & itemQTY & "," & itemRESULT & "," & itemDLVRDT & "," & itemODRNO & "," & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka1 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -166,7 +168,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDLVRDT & ", " & itemDB
+        Dim columns As [String] = itemMAKER & "," & itemDATETIME & "," & itemTANCD & "," & itemHMCD & "," & itemTKHMCD & "," & itemQTY & "," & itemRESULT & "," & itemDLVRDT & "," & itemODRNO & "," & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka2 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -182,7 +184,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDLVRDT & ", " & itemDB
+        Dim columns As [String] = itemMAKER & "," & itemDATETIME & "," & itemTANCD & "," & itemHMCD & "," & itemTKHMCD & "," & itemQTY & "," & itemRESULT & "," & itemDLVRDT & "," & itemODRNO & "," & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka3 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -198,7 +200,7 @@ Module ModuleSQLite
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim columns As [String] = itemMAKER & ", " & itemDATETIME & ", " & itemTANCD & ", " & itemHMCD & ", " & itemTKHMCD & ", " & itemQTY & ", " & itemRESULT & ", " & itemDLVRDT & ", " & itemDB
+        Dim columns As [String] = itemMAKER & "," & itemDATETIME & "," & itemTANCD & "," & itemHMCD & "," & itemTKHMCD & "," & itemQTY & "," & itemRESULT & "," & itemDLVRDT & "," & itemODRNO & "," & itemDB
         Dim sql As New StringBuilder("CREATE TABLE IF NOT EXISTS Poka4 (" & columns & ");")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -316,7 +318,7 @@ FUNCEND:
         If logIdx <= 0 Then
             Return SQLITE_NOTOPEN_ERROR
         End If
-        Dim val As String = rec.MAKER & "', '" & rec.DATATIME & "', '" & rec.TANCD & "', '" & rec.HMCD & "', '" & rec.TKHMCD & "', '" & rec.QTY & "', '" & rec.RESULT & "', '" & rec.DLVRDT & "', '" & rec.DATABASE
+        Dim val As String = rec.MAKER & "','" & rec.DATATIME & "','" & rec.TANCD & "','" & rec.HMCD & "','" & rec.TKHMCD & "','" & rec.QTY & "','" & rec.RESULT & "','" & rec.DLVRDT & "','" & rec.ODRNO & "','" & rec.DATABASE
         Dim sql As New StringBuilder("INSERT INTO " & tableName & " VALUES('" & val & "');")
         Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteExecute(logIdx, sql)
         If ret <> 0 Then
@@ -448,13 +450,14 @@ FUNCEND:
     Public Function selectPokaX(ByVal tableName As String) As DataTable
         Dim dt As New DataTable(tableName)
         dt.Columns.Add(New DataColumn("ID"))
-        dt.Columns.Add(New DataColumn(itemMAKER))   ' 24.09.29 add y.w
+        dt.Columns.Add(New DataColumn(itemMAKER))   ' 2024.09.29 add y.w
         dt.Columns.Add(New DataColumn(itemDATETIME))
         dt.Columns.Add(New DataColumn(itemHMCD))
-        dt.Columns.Add(New DataColumn(itemQTY))     ' 24.05.30 add y.w
+        dt.Columns.Add(New DataColumn(itemQTY))     ' 2024.05.30 add y.w
         dt.Columns.Add(New DataColumn(itemRESULT))
         dt.Columns.Add(New DataColumn(itemDLVRDT))  ' 2024.11.16 add y.w
-        dt.Columns.Add(New DataColumn(itemDB))      ' 24.09.29 add y.w
+        dt.Columns.Add(New DataColumn(itemODRNO))   ' 2024.12.05 add y.w
+        dt.Columns.Add(New DataColumn(itemDB))      ' 2024.09.29 add y.w
 
         If logIdx <= 0 Then
             Return dt
@@ -465,7 +468,8 @@ FUNCEND:
 
         ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付 (旧：'%d日%H:%M')DataGrid列タイトルは[as ...]では変わらなかった
         ' 品番は15桁で切るとListViewに上手く表示される
-        Dim sql As New StringBuilder("SELECT ROWID, メーカー, strftime('%H%M', 照合日付), CASE データベース WHEN 'NG' THEN '×' WHEN 'NONTARGET' THEN '△' WHEN 'WAIT' THEN '待' ELSE '' END||substr(社内品番,1,15) as 社内品番, 数量, 照合結果, 納期, データベース FROM " & tableName & " order by 照合日付 desc;")
+        Dim hmcd As String = "CASE データベース WHEN 'OK' THEN '◎' WHEN 'NG' THEN '×' WHEN 'NONTARGET' THEN '△' WHEN 'WAIT' THEN '待' ELSE '' END||substr(社内品番,1,15) as 社内品番"
+        Dim sql As New StringBuilder("SELECT ROWID, メーカー, strftime('%H%M', 照合日付)," & hmcd & ",数量,照合結果,納期,注番,データベース FROM " & tableName & " order by 照合日付 desc;")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)
@@ -614,7 +618,7 @@ FUNCEND:
             Return rec
         End If
 
-        Dim sql As New StringBuilder("SELECT メーカー, 照合日付, 担当者, 社内品番, 社外品番, 数量, 照合結果, 納期, データベース FROM " & tblNamePoka1 & " where データベース='WAIT';")
+        Dim sql As New StringBuilder("SELECT メーカー,照合日付,担当者,社内品番,社外品番,数量,照合結果,納期,注番,データベース FROM " & tblNamePoka1 & " where データベース='WAIT';")
         Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(logIdx)
         If cIdx <= 0 Then
             MessageBox.Show("ERROR btSQLiteCmdCreate:" & cIdx)
@@ -645,7 +649,7 @@ FUNCEND:
                 End If
                 ReDim Preserve rec(reccnt)
                 Dim i As Integer
-                For i = 0 To 8
+                For i = 0 To 9
                     Dim data As IntPtr
                     data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
                     Dim ret2 As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, i, data, 8192)
@@ -663,7 +667,8 @@ FUNCEND:
                         Case 5 : rec(reccnt).QTY = Marshal.PtrToStringUni(data)
                         Case 6 : rec(reccnt).RESULT = Marshal.PtrToStringUni(data)
                         Case 7 : rec(reccnt).DLVRDT = Marshal.PtrToStringUni(data)
-                        Case 8 : rec(reccnt).DATABASE = Marshal.PtrToStringUni(data)
+                        Case 8 : rec(reccnt).ODRNO = Marshal.PtrToStringUni(data)
+                        Case 9 : rec(reccnt).DATABASE = Marshal.PtrToStringUni(data)
                     End Select
                     Marshal.FreeCoTaskMem(data)
                 Next

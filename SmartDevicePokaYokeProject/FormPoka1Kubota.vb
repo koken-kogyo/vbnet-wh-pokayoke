@@ -8,6 +8,13 @@ Public Class FormPoka1Kubota
 
     Dim flgSCAN As Boolean = False      ' 社内品番のキー入力禁止フラグ
     Dim flgConfirm As Boolean = False   ' 照合済みフラグ
+    Dim flgPowerOff As Boolean = False
+    ' 出荷指示書システム更新用
+    Dim gODRNO As String                ' メーカー現品票の注文番号(QR:10桁 or 1D:8桁)(出荷指示書の注文番号には変な日付が入っているので注意！(10桁+5桁)4504376636-1202)
+    Dim gTKCD As String                 ' メーカー現品票の得意先コード
+    Dim gDLVRDT As String               ' メーカー現品票の受注納期10桁[yyyy/mm/dd(111)]
+    Dim gTKHMCD As String               ' メーカー現品票の得意先品番（ハイフンなし）
+
     ' SQLServer遅延更新関連
     Dim gWaitRec() As DBPokaRecord      ' 更新すべきレコードを配列に保持
     Dim gRetryCnt As Integer = 0        ' Timerイベント回数（リトライ1回でもうざいので0にして廃止）
@@ -21,6 +28,7 @@ Public Class FormPoka1Kubota
         chkTe.Checked = If(mHandOK = "1", True, False)
         chkQR.Checked = If(mQROnly = "1", True, False)
         Dim bkKD8330Mode As String = mKD8330Mode
+        mKD8330Mode = ""
         txtClear()
 
         ' SQLServer遅延更新関連の初期設定
@@ -29,7 +37,7 @@ Public Class FormPoka1Kubota
 
         ' 出荷指示書システム用変数初期化 ver.24.11.04 y.w
         Call createKD8330()
-        If bkKD8330Mode <> "" Then Call setupKD8330(bkKD8330Mode) ' 出荷指示モードの復元
+        If bkKD8330Mode <> "" Then Call setupKD8330Mode(bkKD8330Mode) ' 出荷指示モードの復元
 
         ' フォーム上でキーダウンイベントを取得
         Me.KeyPreview = True
@@ -91,14 +99,18 @@ Public Class FormPoka1Kubota
     End Sub
 
     Private Sub txtClear()
-        If txtHMCD.Text = "" Then
-            ' 出荷指示モードをクリア ver.24.11.04 y.w
-            Me.LabelMenu.Text = "クボタ照合"
-            mKD8330Mode = ""
-            mDLVRDT = ""
-            Me.BackColor = Color.LightGray
+        If txtHMCD.Text = "" And mKD8330Mode <> "" Then
+            If MessageBox.Show("出荷指示モードを解除しますか？", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton1) = Windows.Forms.DialogResult.Yes Then
+                Me.LabelMenu.BackColor = mcDarkBlack
+                Me.LabelMenu.Text = "クボタ照合"
+                mKD8330Mode = ""
+                gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59)
+                gODRNO = ""
+                gTKCD = ""
+                gDLVRDT = ""
+                gTKHMCD = ""
+            End If
         End If
-
         txtHMCD.Text = ""
         lblHMCD.Text = ""
         txtTKHMCD.Text = ""
@@ -190,13 +202,13 @@ Public Class FormPoka1Kubota
                         ' Wi-Fi通信経路確認ダイアログボックス表示
                         Dim dialog As New FormWiFiCheck
                         If dialog.ShowDialog() = System.Windows.Forms.DialogResult.OK Then
-                            Call setupKD8330(txtHMCD.Text)
+                            Call setupKD8330Mode(txtHMCD.Text)
                         Else
                             MsgBox("通常モードに戻して" & vbCrLf & _
                                    "処理を続行させます．", MsgBoxStyle.Information)
                             mKD8330Mode = ""
+                            Me.LabelMenu.BackColor = mcDarkBlack
                             Me.LabelMenu.Text = "クボタ照合"
-                            Me.BackColor = Color.LightGray
                         End If
                         txtHMCD.Text = ""
                         Exit Sub
@@ -305,6 +317,11 @@ Public Class FormPoka1Kubota
             _HMCD = Strings.Left(txtHMCD.Text, txtHMCD.Text.Length - 2).Replace("-", "")
         End If
 
+        ' KIC-QRコードの"\t"[0x09]->"|"[0x7C(124)]対応
+        If Strings.Left(_TKHMCD, 7) = "KQR_Tag" Then
+            _TKHMCD = Split(_TKHMCD, "|")(7)
+        End If
+
         Dim i As Int32 = _HMCD.Length
         Dim j As Int32 = _TKHMCD.Length
 
@@ -409,6 +426,114 @@ Public Class FormPoka1Kubota
             Thread.Sleep(300)
             If isWN = False Then MyDialogOK.ShowDialog()
 
+            ' ********************************************************************
+            ' 出荷指示モードを確認し、対象であれば得意先コードと納期を設定
+            Dim s As String = txtTKHMCD.Text
+            gODRNO = ""
+            gTKCD = "-" ' 空文字""だとinstr関数でHitしてしまう
+            gDLVRDT = ""
+            gTKHMCD = ""
+            If mKD8330Mode <> "" And _
+            ( _
+                (Strings.Left(s, 2) = "23" And txtTKHMCD.TextLength = 100) Or _
+                (Strings.Left(s, 7) = "KQR_Tag" And UBound(Split(s, "|")) >= 13) Or _
+                (Strings.Left(s, 2) = "21" And txtTKHMCD.TextLength = 17) _
+            ) Then
+                If Strings.Left(s, 2) = "23" Then
+                    ' KSCM バーコード仕様
+                    '   (0) :工場           :1  :2桁
+                    '   (1) :品番           :3  :10桁
+                    '   (2) :注番           :13 :8桁
+                    '   (3) :枝番           :21 :3桁
+                    '   (4) :ﾗｲﾝﾛｹｰｼｮﾝ      :24 :8桁
+                    '   (5) :材管ﾛｹｰｼｮﾝ     :32 :8桁
+                    '   (6) :納入指示数     :40 :7桁
+                    '   (7) :箱種           :47 :5桁
+                    '   (8) :収容数         :52 :7桁
+                    '   (9) :生地品番       :59 :12桁
+                    '   (10):塗装色         :71 :10桁
+                    '   (11):納入指示日     :81 :8桁
+                    '   (12):予備           :89 :12桁 = 固定 100 Byte
+                    gODRNO = Strings.Mid(s, 13, 8)
+                    gTKCD = getKD8330dtTKCD(gODRNO, "")
+                    gDLVRDT = Strings.Mid(s, 81, 8).Insert(6, "/").Insert(4, "/") ' 88文字超必要
+                    gTKHMCD = Strings.Mid(s, 3, 10)
+                    Dim oQTY As Integer
+                    If getKD8330dtZanQTY(gODRNO, oQTY) Then
+                        txtQTY.Text = oQTY
+                    Else
+                        txtQTY.Text = Integer.Parse(Strings.Mid(s, 40, 7)) ' 納入数量をセットしてみる（いらないかも）
+                    End If
+                ElseIf Strings.Left(s, 7) = "KQR_Tag" Then
+                    ' KIC QRバーコード仕様（可変長）
+                    '   QRコードの"\t"[0x09]はHT側にて"|"[0x7C(124)]に変換してある（しないとセパレーターが入ってこない）
+                    '   (0) :識別子         :最大7桁(KQR_Tag)
+                    '   (1) :現品票番号     :最大10桁
+                    '   (2) :品目           :最大13桁(ハイフンなし品番で変なコード[R]も着いてくる)
+                    '   (3) :納入数量       :最大11桁
+                    '   (4) :材管保管場所   :最大6桁
+                    '   (5) :注番           :最大10桁（注文番号）
+                    '   (6) :発注明細番号   :最大5桁
+                    '   (7) :品番           :最大10桁（ハイフンなし品番）
+                    '   (13):納入期日       :最大8桁
+                    gODRNO = Split(s, "|")(5)
+                    gTKCD = getKD8330dtTKCD(gODRNO, "")
+                    gDLVRDT = Split(s, "|")(13).Insert(6, "/").Insert(4, "/")
+                    gTKHMCD = Split(s, "|")(7)
+                    Dim oQTY As Integer
+                    If getKD8330dtZanQTY(gODRNO, oQTY) Then
+                        txtQTY.Text = oQTY
+                    Else
+                        txtQTY.Text = Split(s, "|")(3) ' 納入数量をセットしてみる（いらないかも）
+                    End If
+                ElseIf Strings.Left(s, 2) = "21" Then
+                    ' KIC 1次元バーコード仕様（固定長）
+                    '   (0) :生産拠点コード :1  :2桁
+                    '   (1) :品番           :3  :10桁
+                    '   (2) :月度           :13 :1桁（1,2,3～A,B,C(12月)）
+                    '   (3) :納入数         :14 :4桁 = 固定 17 Byte
+                    ' 出荷指示dtの未処理分の件数をカウント
+                    Dim dlvrdt() As String = getKD8330dtDLVRDTs("C0101", Strings.Mid(s, 3, 10))
+
+                    If dlvrdt.Length >= 1 Then
+                        gTKCD = "C0101"
+                        gDLVRDT = dlvrdt(0)
+                        gTKHMCD = Strings.Mid(s, 3, 10)
+                        txtQTY.Text = Integer.Parse(Strings.Mid(s, 14, 4))
+                    End If
+                End If
+            ElseIf mKD8330Mode <> "" Then
+                ' 出荷指示書に存在する品番かをまずはチェック
+                Dim wTKCD = getKD8330dtTKCD("", _HMCD)
+
+                ' 得意先が1件に絞られた場合のみ得意先コードが返却される
+                ' （複数得意先の場合は出荷指示テーブルを更新しない）
+
+                ' 拠点コードがわかっている場合は更新しないよう変数をクリアする
+                '   84: C0282 : KCW
+                If wTKCD <> "" And Strings.Left(s, 2) = "84" Then
+                    wTKCD = ""
+                End If
+
+                If wTKCD <> "" Then
+                    Dim dt() As String = getKD8330dtDLVRDTs(wTKCD, _HMCD)
+                    ' 更新可能な納期が存在するかチェック
+                    If dt.Length > 0 Then
+                        Dim msg As String = "得意先コード:[" & wTKCD & "]" & vbCrLf & _
+                            "納期:[" & dt(0) & "]" & vbCrLf & _
+                            "品番:[" & txtHMCD.Text & "]" & vbCrLf & vbCrLf & _
+                            "指示書の更新を行いますか？"
+                        If MessageBox.Show(msg, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton2) = Windows.Forms.DialogResult.Yes Then
+                            gTKCD = wTKCD
+                            gDLVRDT = dt(0)
+                            gTKHMCD = _HMCD
+                        End If
+                    End If
+                End If
+
+            End If
+            ' ********************************************************************
+
             If txtHMCD.Text = "PROOFREAD-OK" Then
                 ' 朝一校正処理 24.09.03 add y.w
                 rec.MAKER = "KUBOTA"
@@ -419,6 +544,7 @@ Public Class FormPoka1Kubota
                 rec.QTY = ""
                 rec.RESULT = "OK"
                 rec.DLVRDT = "-"
+                rec.ODRNO = "-"
                 rec.DATABASE = "-"
                 ret = insertPokaX(tblNamePoka1, rec)
                 If ret <> SQLITE_OK Then
@@ -448,6 +574,7 @@ Public Class FormPoka1Kubota
             rec.QTY = ""
             rec.RESULT = "NG"
             rec.DLVRDT = "-"
+            rec.ODRNO = "-"
             rec.DATABASE = "-"
             ret = insertPokaX(tblNamePoka1, rec)
             If ret <> SQLITE_OK Then
@@ -514,30 +641,27 @@ Public Class FormPoka1Kubota
                 If flgConfirm = False Then Call Judge()
 
                 ' 出荷指示書システムへの数量チェックを行なう ver.24.11.04 y.w
-                If mKD8330Mode <> "" Then
-                    ' 数量判定
-                    Dim rec = mKD8330dt.AsEnumerable.Where(Function(dr) _
-                            (dr.Field(Of String)(1) = txtHMCD.Text Or _
-                             dr.Field(Of String)(2) = txtHMCD.Text) _
-                            ).ToArray()
+                If mKD8330Mode <> "" And InStr(mTargetTKCDs, gTKCD & "|") > 0 Then
+                    Dim dr() As DataRow
+                    If gODRNO <> "" Then
+                        dr = mKD8330dt.AsEnumerable.Where(Function(r) r("ODRNO").ToString().StartsWith(gODRNO)).ToArray()
+                    Else
+                        dr = mKD8330dt.AsEnumerable.Where(Function(r) ( _
+                                r("TKCD").ToString() = gTKCD And _
+                                r("DLVRDT").ToString() = gDLVRDT And _
+                                Replace(r("TKHMCD").ToString(), "-", "") = gTKHMCD _
+                            )).ToArray()
+                    End If
                     Dim qty As Integer = Integer.Parse(txtQTY.Text)
                     Dim odrttl As Integer = 0   ' 同一品番を集計（出荷指示書の指示数）
                     Dim htttl As Integer = 0    ' 同一品番を集計（HTで更新した数量）
-                    For wI = 0 To rec.Length - 1
-                        '0:.Columns.Add(New DataColumn("NO"))
-                        '1:.Columns.Add(New DataColumn("TKHMCD"))
-                        '2:.Columns.Add(New DataColumn("HMCD"))
-                        '3:.Columns.Add(New DataColumn("ODRQTY"))
-                        '4:.Columns.Add(New DataColumn("INSUU"))
-                        '5:.Columns.Add(New DataColumn("HTTANCD"))
-                        '6:.Columns.Add(New DataColumn("HTJUDT"))
-                        '7:.Columns.Add(New DataColumn("HTJUQTY"))
-                        If IsNumeric(rec(wI)(3)) And IsNumeric(rec(wI)(4)) And IsNumeric(rec(wI)(7)) Then
-                            Dim odrqty As Integer = Integer.Parse(rec(wI)(3))
-                            Dim insuu As Integer = Integer.Parse(rec(wI)(4))
-                            Dim htqty As Integer = Integer.Parse(rec(wI)(7))
+                    For wI = 0 To dr.Length - 1
+                        If IsNumeric(dr(wI)("ODRQTY")) And IsNumeric(dr(wI)("INSUU")) And IsNumeric(dr(wI)("HTJUQTY")) Then
+                            Dim odrqty As Integer = Integer.Parse(dr(wI)("ODRQTY"))
+                            Dim insuu As Integer = Integer.Parse(dr(wI)("INSUU"))
+                            Dim htqty As Integer = Integer.Parse(dr(wI)("HTJUQTY"))
                             If insuu = 0 Then insuu = odrqty
-                            '' 数量チェックの廃止 2024.11.07 y.w
+                            '' 数量チェックの廃止 2024.11.07 y.w => 梱包数以外の入力が結構あるらしい（亮談）
                             ''If odrqty < qty Or insuu > qty Or qty Mod insuu <> 0 Then
                             ''    MsgBox("梱包数[" & insuu & "]に対して" & vbCrLf & _
                             ''           "入力数量が不整合です．" & vbCrLf & vbCrLf & _
@@ -548,13 +672,23 @@ Public Class FormPoka1Kubota
                             htttl += htqty
                         End If
                     Next
-                    If odrttl = htttl Then
+                    If odrttl > 0 And odrttl = htttl Then
                         MsgBox("既に出荷準備されています．" & vbCrLf & vbCrLf & _
                                "確認してください！", MsgBoxStyle.Exclamation)
                         Exit Sub
-                    ElseIf odrttl < htttl + qty Then
-                        MsgBox("指示数[" & odrttl & "(" & htttl & "済)]を超えて" & vbCrLf & _
-                               "います確認してください．", MsgBoxStyle.Exclamation)
+                    ElseIf odrttl > 0 And odrttl < htttl + qty Then
+                        Dim msg As String = _
+                            "出荷指示数:[" & odrttl & "]" & vbCrLf & _
+                            "読取済の数:[" & htttl & "]" & vbCrLf & _
+                            "残り必要数:[" & odrttl - htttl & "]" & vbCrLf & _
+                            "入力された数:[" & qty & "]" & vbCrLf & vbCrLf & _
+                            "必要数を超えた入力です！" & vbCrLf & vbCrLf & _
+                            "1:指示書は準備完了に" & vbCrLf & _
+                            "2:照合ログは入力数を出力" & vbCrLf & vbCrLf & _
+                            "強制完了で続行しますか？"
+                        If MessageBox.Show(msg, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MsgBoxStyle.DefaultButton1) = Windows.Forms.DialogResult.No Then
+                            Exit Sub
+                        End If
                     End If
 
                 End If
@@ -565,22 +699,21 @@ Public Class FormPoka1Kubota
                     ' SQLite Insert
                     Dim rec As DBPokaRecord
                     Dim ret As Int32
-                    Dim wTKCD As String = "KUBOTA"
-                    If mKD8330Mode <> "" Then
-                        wTKCD = Split(mKD8330Mode, "-")(0)
-                    End If
-                    rec.MAKER = wTKCD
                     rec.DATATIME = Format(Now, "yyyy-MM-dd HH:mm:ss")
                     rec.TANCD = txtTANCD.Text
                     rec.HMCD = txtHMCD.Text
                     rec.TKHMCD = txtTKHMCD.Text
                     rec.QTY = txtQTY.Text
                     rec.RESULT = "OK"
-                    If mKD8330Mode <> "" Then
-                        rec.DLVRDT = mDLVRDT
+                    If mKD8330Mode <> ""  And InStr(mTargetTKCDs, gTKCD & "|") > 0 Then
+                        rec.MAKER = gTKCD
+                        rec.DLVRDT = gDLVRDT
+                        rec.ODRNO = gODRNO
                         rec.DATABASE = "WAIT"
                     Else
+                        rec.MAKER = "KUBOTA"
                         rec.DLVRDT = "-"
+                        rec.ODRNO = "-"
                         rec.DATABASE = "-"
                     End If
                     ret = insertPokaX(tblNamePoka1, rec)
@@ -626,44 +759,32 @@ Public Class FormPoka1Kubota
     End Sub
 
     ' 出荷指示書システム用にSQLServerから出荷指示書データを取得し、画面モードも変える ver.24.11.04 y.w
-    Private Sub setupKD8330(ByVal iMode As String)
-        Dim wTKCD As String = Split(iMode, "-")(0)
-        Dim wMode As String = Split(iMode, "-")(1)
-        Dim ret = getKD8330(wTKCD, wMode)
+    Private Sub setupKD8330Mode(ByVal iStr As String)
+        gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59) ' 初期値にクリア
+        Dim ret = getKD8330()
         If ret = False Then
             MsgBox("出荷指示書読み込みで" & vbCrLf & _
                    "異常が発生しました．", MsgBoxStyle.Critical)
             MsgBox("通常モードに戻して" & vbCrLf & _
                    "処理を続行させます．", MsgBoxStyle.Information)
             mKD8330Mode = ""
+            Me.LabelMenu.BackColor = mcDarkBlack
             Me.LabelMenu.Text = "クボタ照合"
-            Me.BackColor = Color.LightGray
 
         ElseIf mKD8330dt.Rows.Count = 0 Then
             MsgBox("消込対象の出荷指示書が" & vbCrLf & _
-                   "見つかりませんでした．" & vbCrLf & _
-                   "[" & iMode & "]" & vbCrLf & vbCrLf & _
+                   "見つかりませんでした．" & vbCrLf & vbCrLf & _
                    "通常モードに戻して" & vbCrLf & _
                    "処理を続行させます．", MsgBoxStyle.Information)
             mKD8330Mode = ""
+            Me.LabelMenu.BackColor = mcDarkBlack
             Me.LabelMenu.Text = "クボタ照合"
-            Me.BackColor = Color.LightGray
 
         Else
             ' 出荷指示モードを変更
-            mKD8330Mode = iMode
-            Me.LabelMenu.Text = IIf(wTKCD = "C0105", "枚方", IIf(wTKCD = "C0101", "堺", "不明")) & Strings.Right(mDLVRDT, 5) & "納期分"
-            If wMode = "Y" Then
-                Me.BackColor = Color.Yellow
-            ElseIf wMode = "G" Then
-                Me.BackColor = Color.LightGreen
-            ElseIf wMode = "W" Then
-                Me.BackColor = Color.LightGray
-            ElseIf wMode = "1W" Then
-                Me.BackColor = Color.DarkGray
-            Else
-                Me.BackColor = Color.Silver
-            End If
+            mKD8330Mode = iStr
+            Me.LabelMenu.BackColor = Color.Blue
+            Me.LabelMenu.Text = "出荷指示書消込"
         End If
 
     End Sub
@@ -671,7 +792,11 @@ Public Class FormPoka1Kubota
     ' Microsoft SQL Server 2008 R8 出荷指示テーブル更新
     Private Sub TimerWiFiUpdater_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TimerWiFiUpdater.Tick
 
-        If gWaitRec Is Nothing Then Exit Sub
+        If gWaitRec Is Nothing Then
+            TimerWiFiUpdater.Enabled = False
+            Call setAutoPowerOFF(gInterval)
+            Exit Sub
+        End If
 
         ' 疎通確認失敗後の2回目以降の制御（前回疎通失敗時刻＋指定時間(60分)の間はチェックを行なわない）
         If DateTime.Now < gRetryDt.AddMinutes(gDisableMin) Then
@@ -696,18 +821,22 @@ Public Class FormPoka1Kubota
         fm.Dispose()
         If ret = False Then GoTo Retry
 
-        gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終疎通時間をクリア
+        gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終リトライ失敗時刻を初期値にクリア
+        If mKD8330Mode = "TROUBLE" Then
+            mKD8330Mode = "C0105"
+            Me.LabelMenu.BackColor = Color.Blue
+        End If
 
         ' 溜まっている、WAITレコードを全て読み込む
         Dim idx As Integer
         For idx = 0 To UBound(gWaitRec)
 
             ' 出荷指示テーブルの更新 (SQL Server 2008 R2)
-            Dim dbstatus As String = UpdateKD8330(mDLVRDT, gWaitRec(idx).MAKER, gWaitRec(idx).HMCD, 0, gWaitRec(idx).QTY, txtTANCD.Text)
+            Dim dbstatus As String = UpdateKD8330(gWaitRec(idx).MAKER, gWaitRec(idx).DLVRDT, gWaitRec(idx).ODRNO, gWaitRec(idx).HMCD, 0, gWaitRec(idx).QTY, txtTANCD.Text)
 
             ' 出荷指示モードテーブルを再取得(最新のHTQTY情報がほしい為) ver.24.11.04 y.w
             If dbstatus = "OK" Then
-                Call setupKD8330(mKD8330Mode)
+                Call getKD8330()
             End If
 
             ' 照合履歴ファイルの更新 (SQLite)
@@ -741,6 +870,8 @@ Retry:
                 "以降" + gDisableMin.ToString + "分間更新しません．"
             Dim result As Integer = MessageBox.Show(msg, "システム更新", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1)
             gRetryDt = DateTime.Now
+            Me.LabelMenu.BackColor = Color.Red
+            mKD8330Mode = "TROUBLE"
         End If
     End Sub
 

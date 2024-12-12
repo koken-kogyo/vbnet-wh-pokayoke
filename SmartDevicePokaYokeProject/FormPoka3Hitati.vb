@@ -257,6 +257,7 @@ Public Class FormPoka3Hitati
                     rec.RESULT = "OK"
                     rec.DLVRDT = "-"
                     rec.DATABASE = "-"
+                    rec.ODRNO = ""
                     ret = insertPokaX(tblNamePoka3, rec)
                     If ret <> SQLITE_OK Then
                         MessageBox.Show(sqliteErrorString & vbCrLf & _
@@ -340,6 +341,7 @@ Public Class FormPoka3Hitati
                 rec.RESULT = "OK"
                 rec.DLVRDT = "-"
                 rec.DATABASE = "-"
+                rec.ODRNO = ""
                 ret = insertPokaX(tblNamePoka3, rec)
                 If ret <> SQLITE_OK Then
                     MessageBox.Show(sqliteErrorString & vbCrLf & _
@@ -369,6 +371,7 @@ Public Class FormPoka3Hitati
             rec.RESULT = "NG"
             rec.DLVRDT = "-"
             rec.DATABASE = "-"
+            rec.ODRNO = ""
             ret = insertPokaX(tblNamePoka3, rec)
             If ret <> SQLITE_OK Then
                 MessageBox.Show(sqliteErrorString & vbCrLf & _

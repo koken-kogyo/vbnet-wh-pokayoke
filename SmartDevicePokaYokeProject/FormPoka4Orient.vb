@@ -259,6 +259,7 @@ Public Class FormPoka4Orient
                     rec.RESULT = "OK"
                     rec.DLVRDT = "-"
                     rec.DATABASE = "-"
+                    rec.ODRNO = ""
                     ret = insertPokaX(tblNamePoka4, rec)
                     If ret <> SQLITE_OK Then
                         MessageBox.Show(sqliteErrorString & vbCrLf & _
@@ -316,6 +317,7 @@ Public Class FormPoka4Orient
             rec.RESULT = "NG"
             rec.DLVRDT = "-"
             rec.DATABASE = "-"
+            rec.ODRNO = ""
             ret = insertPokaX(tblNamePoka4, rec)
             If ret <> SQLITE_OK Then
                 MessageBox.Show(sqliteErrorString & vbCrLf & _

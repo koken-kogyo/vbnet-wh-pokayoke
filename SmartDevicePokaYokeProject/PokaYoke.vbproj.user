@@ -2,5 +2,6 @@
   <PropertyGroup>
     <DeployDeviceID>a2af9f01-0c18-4f40-b675-ae3de45b6dcb1b4af60-9f95-475d-9913-dc4bdb60aaf8</DeployDeviceID>
     <ProjectView>ProjectFiles</ProjectView>
+    <NETCFDeploy>true</NETCFDeploy>
   </PropertyGroup>
 </Project>

@@ -20,26 +20,98 @@ Module ModuleSQLServer
     Private Const cTitle As String = "出荷指示テーブル更新"
 
     ' 出荷指示モード時の保存変数 ver.24.11.04 y.w
-    Public mKD8330Mode As String = ""   ' 出荷指示書システム用変数（処理モード["C0101-Y","C0105-G"]等を保持）
+    Public mKD8330Mode As String = ""   ' 出荷指示書システム用フラグ(Form1を抜けても保持されるようグローバル変数にする)
+    '   ""          : ローカル品番照合モード
+    '   TROUBLE     : WiFiもしくはSQLServerデータベースのエラーで中断中
+    '   上記以外    : 出荷指示モード
     Public mKD8330dt As DataTable       ' 出荷指示テーブルをデータテーブルに保持して運用
-    Public mDLVRDT As String            ' 受注納期を別途保持 [yyyy/MM/dd(111)形式]（タイトル文字列、DB更新用に使用）
 
     ' 出荷指示テーブル初期化 ver.24.11.04
     Public Sub createKD8330()
         If mKD8330dt Is Nothing Then
             mKD8330dt = New DataTable("KD8330")
             With mKD8330dt
+                .Columns.Add(New DataColumn("TKCD"))
+                .Columns.Add(New DataColumn("DLVRDT"))
                 .Columns.Add(New DataColumn("NO"))
                 .Columns.Add(New DataColumn("TKHMCD"))
                 .Columns.Add(New DataColumn("HMCD"))
                 .Columns.Add(New DataColumn("ODRQTY"))
                 .Columns.Add(New DataColumn("INSUU"))
+                .Columns.Add(New DataColumn("ODRNO"))
                 .Columns.Add(New DataColumn("HTTANCD"))
                 .Columns.Add(New DataColumn("HTJUDT"))
                 .Columns.Add(New DataColumn("HTJUQTY"))
             End With
         End If
     End Sub
+
+    '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ' 出荷指示テーブル取得 ver.24.11.04 y.w
+    '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Public Function getKD8330() As Boolean
+
+        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString(3))
+        Dim hCommand As New System.Data.SqlClient.SqlCommand()
+
+        Try
+            ' データベースオープン
+            cSqlConnection.Open()
+
+            Dim sr As System.Data.SqlClient.SqlDataReader
+            Dim wSQL As String = ""
+
+            hCommand = cSqlConnection.CreateCommand()
+            hCommand.CommandTimeout = 20
+
+            ' 出荷指示テーブル
+            mKD8330dt.Rows.Clear()
+
+            ' 出荷指示書テーブルを抽出
+            '   Debug用 ⇒ convert(date,getdate()-7)
+            wSQL = "select TKCD,convert(nvarchar, DLVRDT, 111) 'DLVRDT',NO,TKHMCD,HMCD,ODRQTY,INSUU" & _
+                    ",ODRNO,HTTANCD,HTJUDT,HTJUQTY " & _
+                    "from KD8330 where SHIPDT>=convert(date,getdate())" & _
+                    "order by TKCD,SHIPDT,NO asc"
+            hCommand.CommandText = wSQL
+            sr = hCommand.ExecuteReader()
+            While sr.Read
+                Dim dr As DataRow
+                dr = mKD8330dt.NewRow()
+                dr(0) = sr.Item("TKCD")
+                dr(1) = sr.Item("DLVRDT")
+                dr(2) = sr.Item("NO")
+                dr(3) = sr.Item("TKHMCD")
+                dr(4) = sr.Item("HMCD")
+                dr(5) = sr.Item("ODRQTY")
+                dr(6) = sr.Item("INSUU")
+                dr(7) = sr.Item("ODRNO")
+                dr(8) = sr.Item("HTTANCD")
+                dr(9) = sr.Item("HTJUDT")
+                dr(10) = sr.Item("HTJUQTY")
+                mKD8330dt.Rows.Add(dr)
+            End While
+            sr.Close()
+            ' データベースクローズ
+            cSqlConnection.Close()
+            cSqlConnection.Dispose()
+
+            getKD8330 = True
+
+        Catch ex As Exception
+
+            If cSqlConnection.State = Data.ConnectionState.Open Then
+                hCommand.Dispose()
+                ' コネクションを閉じて開放
+                cSqlConnection.Close()
+                cSqlConnection.Dispose()
+            End If
+
+            getKD8330 = False
+
+        End Try
+
+    End Function
 
     Private Function getConnectionString(ByVal iSec As UInt16) As String
         getConnectionString = _
@@ -52,8 +124,9 @@ Module ModuleSQLServer
     End Function
 
     Public Function checkSQLServer() As Boolean
-        Dim stConnectionString As String = getConnectionString(1)
+        Dim stConnectionString As String = getConnectionString(3)
         Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(stConnectionString)
+        Dim hCommand As New System.Data.SqlClient.SqlCommand()
         Try
             cSqlConnection.Open()
             cSqlConnection.Close()
@@ -67,8 +140,9 @@ Module ModuleSQLServer
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ' 出荷指示テーブル更新
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    Public Function UpdateKD8330(ByVal iDLVRDT As String, _
-                                 ByVal iTKCD As String, _
+    Public Function UpdateKD8330(ByVal iTKCD As String, _
+                                 ByVal iDLVRDT As String, _
+                                 ByVal iODRNO As String, _
                                  ByVal iHMCD As String, _
                                  ByVal iBADQTY As Integer, _
                                  ByVal iMODQTY As Integer, _
@@ -100,12 +174,18 @@ Module ModuleSQLServer
 
                     ' 出荷日が当日以上で指示数と出荷準備数が相違するレコードを1件だけ抽出
                     ' select 自動採番,指示数,出荷準備数 from KD8330 where 得意先品番='a' or 社内品番='a'
-                    wSQL = "select top 1 AUTONO,ODRQTY,HTJUQTY from KD8330 where " & _
-                            "DLVRDT='" & iDLVRDT & "' " & _
-                            "and TKCD='" & iTKCD & "' " & _
-                            "and (TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') " & _
-                            "and ODRQTY<>HTJUQTY " & _
-                            "order by SHIPDT asc,NO asc"
+                    If iODRNO <> "" Then
+                        wSQL = "select top 1 AUTONO,ODRQTY,HTJUQTY from KD8330 where " & _
+                                "ODRNO like '" & iODRNO & "%' " & _
+                                "order by SHIPDT asc,NO asc"
+                    Else
+                        wSQL = "select top 1 AUTONO,ODRQTY,HTJUQTY from KD8330 where " & _
+                                "TKCD='" & iTKCD & "' and " & _
+                                "DLVRDT='" & iDLVRDT & "' and " & _
+                                "(TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') and " & _
+                                "ODRQTY<>HTJUQTY " & _
+                                "order by SHIPDT asc,NO asc"
+                    End If
                     hCommand.CommandText = wSQL
                     sr = hCommand.ExecuteReader()
                     While sr.Read
@@ -118,12 +198,15 @@ Module ModuleSQLServer
                         Throw New ApplicationException("NonTargetException")
                     End If
 
-                    ' 出荷準備数の更新とw数量を減算
                     wSQL = "update KD8330 set HTTANCD='" & iTANCD & "',HTJUDT=getdate()"
-                    If (wOrder - wComp) <= wQTY Then
+                    If wOrder - wComp = 0 Then
+                        ' 更新対象がなくなってしまった場合は強制出荷準備完了にしてループを抜ける（無限ループになってしまった）
+                        hCommand.CommandText = wSQL & ",SHIPSTS='5' where AUTONO=" & wAutoNo
+                        wQTY = 0
+                    ElseIf (wOrder - wComp) <= wQTY Then
                         ' 指示数-出荷準備数 <= 数量 ・・・ 指示数でDB更新、
                         ' 数量から(指示数-出荷準備数)を引く
-                        hCommand.CommandText = wSQL & ",HTJUQTY=" & wOrder & " where AUTONO=" & wAutoNo
+                        hCommand.CommandText = wSQL & ",HTJUQTY=" & wOrder & ",SHIPSTS='4' where AUTONO=" & wAutoNo
                         wQTY = wQTY - (wOrder - wComp)
                     Else
                         ' 指示数-出荷準備数  > 数量 ・・・ 出荷準備数＋数量で更新
@@ -136,46 +219,53 @@ Module ModuleSQLServer
                 Loop
 
             Else ' 変更後数量が減るパターンの場合
-                Dim wQTY As Integer = iBADQTY - iMODQTY
-                Do Until wQTY = 0
+                Dim wCancelQty As Integer = iBADQTY - iMODQTY
+                Do Until wCancelQty = 0
 
                     Dim wAutoNo As Long = 0
-                    Dim wComp As Integer = 0
+                    Dim wHTQty As Integer = 0
 
                     ' 出荷日が当日以上で出荷準備数が存在するレコードを1件だけ抽出
                     ' select 自動採番,出荷準備数 from KD8330 where 得意先品番='a' or 社内品番='a'
-                    wSQL = "select top 1 AUTONO,HTJUQTY from KD8330 where " & _
-                            "DLVRDT='" & iDLVRDT & "' " & _
-                            "and TKCD='" & iTKCD & "' " & _
-                            "and (TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') " & _
-                            "and HTJUQTY>0 " & _
-                            "order by SHIPDT desc,NO desc"
+                    If iODRNO <> "" Then
+                        wSQL = "select top 1 AUTONO,HTJUQTY from KD8330 where " & _
+                                "ODRNO like '" & iODRNO & "%'" & _
+                                "order by SHIPDT desc,NO desc"
+                    Else
+                        wSQL = "select top 1 AUTONO,HTJUQTY from KD8330 where " & _
+                                "TKCD='" & iTKCD & "' and " & _
+                                "DLVRDT='" & iDLVRDT & "' and " & _
+                                "(TKHMCD='" & iHMCD & "' or HMCD='" & iHMCD & "') and " & _
+                                "HTJUQTY>0 " & _
+                                "order by SHIPDT desc,NO desc"
+                    End If
                     hCommand.CommandText = wSQL
                     sr = hCommand.ExecuteReader()
                     While sr.Read
                         wAutoNo = sr.Item("AUTONO")
-                        wComp = sr.Item("HTJUQTY")
+                        wHTQty = sr.Item("HTJUQTY")
                     End While
                     sr.Close()
                     If wAutoNo = 0 Then
                         Throw New ApplicationException("NonTargetException")
                     End If
 
-                    ' 出荷準備数の更新とw数量を減算
                     wSQL = "update KD8330 set "
-                    If wComp <= wQTY Then
-                        ' 出荷準備数 <= 数量 ・・・ 数量0でDB更新、
+                    If wHTQty = 0 Then
+                        Exit Do ' これ以上、出荷準備数量を引けない状態
+                    ElseIf wHTQty <= wCancelQty Then
+                        ' 出荷準備数 <= 取消数量 ・・・ 数量0でDB更新、
                         ' 数量から(指示数-出荷準備数)を引く
-                        hCommand.CommandText = wSQL & "HTTANCD=null,HTJUDT=null,HTJUQTY=0" & _
+                        hCommand.CommandText = wSQL & "HTTANCD=null,HTJUDT=null,HTJUQTY=0,SHIPSTS='1'" & _
                             " where AUTONO=" & wAutoNo
-                        wQTY = wQTY - wComp
+                        wCancelQty = wCancelQty - wHTQty
                     Else
-                        ' 出荷準備数  > 数量 ・・・ 出荷準備数－数量で更新
+                        ' 出荷準備数  > 取消数量 ・・・ 出荷準備数－数量で更新
                         ' 数量を0
                         hCommand.CommandText = wSQL & "HTTANCD='" & iTANCD & "'" & _
-                            ",HTJUDT=getdate(),HTJUQTY=HTJUQTY-" & wQTY & _
-                            " where AUTONO=" & wAutoNo
-                        wQTY = 0
+                            ",HTJUDT=getdate(),HTJUQTY=HTJUQTY-" & wCancelQty & _
+                            ",SHIPSTS='1' where AUTONO=" & wAutoNo
+                        wCancelQty = 0
                     End If
                     hCommand.ExecuteNonQuery()
 
@@ -223,97 +313,53 @@ Module ModuleSQLServer
 
     End Function
 
-    '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ' 出荷指示テーブル取得 ver.24.11.04 y.w
-    '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    Public Function getKD8330(ByVal iTKCD As String, ByVal iMode As String) As Boolean
-
-        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(getConnectionString(3))
-        Dim hCommand As New System.Data.SqlClient.SqlCommand()
-
-        Try
-            ' データベースオープン
-            cSqlConnection.Open()
-
-            Dim sr As System.Data.SqlClient.SqlDataReader
-            Dim wSQL As String = ""
-
-            hCommand = cSqlConnection.CreateCommand()
-            hCommand.CommandTimeout = 20
-
-            ' カレンダーマスタより稼働日を取得
-            wSQL = "select TOP 4 YMD from (" & _
-                    "select convert(date,getdate()) 'YMD' union " & _
-                    "select YMD from S0820 where CALTYP='00001' and WKKBN='1' " & _
-                    "and YMD between convert(date,getdate()) and dateadd(day, 14, getdate()) " & _
-                    ") S0820 order by YMD asc"
-            hCommand.CommandText = wSQL
-            sr = hCommand.ExecuteReader()
-            Dim wTargetDate As Date
-            Dim wRow As Integer = 0
-            While sr.Read
-                If iMode = "Y" And wRow = 0 Then wTargetDate = sr.Item("YMD")
-                If iMode = "G" And wRow = 1 Then wTargetDate = sr.Item("YMD")
-                If iMode = "W" And wRow = 2 Then wTargetDate = sr.Item("YMD")
-                If iMode = "1W" And wRow = 3 Then wTargetDate = sr.Item("YMD")
-                wRow = wRow + 1
-            End While
-            sr.Close()
-
-            ' 出荷指示テーブル
-            mKD8330dt.Rows.Clear()
-
-            ' 出荷指示書テーブルを抽出
-            wSQL = "select NO,TKHMCD,HMCD,ODRQTY,INSUU,HTTANCD,HTJUDT,HTJUQTY" & _
-                    ",convert(nvarchar, DLVRDT, 111) 'DLVRDT' from KD8330 where " & _
-                    "TKCD='" & iTKCD & "' and SHIPDT='" & wTargetDate & "' " & _
-                    "order by NO asc"
-            hCommand.CommandText = wSQL
-            sr = hCommand.ExecuteReader()
-            While sr.Read
-                Dim dr As DataRow
-                dr = mKD8330dt.NewRow()
-                dr(0) = sr.Item("NO")
-                dr(1) = sr.Item("TKHMCD")
-                dr(2) = sr.Item("HMCD")
-                dr(3) = sr.Item("ODRQTY")
-                dr(4) = sr.Item("INSUU")
-                dr(5) = sr.Item("HTTANCD")
-                dr(6) = sr.Item("HTJUDT")
-                dr(7) = sr.Item("HTJUQTY")
-                mKD8330dt.Rows.Add(dr)
-                If mKD8330dt.Rows.Count = 1 Then
-                    mDLVRDT = sr.Item("DLVRDT")
-                End If
-            End While
-            sr.Close()
-            ' データベースクローズ
-            cSqlConnection.Close()
-            cSqlConnection.Dispose()
-
-            getKD8330 = True
-
-        Catch ex As Exception
-
-            If cSqlConnection.State = Data.ConnectionState.Open Then
-                hCommand.Dispose()
-                ' コネクションを閉じて開放
-                cSqlConnection.Close()
-                cSqlConnection.Dispose()
-            End If
-
-            getKD8330 = False
-
-        End Try
-
+    ' 出荷指示書(dt)上の「7:注文番号」もしくは「社内品番」を検索
+    ' 得意先コードが１件に特定された場合のみ得意先コードを文字列で返却
+    Public Function getKD8330dtTKCD(ByVal iODRNO As String, ByVal iHMCD As String) As String
+        Dim tkcd() As String
+        If iODRNO <> "" Then
+            tkcd = mKD8330dt.AsEnumerable _
+                .Where(Function(r) r("ODRNO").ToString().StartsWith(iODRNO) And r("TKCD").ToString() <> "XXXXX") _
+                .Select(Function(c) c("TKCD").ToString()) _
+                .ToArray()
+        Else
+            tkcd = mKD8330dt.AsEnumerable _
+                .Where(Function(r) _
+                    Replace(r("TKHMCD").ToString(), "-", "") = Replace(iHMCD, "-", "") Or _
+                    Replace(r("HMCD").ToString(), "-", "") = Replace(iHMCD, "-", "")) _
+                .GroupBy(Function(g) g("TKCD").ToString()) _
+                .Select(Function(c) c.Key) _
+                .ToArray()
+        End If
+        If tkcd.Length = 1 Then
+            Return tkcd(0)
+        Else
+            Return "" ' 0件もしくは複数件Hitした場合、空白を返却
+        End If
     End Function
 
-    ' 出荷指示書システム用にSQLServerから出荷指示書データを取得 ver.24.11.04 y.w
-    Public Sub refreshKD8330()
-        If mKD8330Mode = "" Then Exit Sub
-        Dim wTKCD As String = Split(mKD8330Mode, "-")(0)
-        Dim wMode As String = Split(mKD8330Mode, "-")(1)
-        Call getKD8330(wTKCD, wMode)
-    End Sub
+    ' 出荷指示書(dt)上の「得意先ｺｰﾄﾞ＋得意先品番＋未完」を検索した納期を/付き10文字に変換し(た後ソートして)返却
+    Public Function getKD8330dtDLVRDTs(ByVal iTKCD As String, ByVal iTKHMCD As String) As String()
+        Dim str() As String = mKD8330dt.AsEnumerable.Where(Function(r) ( _
+            r("TKCD").ToString() = iTKCD And _
+            Replace(r("TKHMCD").ToString(), "-", "") = iTKHMCD And _
+            r("ODRQTY").ToString() <> r("HTJUQTY").ToString() _
+            )).Select(Function(r) r("DLVRDT").ToString()).ToArray() '.OrderBy(Function(s) s)
+        Return str
+    End Function
+
+    ' 出荷指示書(dt)上の「7:注文番号」を検索し残りの指示数を返却
+    Public Function getKD8330dtZanQTY(ByVal iODRNO As String, ByRef oODRQTY As Integer) As Boolean
+        Dim dr() As DataRow
+        dr = mKD8330dt.AsEnumerable _
+            .Where(Function(r) r("ODRNO").ToString().StartsWith(iODRNO) And r("TKCD").ToString() <> "XXXXX") _
+            .ToArray()
+        If dr.Length = 1 Then
+            oODRQTY = Integer.Parse(dr(0)("ODRQTY")) - Integer.Parse(dr(0)("HTJUQTY"))
+            Return True
+        Else
+            Return False
+        End If
+    End Function
 
 End Module

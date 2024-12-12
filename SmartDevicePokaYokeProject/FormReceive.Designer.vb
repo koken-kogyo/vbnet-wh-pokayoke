@@ -107,7 +107,7 @@ Partial Public Class FormReceive
         '
         'Label5
         '
-        Me.Label5.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 10.0!, System.Drawing.FontStyle.Regular)
+        Me.Label5.Font = New System.Drawing.Font("Arial", 10.0!, System.Drawing.FontStyle.Regular)
         Me.Label5.Location = New System.Drawing.Point(45, 167)
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(100, 20)
@@ -115,7 +115,7 @@ Partial Public Class FormReceive
         '
         'Label4
         '
-        Me.Label4.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 10.0!, System.Drawing.FontStyle.Regular)
+        Me.Label4.Font = New System.Drawing.Font("Arial", 10.0!, System.Drawing.FontStyle.Regular)
         Me.Label4.Location = New System.Drawing.Point(45, 76)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(100, 20)
@@ -123,7 +123,7 @@ Partial Public Class FormReceive
         '
         'Label3
         '
-        Me.Label3.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 10.0!, System.Drawing.FontStyle.Regular)
+        Me.Label3.Font = New System.Drawing.Font("Arial", 10.0!, System.Drawing.FontStyle.Regular)
         Me.Label3.Location = New System.Drawing.Point(45, 56)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(138, 20)
@@ -131,7 +131,7 @@ Partial Public Class FormReceive
         '
         'Label2
         '
-        Me.Label2.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 10.0!, System.Drawing.FontStyle.Regular)
+        Me.Label2.Font = New System.Drawing.Font("Arial", 10.0!, System.Drawing.FontStyle.Regular)
         Me.Label2.Location = New System.Drawing.Point(45, 147)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(138, 20)
@@ -159,7 +159,7 @@ Partial Public Class FormReceive
         '
         'Label6
         '
-        Me.Label6.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 8.0!, System.Drawing.FontStyle.Regular)
+        Me.Label6.Font = New System.Drawing.Font("Arial", 8.0!, System.Drawing.FontStyle.Regular)
         Me.Label6.Location = New System.Drawing.Point(14, 263)
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(213, 20)
@@ -167,7 +167,7 @@ Partial Public Class FormReceive
         '
         'Label7
         '
-        Me.Label7.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 8.0!, System.Drawing.FontStyle.Regular)
+        Me.Label7.Font = New System.Drawing.Font("Arial", 8.0!, System.Drawing.FontStyle.Regular)
         Me.Label7.ForeColor = System.Drawing.Color.Red
         Me.Label7.Location = New System.Drawing.Point(3, 244)
         Me.Label7.Name = "Label7"

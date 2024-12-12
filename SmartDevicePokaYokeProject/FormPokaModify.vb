@@ -3,14 +3,16 @@
     ' SQLite
     Private rowId As Integer = 0
     Private tableName As [String] = ""
-    Private dlvrdt As [String] = ""
     Private tkcd As [String] = ""
+    Private dlvrdt As [String] = ""
+    Private odrno As [String] = ""
     Private tancd As [String] = ""
     Private dbstatus As [String] = ""
 
     Public Sub New(ByVal _tablename As String, ByVal _rowid As Integer, _
-                   ByVal _dlvrdt As String, _
                    ByVal _tkcd As String, _
+                   ByVal _dlvrdt As String, _
+                   ByVal _odrno As String, _
                    ByVal _hmcd As String, _
                    ByVal _qty As String, _
                    ByVal _tancd As String, _
@@ -22,9 +24,10 @@
         ' InitializeComponent() 呼び出しの後で初期化を追加します。
         tableName = _tablename
         rowId = _rowid
-        dlvrdt = _dlvrdt
         tkcd = _tkcd
-        txtHMCD.Text = Replace(Replace(Replace(_hmcd, "待", ""), "×", ""), "△", "")
+        dlvrdt = _dlvrdt
+        odrno = _odrno
+        txtHMCD.Text = _hmcd
         txtQTYbefore.Text = _qty
         txtQTY.Text = _qty
         tancd = _tancd
@@ -50,26 +53,25 @@
 
     ' F4キー (更新)
     Private Sub btnF4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF4.Click
-        If IsNumeric(txtQTY.Text) = False Then
+        Dim preqty As String = txtQTYbefore.Text
+        Dim qty As String = txtQTY.Text
+        If IsNumeric(qty) = False Then
             MessageBox.Show("数値を入力してください．", "入力チェック", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
             txtQTY.Focus()
             Exit Sub
         End If
-        If dbstatus = "OK" And txtQTYbefore.Text = txtQTY.Text Then
+        If preqty = qty Then
             MessageBox.Show("変更がありません．", "入力チェック", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
             txtQTY.Focus()
             Exit Sub
         End If
-        Dim newstatus As String = "-"
         ' SQLServer側が既に更新されていたら差分で更新し直す
-        If dbstatus <> "-" Then
-            Dim badqty As String = "0"  ' エラーだった場合は新規更新
-            If dbstatus = "OK" Then badqty = txtQTYbefore.Text '更新済みの場合は差分で更新
-            newstatus = UpdateKD8330(dlvrdt, tkcd, txtHMCD.Text, badqty, txtQTY.Text, tancd)
-            Call refreshKD8330() ' ver.24.11.04 y.w
+        If dbstatus = "OK" Then
+            dbstatus = UpdateKD8330(tkcd, dlvrdt, odrno, txtHMCD.Text, preqty, qty, tancd)
+            If dbstatus = "OK" Then Call getKD8330() ' ver.24.11.04 y.w
         End If
         ' ローカルSQLiteデータベースを更新
-        If updatePokaXMeisai(tableName, rowId, txtQTY.Text, newstatus) Then
+        If updatePokaXMeisai(tableName, rowId, txtQTY.Text, dbstatus) Then
             Me.DialogResult = Windows.Forms.DialogResult.OK
             Me.Close() ' 更新OK時このダイアログは閉じる
         End If

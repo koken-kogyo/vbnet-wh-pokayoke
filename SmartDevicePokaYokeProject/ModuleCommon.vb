@@ -27,6 +27,8 @@ Module ModuleCommon
     Public mHandOK As [String] = "0" ' 社内品番手入力
     Public mQROnly As [String] = "1" ' 得意先品番QRコードしか読み取らない
 
+    Public mcDarkBlack As Color = Color.FromArgb(64, 64, 64)
+
     Public Function getHTNAME() As String
         Dim ret As Int32 = 0
         Dim disp As [String] = ""

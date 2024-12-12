@@ -257,6 +257,7 @@ Public Class FormPoka2Yanmar
                     rec.RESULT = "OK"
                     rec.DLVRDT = "-"
                     rec.DATABASE = "-"
+                    rec.ODRNO = ""
                     ret = insertPokaX(tblNamePoka2, rec)
                     If ret <> SQLITE_OK Then
                         MessageBox.Show(sqliteErrorString & vbCrLf & _
@@ -334,6 +335,7 @@ Public Class FormPoka2Yanmar
                 rec.RESULT = "OK"
                 rec.DLVRDT = "-"
                 rec.DATABASE = "-"
+                rec.ODRNO = ""
                 ret = insertPokaX(tblNamePoka2, rec)
                 If ret <> SQLITE_OK Then
                     MessageBox.Show(sqliteErrorString & vbCrLf & _
@@ -363,6 +365,7 @@ Public Class FormPoka2Yanmar
             rec.RESULT = "NG"
             rec.DLVRDT = "-"
             rec.DATABASE = "-"
+            rec.ODRNO = ""
             ret = insertPokaX(tblNamePoka2, rec)
             If ret <> SQLITE_OK Then
                 MessageBox.Show(sqliteErrorString & vbCrLf & _

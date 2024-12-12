@@ -103,7 +103,7 @@ Partial Public Class FormMain
         Me.lblVersion.Location = New System.Drawing.Point(116, 276)
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(110, 22)
-        Me.lblVersion.Text = "ver.24.11.16"
+        Me.lblVersion.Text = "ver.24.12.12"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
         'chkBuzzer
@@ -168,7 +168,6 @@ Partial Public Class FormMain
         Me.Controls.Add(Me.btnClose)
         Me.Controls.Add(Me.btnKUBOTA)
         Me.Controls.Add(Me.btnORIENT)
-        Me.Font = New System.Drawing.Font("メイリオ", 14.0!, System.Drawing.FontStyle.Regular)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
         Me.MaximizeBox = False
         Me.MinimizeBox = False

@@ -175,7 +175,7 @@ Partial Public Class FormPoka1Kubota
         'chkQR
         '
         Me.chkQR.Anchor = System.Windows.Forms.AnchorStyles.None
-        Me.chkQR.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 10.0!, System.Drawing.FontStyle.Regular)
+        Me.chkQR.Font = New System.Drawing.Font("Arial", 10.0!, System.Drawing.FontStyle.Regular)
         Me.chkQR.Location = New System.Drawing.Point(161, 140)
         Me.chkQR.Name = "chkQR"
         Me.chkQR.Size = New System.Drawing.Size(77, 20)
@@ -185,7 +185,7 @@ Partial Public Class FormPoka1Kubota
         '
         'chkTe
         '
-        Me.chkTe.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 10.0!, System.Drawing.FontStyle.Regular)
+        Me.chkTe.Font = New System.Drawing.Font("Arial", 10.0!, System.Drawing.FontStyle.Regular)
         Me.chkTe.Location = New System.Drawing.Point(160, 68)
         Me.chkTe.Name = "chkTe"
         Me.chkTe.Size = New System.Drawing.Size(77, 20)
