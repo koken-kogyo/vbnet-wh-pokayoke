@@ -17,10 +17,9 @@ Public Class FormPoka1Kubota
 
     ' SQLServer遅延更新関連
     Dim gWaitRec() As DBPokaRecord      ' 更新すべきレコードを配列に保持
-    Dim gRetryCnt As Integer = 0        ' Timerイベント回数（リトライ1回でもうざいので0にして廃止）
-    Dim gDisableMin As Integer = 60     ' 次回Timerイベント発生OKまでの時間を分で指定
+    Dim gDisableMin As Integer = 30     ' 次回Timerイベント発生OKまでの時間を分で指定
     Dim gRetryDt As DateTime = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終疎通時間を保持
-    Dim gInterval As UInt32             ' オートパワーオフ設定値を保存
+    Dim gInterval As UInt32             ' 端末のオートパワーオフ設定値を保持
 
     Private Sub FormPoka1Kubota_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
@@ -47,6 +46,7 @@ Public Class FormPoka1Kubota
 
     End Sub
 
+    ' チェックボックス設定値を保存
     Private Sub FormPoka1Kubota_Closed(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Closed
         Call saveSettingHandOK(chkTe.Checked)
         Call saveSettingQROnly(chkQR.Checked)
@@ -77,6 +77,10 @@ Public Class FormPoka1Kubota
 
             'DB Delete
             If deletePokaX(tblNamePoka1) = 0 Then
+                Me.LabelMenu.BackColor = mcDarkBlack
+                Me.LabelMenu.Text = "クボタ照合"
+                mKD8330Mode = ""
+                gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59)
                 txtClear()
             Else
                 MessageBox.Show("CSVファイルの作成に失敗しました")
@@ -91,6 +95,10 @@ Public Class FormPoka1Kubota
         Dim frm As Form = New FormPokaHistory(tblNamePoka1, txtTANCD.Text)
         frm.ShowDialog()
         lblCount.Text = getRecordCount(tblNamePoka1) ' 24.05.30 add y.w
+        Select Case mKD8330Mode ' 履歴画面やデータ編集画面でステータスが変わる事があるので帰ってきたら再設定
+            Case "TROUBLE" : Me.LabelMenu.BackColor = Color.Red
+            Case "SQLSERVER" : Me.LabelMenu.BackColor = Color.Blue
+        End Select
     End Sub
 
     ' F4キー(クリア)
@@ -204,12 +212,21 @@ Public Class FormPoka1Kubota
                         If dialog.ShowDialog() = System.Windows.Forms.DialogResult.OK Then
                             Call setupKD8330Mode(txtHMCD.Text)
                         Else
+                            ' 通信エラーの場合でも、前回読み込みがあれば「保留モード」で続行するか問い合わせる
+                            If mKD8330dt.Rows.Count > 100 Then
+                                If MessageBox.Show("保留モードで継続しますか？", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) = Windows.Forms.DialogResult.Yes Then
+                                    mKD8330Mode = "TROUBLE"
+                                    Me.LabelMenu.BackColor = Color.Red
+                                    txtHMCD.Text = ""
+                                    Exit Sub
+                                End If
+                            End If
                             MsgBox("通常モードに戻して" & vbCrLf & _
                                    "処理を続行させます．", MsgBoxStyle.Information)
                             mKD8330Mode = ""
                             Me.LabelMenu.BackColor = mcDarkBlack
                             Me.LabelMenu.Text = "クボタ照合"
-                        End If
+                    End If
                         txtHMCD.Text = ""
                         Exit Sub
                     End If
@@ -430,7 +447,7 @@ Public Class FormPoka1Kubota
             ' 出荷指示モードを確認し、対象であれば得意先コードと納期を設定
             Dim s As String = txtTKHMCD.Text
             gODRNO = ""
-            gTKCD = "-" ' 空文字""だとinstr関数でHitしてしまう
+            gTKCD = ""
             gDLVRDT = ""
             gTKHMCD = ""
             If mKD8330Mode <> "" And _
@@ -460,7 +477,13 @@ Public Class FormPoka1Kubota
                     gTKHMCD = Strings.Mid(s, 3, 10)
                     Dim oQTY As Integer
                     If getKD8330dtZanQTY(gODRNO, oQTY) Then
-                        txtQTY.Text = oQTY
+                        If oQTY = 99999 Then
+                            MsgBox("既に出荷準備されています．" & vbCrLf & vbCrLf & _
+                                   "確認してください！", MsgBoxStyle.Exclamation)
+                            Exit Sub
+                        Else
+                            txtQTY.Text = oQTY
+                        End If
                     Else
                         txtQTY.Text = Integer.Parse(Strings.Mid(s, 40, 7)) ' 納入数量をセットしてみる（いらないかも）
                     End If
@@ -482,10 +505,17 @@ Public Class FormPoka1Kubota
                     gTKHMCD = Split(s, "|")(7)
                     Dim oQTY As Integer
                     If getKD8330dtZanQTY(gODRNO, oQTY) Then
-                        txtQTY.Text = oQTY
+                        If oQTY = 99999 Then
+                            MsgBox("既に出荷準備されています．" & vbCrLf & vbCrLf & _
+                                   "確認してください！", MsgBoxStyle.Exclamation)
+                            Exit Sub
+                        Else
+                            txtQTY.Text = oQTY
+                        End If
                     Else
                         txtQTY.Text = Split(s, "|")(3) ' 納入数量をセットしてみる（いらないかも）
                     End If
+
                 ElseIf Strings.Left(s, 2) = "21" Then
                     ' KIC 1次元バーコード仕様（固定長）
                     '   (0) :生産拠点コード :1  :2桁
@@ -495,11 +525,23 @@ Public Class FormPoka1Kubota
                     ' 出荷指示dtの未処理分の件数をカウント
                     Dim dlvrdt() As String = getKD8330dtDLVRDTs("C0101", Strings.Mid(s, 3, 10))
 
-                    If dlvrdt.Length >= 1 Then
+                    If dlvrdt.Length = 1 Then
                         gTKCD = "C0101"
                         gDLVRDT = dlvrdt(0)
                         gTKHMCD = Strings.Mid(s, 3, 10)
                         txtQTY.Text = Integer.Parse(Strings.Mid(s, 14, 4))
+                    ElseIf dlvrdt.Length > 1 Then
+                        For j = 0 To dlvrdt.Length - 1
+                            Dim msg As String = "消込対象を複数件発見！" & vbCrLf & vbCrLf & _
+                                "納期:[" & dlvrdt(j) & "]を更新？"
+                            If MessageBox.Show(msg, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton1) = Windows.Forms.DialogResult.Yes Then
+                                gTKCD = "C0101"
+                                gDLVRDT = dlvrdt(j)
+                                gTKHMCD = Strings.Mid(s, 3, 10)
+                                txtQTY.Text = Integer.Parse(Strings.Mid(s, 14, 4))
+                                Exit For
+                            End If
+                        Next
                     End If
                 End If
             ElseIf mKD8330Mode <> "" Then
@@ -641,7 +683,7 @@ Public Class FormPoka1Kubota
                 If flgConfirm = False Then Call Judge()
 
                 ' 出荷指示書システムへの数量チェックを行なう ver.24.11.04 y.w
-                If mKD8330Mode <> "" And InStr(mTargetTKCDs, gTKCD & "|") > 0 Then
+                If mKD8330Mode <> "" And gTKCD <> "" And InStr(mTargetTKCDs, gTKCD & "|") > 0 Then
                     Dim dr() As DataRow
                     If gODRNO <> "" Then
                         dr = mKD8330dt.AsEnumerable.Where(Function(r) r("ODRNO").ToString().StartsWith(gODRNO)).ToArray()
@@ -705,7 +747,7 @@ Public Class FormPoka1Kubota
                     rec.TKHMCD = txtTKHMCD.Text
                     rec.QTY = txtQTY.Text
                     rec.RESULT = "OK"
-                    If mKD8330Mode <> ""  And InStr(mTargetTKCDs, gTKCD & "|") > 0 Then
+                    If mKD8330Mode <> "" And gTKCD <> "" And InStr(mTargetTKCDs, gTKCD & "|") > 0 Then
                         rec.MAKER = gTKCD
                         rec.DLVRDT = gDLVRDT
                         rec.ODRNO = gODRNO
@@ -782,49 +824,56 @@ Public Class FormPoka1Kubota
 
         Else
             ' 出荷指示モードを変更
-            mKD8330Mode = iStr
+            mKD8330Mode = "SQLSERVER"
             Me.LabelMenu.BackColor = Color.Blue
             Me.LabelMenu.Text = "出荷指示書消込"
         End If
 
     End Sub
 
-    ' Microsoft SQL Server 2008 R8 出荷指示テーブル更新
+    ' Microsoft SQL Server 2008 R8 出荷指示テーブル遅延更新処理
     Private Sub TimerWiFiUpdater_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TimerWiFiUpdater.Tick
 
-        If gWaitRec Is Nothing Then
-            TimerWiFiUpdater.Enabled = False
-            Call setAutoPowerOFF(gInterval)
-            Exit Sub
-        End If
+        ' 最初にタイマーをオフ
+        TimerWiFiUpdater.Enabled = False
 
-        ' 疎通確認失敗後の2回目以降の制御（前回疎通失敗時刻＋指定時間(60分)の間はチェックを行なわない）
-        If DateTime.Now < gRetryDt.AddMinutes(gDisableMin) Then
-            TimerWiFiUpdater.Enabled = False
-            Call setAutoPowerOFF(gInterval)
-            Exit Sub
-        End If
+        ' 保留明細なしは処理終了
+        If gWaitRec Is Nothing Then Exit Sub
 
-        ' Wait画面表示
+        ' 疎通失敗時の制御（前回疎通失敗時刻＋指定時間(30分)の間は遅延更新処理を行なわない）
+        If mKD8330Mode = "TROUBLE" And DateTime.Now < gRetryDt.AddMinutes(gDisableMin) Then Exit Sub
+
+        ' 別スレッドにて疎通確認
+        ' 確認中はWait画面を表示
         Dim fm As New FormWaiting
         fm.Show()
-        Refresh()
-        Application.DoEvents()
+        mKD8330Mode = "CHECKING"
+        Dim thread1 As New Thread(AddressOf checkSQLServer2)
+        thread1.Start()  ' 別スレッドでの処理開始
 
-        ' 疎通確認中に変な事にならないようタイマーをオフ、パワーオフ設定をしない
-        TimerWiFiUpdater.Enabled = False
-        Call setAutoPowerOFF(0)
-
-        ' 疎通確認
-        Dim ret As Boolean = checkSQLServer()
+        ' 3秒後に疎通状態を確認してみる
         Refresh()
+        Thread.Sleep(3000)
+        fm.Close()
         fm.Dispose()
-        If ret = False Then GoTo Retry
+        If mKD8330Mode = "CHECKING" Then
+            TimerServerChecker.Enabled = True ' 疎通結果を確認するためのポーリング開始
+            Exit Sub
 
-        gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終リトライ失敗時刻を初期値にクリア
-        If mKD8330Mode = "TROUBLE" Then
-            mKD8330Mode = "C0105"
+        ElseIf mKD8330Mode = "TROUBLE" Then
+            Me.LabelMenu.BackColor = Color.Red
+            Dim msg As String = _
+                "データベースの更新失敗．" + vbCrLf + _
+                "システム担当者に連絡を．" + vbCrLf + _
+                "以降" + gDisableMin.ToString + "分間更新しません．"
+            Dim result As Integer = MessageBox.Show(msg, "システム更新", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1)
+            gRetryDt = DateTime.Now
+            Exit Sub
+
+        ElseIf mKD8330Mode = "SQLSERVER" Then
             Me.LabelMenu.BackColor = Color.Blue
+            gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終リトライ失敗時刻を初期値にクリア
+
         End If
 
         ' 溜まっている、WAITレコードを全て読み込む
@@ -851,28 +900,25 @@ Public Class FormPoka1Kubota
             gWaitRec = gWaitRec.Where(Function(r) r.DATABASE = "WAIT").ToArray
         End If
 
-        Call setAutoPowerOFF(gInterval)
-        Exit Sub
+    End Sub
 
-Retry:
-        If gRetryCnt > 0 Then
-            TimerWiFiUpdater.Enabled = True
-            Call setAutoPowerOFF(0)
-        End If
-        gRetryCnt = gRetryCnt - 1
-        ' リトライ回数分が全て失敗に終わった場合、最終疎通チェック時間をセットして終了
-        If gRetryCnt < 0 Then
-            TimerWiFiUpdater.Enabled = False
-            Call setAutoPowerOFF(gInterval)
+    Private Sub TimerServerChecker_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TimerServerChecker.Tick
+        If mKD8330Mode = "CHECKING" Then Exit Sub
+        TimerServerChecker.Enabled = False
+        If mKD8330Mode = "TROUBLE" Then
+            Me.LabelMenu.BackColor = Color.Red
             Dim msg As String = _
                 "データベースの更新失敗．" + vbCrLf + _
                 "システム担当者に連絡を．" + vbCrLf + _
                 "以降" + gDisableMin.ToString + "分間更新しません．"
             Dim result As Integer = MessageBox.Show(msg, "システム更新", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1)
             gRetryDt = DateTime.Now
-            Me.LabelMenu.BackColor = Color.Red
-            mKD8330Mode = "TROUBLE"
+
+        ElseIf mKD8330Mode = "SQLSERVER" Then
+            Me.LabelMenu.BackColor = Color.Blue
+            gRetryDt = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終リトライ失敗時刻を初期値にクリア
+            ' DB更新は次回照合時にまかせる
+
         End If
     End Sub
-
 End Class

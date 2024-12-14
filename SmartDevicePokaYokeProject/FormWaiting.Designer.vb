@@ -41,7 +41,7 @@ Partial Public Class FormWaiting
         Me.Controls.Add(Me.lblMessage)
         Me.Location = New System.Drawing.Point(22, 110)
         Me.Name = "FormWaiting"
-        Me.Text = "通信チェック中"
+        Me.Text = "出荷指示書 消し込み中"
         Me.ResumeLayout(False)
 
     End Sub

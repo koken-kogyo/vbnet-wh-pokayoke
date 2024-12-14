@@ -9,9 +9,25 @@ Public Class FormWiFiCheck
 
     Private Sub Timer1_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Timer1.Tick
         cnt = cnt + 1
-        lblMessage.Text = lblMessage.Text.Replace(".", "") + New String(".", cnt)
+        lblMessage.Text = lblMessage.Text.Replace(".", "") & New String(".", cnt)
         Refresh()
         If cnt > 5 Then cnt = 0
+        If mKD8330Mode <> "CHECKING" Then
+            Timer1.Enabled = False
+            If mKD8330Mode = "SQLSERVER" Then
+                lblSV.BackColor = Color.LimeGreen
+                lblSV.ForeColor = Color.Black
+                lblMessage.Text = "チェック完了、正常です．"
+                Refresh()
+                Thread.Sleep(4000)
+                Me.DialogResult = System.Windows.Forms.DialogResult.OK
+            ElseIf mKD8330Mode = "TROUBLE" Then
+                lblSV.BackColor = Color.Red
+                lblSV.ForeColor = Color.Yellow
+                lblSV.Text = "物流事務所×"
+                lblMessage.Text = "WHap01を確認してください．"
+            End If
+        End If
     End Sub
 
     Private Sub FormWiFiCheck_Activated(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Activated
@@ -37,7 +53,8 @@ Public Class FormWiFiCheck
             lblHT.ForeColor = Color.Yellow
             Timer1.Enabled = False
             lblMessage.Text = "デバイス未オープン．"
-            GoTo WIFICHECKEND
+            Timer1.Enabled = False
+            Exit Sub
         End If
         Refresh()
         Thread.Sleep(100)
@@ -47,7 +64,8 @@ Public Class FormWiFiCheck
         ret = Wlan.btWLANGetSignalLevel(typeSet, levelRssiGet)
         If ret <> LibDef.BT_OK Then
             lblMessage.Text = "電波状態取得異常．"
-            GoTo WIFICHECKEND
+            Timer1.Enabled = False
+            Exit Sub
         Else
             If levelRssiGet >= 2 Then
                 lblAP.BackColor = Color.LimeGreen
@@ -62,26 +80,11 @@ Public Class FormWiFiCheck
         Refresh()
         Thread.Sleep(100)
 
-        ' SQL Server 2008 とのping疎通確認
-        'If pingSQLServer() Then
-        If checkSQLServer() Then
-            lblSV.BackColor = Color.LimeGreen
-            lblSV.ForeColor = Color.Black
-        Else
-            lblSV.BackColor = Color.Red
-            lblSV.ForeColor = Color.Yellow
-            lblSV.Text = "物流事務所×"
-            lblMessage.Text = "WHap01を確認してください．"
-            GoTo WIFICHECKEND
-        End If
+        ' 別スレッドにてSQL Server 2008 R2 との疎通確認 
+        mKD8330Mode = "CHECKING"
+        Dim thread1 As New Thread(AddressOf checkSQLServer2)
+        thread1.Start()
 
-        lblMessage.Text = "チェック終了．"
-        Me.DialogResult = System.Windows.Forms.DialogResult.OK
-
-WIFICHECKEND:
-        Refresh()
-        Thread.Sleep(500)
-        Timer1.Enabled = False
     End Sub
 
     Private Function pingSQLServer() As Boolean

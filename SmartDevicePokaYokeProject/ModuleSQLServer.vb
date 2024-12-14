@@ -22,6 +22,7 @@ Module ModuleSQLServer
     ' 出荷指示モード時の保存変数 ver.24.11.04 y.w
     Public mKD8330Mode As String = ""   ' 出荷指示書システム用フラグ(Form1を抜けても保持されるようグローバル変数にする)
     '   ""          : ローカル品番照合モード
+    '   CHECKING    : SQLServerデータベースの確認中
     '   TROUBLE     : WiFiもしくはSQLServerデータベースのエラーで中断中
     '   上記以外    : 出荷指示モード
     Public mKD8330dt As DataTable       ' 出荷指示テーブルをデータテーブルに保持して運用
@@ -136,6 +137,23 @@ Module ModuleSQLServer
             Return False
         End Try
     End Function
+
+    ' 別スレッドにてチェックを行う
+    Public Sub checkSQLServer2()
+        Dim stConnectionString As String = getConnectionString(3)
+        Dim cSqlConnection As New System.Data.SqlClient.SqlConnection(stConnectionString)
+        Dim hCommand As New System.Data.SqlClient.SqlCommand()
+        Try
+            cSqlConnection.Open()
+            cSqlConnection.Close()
+            cSqlConnection.Dispose()
+            mKD8330Mode = "SQLSERVER"
+        Catch ex As Exception
+            ' 親スレッドが、ここの処理前に閉じられてしまっていた場合は
+            ' 出荷指示モードの変更を行わない
+            If mKD8330Mode = "CHECKING" Then mKD8330Mode = "TROUBLE"
+        End Try
+    End Sub
 
     '////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ' 出荷指示テーブル更新
@@ -355,7 +373,11 @@ Module ModuleSQLServer
             .Where(Function(r) r("ODRNO").ToString().StartsWith(iODRNO) And r("TKCD").ToString() <> "XXXXX") _
             .ToArray()
         If dr.Length = 1 Then
-            oODRQTY = Integer.Parse(dr(0)("ODRQTY")) - Integer.Parse(dr(0)("HTJUQTY"))
+            If Integer.Parse(dr(0)("ODRQTY")) = Integer.Parse(dr(0)("HTJUQTY")) Then
+                oODRQTY = 99999
+            Else
+                oODRQTY = Integer.Parse(dr(0)("ODRQTY")) - Integer.Parse(dr(0)("HTJUQTY"))
+            End If
             Return True
         Else
             Return False

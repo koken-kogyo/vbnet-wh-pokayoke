@@ -33,6 +33,7 @@ Private Sub CommandButton1_Click()
     End If
     Cells(wRow, 2).Value = wFnd
     Cells(wRow, 3).Value = Now
+    ThisWorkbook.Save
     
     ' ŒŸõ‘ÎÛƒtƒ@ƒCƒ‹–¼‚Ìİ’è
     If CheckBox‰ß‹•ª.Value Then

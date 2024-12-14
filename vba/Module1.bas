@@ -118,7 +118,7 @@ Public Sub getCSV(sheetName As String)
             End With
             
             ' ファイル名情報を最終列+1に追記（※可変はうまくいかないので列番号８固定に変更24.07.19 y.w）
-            wEndCol = 9 ' wWs.Cells(wEndRow, 99).End(xlToLeft).Column
+            wEndCol = 10 ' wWs.Cells(wEndRow, 99).End(xlToLeft).Column
             Dim wHTName As String
             Dim wStrRow As Long
             wHTName = Mid(wFileName, 10, 6)
@@ -146,6 +146,7 @@ Public Sub getCSV(sheetName As String)
             wWs.Columns("I").ColumnWidth = 7
             wWs.Columns("J").ColumnWidth = 7
             wWs.Columns("K").ColumnWidth = 7
+            wWs.Columns("L").ColumnWidth = 7
             
             ' 取込済シートへ転記
             wEndRow = getEndRow(wWsMst, 1, 2)

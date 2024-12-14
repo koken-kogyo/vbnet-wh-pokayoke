@@ -27,11 +27,19 @@
         tkcd = _tkcd
         dlvrdt = _dlvrdt
         odrno = _odrno
-        txtHMCD.Text = _hmcd
-        txtQTYbefore.Text = _qty
-        txtQTY.Text = _qty
         tancd = _tancd
         dbstatus = _db
+        ' コントロールセット
+        txtHMCD.Text = _hmcd
+        lblDBStatus.Text = "指示書:" & _db
+        txtDLVRDT.Text = _dlvrdt
+        txtODRNO.Text = _odrno
+        txtQTYbefore.Text = _qty
+        txtQTY.Text = _qty
+        ' 消込モードクリア
+        If dbstatus <> "WAIT" Then
+            btnF3.Text = ""
+        End If
 
     End Sub
 
@@ -77,12 +85,44 @@
         End If
     End Sub
 
+    ' 出荷指示書消込 SQL Server 2008 R2
+    Private Sub btnF3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF3.Click
+        Dim preqty As String = txtQTYbefore.Text
+        Dim qty As String = txtQTY.Text
+        If preqty <> qty Then
+            MessageBox.Show("数量の変更は出来ません．", "出荷指示書消込", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
+            txtQTY.Text = txtQTYbefore.Text
+            txtQTY.Focus()
+            Exit Sub
+        End If
+        If dbstatus <> "WAIT" Then
+            MessageBox.Show("待レコードのみ更新可能です．", "出荷指示書消込", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
+            txtQTY.Focus()
+            Exit Sub
+        End If
+        If MessageBox.Show("通信環境を確認してから実行してください．", "出荷指示書消込", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) = Windows.Forms.DialogResult.Yes Then
+            ' SQLServer側を更新しに行く
+            dbstatus = UpdateKD8330(tkcd, dlvrdt, odrno, txtHMCD.Text, 0, qty, tancd)
+            If dbstatus = "OK" Then
+                mKD8330Mode = "SQLSERVER"
+                Call getKD8330()
+                ' ローカルSQLiteデータベースを更新
+                If updatePokaXMeisai(tableName, rowId, txtQTY.Text, dbstatus) Then
+                    Me.DialogResult = Windows.Forms.DialogResult.OK
+                    Me.Close() ' 更新OK時このダイアログは閉じる
+                End If
+            End If
+        End If
+    End Sub
+
     Private Sub FormPokaModify_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles MyBase.KeyDown
         Select Case e.KeyValue
             Case System.Windows.Forms.Keys.Enter
                 Call btnF4_Click(sender, e)
             Case Bt.LibDef.BT_VK_F1
                 Call btnF1_Click(sender, e)
+            Case Bt.LibDef.BT_VK_F3
+                Call btnF3_Click(sender, e)
             Case Bt.LibDef.BT_VK_F4
                 Call btnF4_Click(sender, e)
         End Select
@@ -103,4 +143,5 @@
         ' 入力待機色を解除
         txtHMCD.BackColor = Color.White
     End Sub
+
 End Class

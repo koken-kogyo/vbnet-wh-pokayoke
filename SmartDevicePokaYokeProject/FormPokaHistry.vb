@@ -165,10 +165,12 @@ Public Class FormPokaHistory
             Dim db As String = DataGrid1(row, 8).ToString()
             hmcd = Replace(Replace(Replace(Replace(hmcd, "待", ""), "◎", ""), "△", ""), "×", "")
             ' SQLServer側が既に更新されていたら0で更新し直す
+            Dim newstatus As String = ""
             If db = "OK" Then
-                UpdateKD8330(tkcd, dlvrdt, odrno, hmcd, qty, 0, tancd)
-                Call getKD8330() ' 出荷指示テーブル再取得 ver.24.11.04 y.w
+                newstatus = UpdateKD8330(tkcd, dlvrdt, odrno, hmcd, qty, 0, tancd)
+                If newstatus = "OK" Then Call getKD8330() ' 出荷指示テーブル再取得 ver.24.11.04 y.w
             End If
+            If db = "OK" And newstatus <> "OK" Then Exit Sub ' DB更新失敗の場合はSQLite明細を削除しない
 
             If deletePokaXMeisai(tableName, DataGrid1(row, 0).ToString()) Then
                 viewData() ' OK時、データを取得し直してDataGrid1を再表示

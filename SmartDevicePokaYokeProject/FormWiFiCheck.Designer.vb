@@ -81,6 +81,7 @@ Partial Public Class FormWiFiCheck
         '
         'Timer1
         '
+        Me.Timer1.Interval = 500
         '
         'Label2
         '
