@@ -46,7 +46,7 @@ Public Class FormPoka1Kubota
 
     End Sub
 
-    ' チェックボックス設定値を保存
+    ' オートパワーオフ設定値を保存
     Private Sub FormPoka1Kubota_Closed(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Closed
         Call saveSettingHandOK(chkTe.Checked)
         Call saveSettingQROnly(chkQR.Checked)
@@ -453,10 +453,11 @@ Public Class FormPoka1Kubota
             If mKD8330Mode <> "" And _
             ( _
                 (Strings.Left(s, 2) = "23" And txtTKHMCD.TextLength = 100) Or _
+                (Strings.Left(s, 2) = "28" And txtTKHMCD.TextLength = 100) Or _
                 (Strings.Left(s, 7) = "KQR_Tag" And UBound(Split(s, "|")) >= 13) Or _
                 (Strings.Left(s, 2) = "21" And txtTKHMCD.TextLength = 17) _
             ) Then
-                If Strings.Left(s, 2) = "23" Then
+                If Strings.Left(s, 2) = "23" Or Strings.Left(s, 2) = "28" Then
                     ' KSCM バーコード仕様
                     '   (0) :工場           :1  :2桁
                     '   (1) :品番           :3  :10桁
@@ -777,7 +778,7 @@ Public Class FormPoka1Kubota
                             ReDim Preserve gWaitRec(idx + 1)
                             gWaitRec(idx + 1) = rec
                         End If
-                        Call setAutoPowerOFF(0)
+                        ' Call setAutoPowerOFF(0)
                         TimerWiFiUpdater.Enabled = True
                     End If
 
