@@ -218,7 +218,7 @@ Partial Public Class FormPoka4Orient
         Me.Controls.Add(Me.LabelMenu)
         Me.Controls.Add(Me.lblTKHMCD)
         Me.Controls.Add(Me.lblHIASU)
-        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
         Me.Name = "FormPoka4Orient"
         Me.Text = "FormPoka4Orient"
         Me.ResumeLayout(False)

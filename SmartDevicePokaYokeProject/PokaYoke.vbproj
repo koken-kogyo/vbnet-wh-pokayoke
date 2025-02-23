@@ -125,6 +125,12 @@
     <Compile Include="FormPokaModify.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FormSetting.Designer.vb">
+      <DependentUpon>FormSetting.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FormSetting.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="FormWaiting.Designer.vb">
       <DependentUpon>FormWaiting.vb</DependentUpon>
     </Compile>
@@ -234,6 +240,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormPokaModify.resx">
       <DependentUpon>FormPokaModify.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormSetting.resx">
+      <DependentUpon>FormSetting.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormWaiting.resx">
       <DependentUpon>FormWaiting.vb</DependentUpon>

@@ -79,6 +79,7 @@ Partial Public Class FormPokaModify
         Me.btnF2.Name = "btnF2"
         Me.btnF2.Size = New System.Drawing.Size(62, 34)
         Me.btnF2.TabIndex = 117
+        Me.btnF2.Text = "取崩"
         '
         'btnF1
         '

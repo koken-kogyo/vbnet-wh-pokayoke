@@ -218,7 +218,7 @@ Partial Public Class FormPoka2Yanmar
         Me.Controls.Add(Me.btnF1)
         Me.Controls.Add(Me.lblTKHMCD)
         Me.Controls.Add(Me.lblHIASU)
-        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
         Me.Name = "FormPoka2Yanmar"
         Me.Text = "Form1"
         Me.ResumeLayout(False)

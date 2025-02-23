@@ -116,6 +116,10 @@ Public Class FormMain
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
+            Case Keys.NumPad0
+                Dim frm As New FormSetting
+                frm.ShowDialog()
+                btnKUBOTA.Focus()
         End Select
     End Sub
 
@@ -147,6 +151,10 @@ Public Class FormMain
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
+            Case Keys.NumPad0
+                Dim frm As New FormSetting
+                frm.ShowDialog()
+                btnKUBOTA.Focus()
         End Select
     End Sub
 
@@ -178,6 +186,10 @@ Public Class FormMain
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
+            Case Keys.NumPad0
+                Dim frm As New FormSetting
+                frm.ShowDialog()
+                btnKUBOTA.Focus()
         End Select
     End Sub
 
@@ -201,6 +213,10 @@ Public Class FormMain
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
+            Case Keys.NumPad0
+                Dim frm As New FormSetting
+                frm.ShowDialog()
+                btnKUBOTA.Focus()
         End Select
     End Sub
 
@@ -232,6 +248,10 @@ Public Class FormMain
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
                 Me.Close()
+            Case Keys.NumPad0
+                Dim frm As New FormSetting
+                frm.ShowDialog()
+                btnKUBOTA.Focus()
         End Select
     End Sub
 

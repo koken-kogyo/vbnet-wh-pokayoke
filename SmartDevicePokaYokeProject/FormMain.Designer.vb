@@ -31,6 +31,7 @@ Partial Public Class FormMain
         Me.btnTANA = New System.Windows.Forms.Button
         Me.btnORIENT = New System.Windows.Forms.Button
         Me.btnRestart = New System.Windows.Forms.Button
+        Me.lblHIASU = New System.Windows.Forms.Label
         Me.SuspendLayout()
         '
         'btnKUBOTA
@@ -103,7 +104,7 @@ Partial Public Class FormMain
         Me.lblVersion.Location = New System.Drawing.Point(116, 276)
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(110, 22)
-        Me.lblVersion.Text = "ver.25.01.15"
+        Me.lblVersion.Text = "ver.25.02.22"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
         'chkBuzzer
@@ -148,6 +149,16 @@ Partial Public Class FormMain
         Me.btnRestart.TabIndex = 6
         Me.btnRestart.Text = "8.再起動"
         '
+        'lblHIASU
+        '
+        Me.lblHIASU.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 9.0!, System.Drawing.FontStyle.Regular)
+        Me.lblHIASU.ForeColor = System.Drawing.SystemColors.ControlDark
+        Me.lblHIASU.Location = New System.Drawing.Point(0, 298)
+        Me.lblHIASU.Name = "lblHIASU"
+        Me.lblHIASU.Size = New System.Drawing.Size(237, 20)
+        Me.lblHIASU.Text = "0:設定画面、6:ﾏｽﾀ受信、7:通信ﾁｪｯｸ"
+        Me.lblHIASU.TextAlign = System.Drawing.ContentAlignment.TopCenter
+        '
         'FormMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -156,6 +167,7 @@ Partial Public Class FormMain
         Me.BackColor = System.Drawing.Color.Gainsboro
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
+        Me.Controls.Add(Me.lblHIASU)
         Me.Controls.Add(Me.btnRestart)
         Me.Controls.Add(Me.btnTANA)
         Me.Controls.Add(Me.chkBuzzer)
@@ -187,5 +199,6 @@ Partial Public Class FormMain
     Friend WithEvents btnTANA As System.Windows.Forms.Button
     Friend WithEvents btnORIENT As System.Windows.Forms.Button
     Friend WithEvents btnRestart As System.Windows.Forms.Button
+    Friend WithEvents lblHIASU As System.Windows.Forms.Label
 
 End Class

@@ -21,6 +21,7 @@ Module ModuleCommon
     ' 出荷指示書消し込み対象の得意先コード
     Public mSQLServer As String = ""
     Public mTargetTKCDs As String = ""
+    Public mWaitTime As String = "5"
 
     ' オプション設定
     Public mBuzzer As [String] = "1" ' 照合時ブザー音
@@ -122,6 +123,23 @@ Module ModuleCommon
                 mTargetTKCDs = ""
             Else
                 mTargetTKCDs = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+        ' 遅延更新時間取得
+        keySet = New StringBuilder("WAITTIME")
+        strDefSet = New StringBuilder(mWaitTime)
+        Try
+            '-----------------------------------------------------------
+            ' 読み出し（必須ではない）
+            '-----------------------------------------------------------
+            sizeSet = LibDef.BT_INI_VALUE_MAXLEN
+            ret = Ini.btIniReadString(sectionSet, keySet, strDefSet, bufaryGet, sizeSet, filenameSet)
+            If ret = 0 Then
+                mWaitTime = "5"
+            Else
+                mWaitTime = Encoding.Unicode.GetString(bufaryGet, 0, (ret * 2))
             End If
         Catch ex As Exception
             MessageBox.Show(ex.ToString())
@@ -290,6 +308,26 @@ Module ModuleCommon
         Dim keySet As New StringBuilder("QRONLY")
         Dim filenameSet As New StringBuilder(mAppPath & "\" & iniFileName)
         Dim strSet As New StringBuilder(If(checked, "1", "0"))
+        Try
+            ret = Ini.btIniWriteString(sectionSet, keySet, strSet, filenameSet)
+            If ret <> LibDef.BT_OK Then
+                disp = "btIniWriteString error ret[" & ret & "]"
+                MessageBox.Show(disp, "エラー")
+                Return
+            End If
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString())
+        End Try
+    End Sub
+
+    Public Sub saveSettingWaitTime(ByVal iWaitTime As String)
+        Dim ret As Int32 = 0
+        Dim disp As [String] = ""
+
+        Dim sectionSet As New StringBuilder("SHIPMENT")
+        Dim keySet As New StringBuilder("WAITTIME")
+        Dim filenameSet As New StringBuilder(mAppPath & "\" & iniFileName)
+        Dim strSet As New StringBuilder(iWaitTime)
         Try
             ret = Ini.btIniWriteString(sectionSet, keySet, strSet, filenameSet)
             If ret <> LibDef.BT_OK Then

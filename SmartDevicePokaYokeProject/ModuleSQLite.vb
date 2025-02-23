@@ -24,8 +24,8 @@ Module ModuleSQLite
     Public itemMAKER As [String] = "メーカー"
     Public itemDATETIME As [String] = "照合日付"
     Public itemTANCD As [String] = "担当者"
-    Public itemHMCD As [String] = "社内品番"
-    Public itemTKHMCD As [String] = "社外品番"
+    Public itemHMCD As [String] = "社内品番"    ' 社内品番(QRや手入力やOCR)
+    Public itemTKHMCD As [String] = "社外品番"  ' メーカーバーコード情報
     Public itemBUCD As [String] = "伝票棚番"
     Public itemTANACD As [String] = "倉庫棚番"
     Public itemQTY As [String] = "数量"         ' 2024.05    add y.w

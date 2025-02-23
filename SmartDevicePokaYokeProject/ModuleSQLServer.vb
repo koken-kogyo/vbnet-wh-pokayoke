@@ -333,22 +333,12 @@ Module ModuleSQLServer
 
     ' 出荷指示書(dt)上の「7:注文番号」もしくは「社内品番」を検索
     ' 得意先コードが１件に特定された場合のみ得意先コードを文字列で返却
-    Public Function getKD8330dtTKCD(ByVal iODRNO As String, ByVal iHMCD As String) As String
+    Public Function getKD8330dtTKCDfromODRNO(ByVal iODRNO As String) As String
         Dim tkcd() As String
-        If iODRNO <> "" Then
-            tkcd = mKD8330dt.AsEnumerable _
+        tkcd = mKD8330dt.AsEnumerable _
                 .Where(Function(r) r("ODRNO").ToString().StartsWith(iODRNO) And r("TKCD").ToString() <> "XXXXX") _
                 .Select(Function(c) c("TKCD").ToString()) _
                 .ToArray()
-        Else
-            tkcd = mKD8330dt.AsEnumerable _
-                .Where(Function(r) _
-                    Replace(r("TKHMCD").ToString(), "-", "") = Replace(iHMCD, "-", "") Or _
-                    Replace(r("HMCD").ToString(), "-", "") = Replace(iHMCD, "-", "")) _
-                .GroupBy(Function(g) g("TKCD").ToString()) _
-                .Select(Function(c) c.Key) _
-                .ToArray()
-        End If
         If tkcd.Length = 1 Then
             Return tkcd(0)
         Else
@@ -356,32 +346,62 @@ Module ModuleSQLServer
         End If
     End Function
 
-    ' 出荷指示書(dt)上の「得意先ｺｰﾄﾞ＋得意先品番＋未完」を検索した納期を/付き10文字に変換し(た後ソートして)返却
-    Public Function getKD8330dtDLVRDTs(ByVal iTKCD As String, ByVal iTKHMCD As String) As String()
-        Dim str() As String = mKD8330dt.AsEnumerable.Where(Function(r) ( _
-            r("TKCD").ToString() = iTKCD And _
-            Replace(r("TKHMCD").ToString(), "-", "") = iTKHMCD And _
-            r("ODRQTY").ToString() <> r("HTJUQTY").ToString() _
-            )).Select(Function(r) r("DLVRDT").ToString()).ToArray() '.OrderBy(Function(s) s)
-        Return str
+    ' 出荷指示書(dt)上の「得意先品番」「社内品番」を検索
+    ' (未使用) Linq GroupBy の検証用
+    Public Function getKD8330dtTKCDfromHMCD(ByVal iHMCD As String) As String()
+        Dim tkcd() As String
+        tkcd = mKD8330dt.AsEnumerable _
+                .Where(Function(r) _
+                    Replace(r("TKHMCD").ToString(), "-", "") = Replace(iHMCD, "-", "") Or _
+                    Replace(r("HMCD").ToString(), "-", "") = Replace(iHMCD, "-", "")) _
+                .GroupBy(Function(g) g("TKCD").ToString()) _
+                .Select(Function(c) c.Key) _
+                .ToArray()
+        Return tkcd
     End Function
 
-    ' 出荷指示書(dt)上の「7:注文番号」を検索し残りの指示数を返却
-    Public Function getKD8330dtZanQTY(ByVal iODRNO As String, ByRef oODRQTY As Integer) As Boolean
+    ' 出荷指示書(dt)上の「得意先ｺｰﾄﾞ＋得意先品番＋未完」を検索した納期を/付き10文字に変換し(た後ソートして)返却
+    Public Function getKD8330dt(ByVal iTKHMCD As String) As DataTable
+        Dim dt As DataTable = mKD8330dt.AsEnumerable.Where(Function(r) ( _
+            Replace(r("TKHMCD").ToString(), "-", "") = iTKHMCD And _
+            r("ODRQTY").ToString() <> r("HTJUQTY").ToString() _
+            )).CopyToDataTable()
+        ').Select(Function(r) r("DLVRDT").ToString()). '.OrderBy(Function(s) s)
+        Return dt
+    End Function
+
+    ' 出荷指示書(dt)上の「7:注文番号」を検索し残りの指示数と準備済数を返却
+    Public Function getKD8330dtZanQTY(ByVal iODRNO As String, ByRef oODRQTY As Integer, ByRef oHTQTY As Integer, ByRef oINSUU As Integer) As Boolean
         Dim dr() As DataRow
         dr = mKD8330dt.AsEnumerable _
             .Where(Function(r) r("ODRNO").ToString().StartsWith(iODRNO) And r("TKCD").ToString() <> "XXXXX") _
             .ToArray()
         If dr.Length = 1 Then
-            If Integer.Parse(dr(0)("ODRQTY")) = Integer.Parse(dr(0)("HTJUQTY")) Then
-                oODRQTY = 99999
-            Else
-                oODRQTY = Integer.Parse(dr(0)("ODRQTY")) - Integer.Parse(dr(0)("HTJUQTY"))
-            End If
+            oODRQTY = IIf(IsNumeric(dr(0)("ODRQTY")), Integer.Parse(dr(0)("ODRQTY")), 0)
+            oHTQTY = IIf(IsNumeric(dr(0)("HTJUQTY")), Integer.Parse(dr(0)("HTJUQTY")), 0)
+            oINSUU = IIf(IsNumeric(dr(0)("INSUU")), Integer.Parse(dr(0)("INSUU")), 0)
             Return True
         Else
             Return False
         End If
+    End Function
+
+    ' 出荷指示書(dt)上の「得意先品番」または「社内品番」で
+    '指定出荷日を超える出荷準備済みのレコードを検索
+    Public Function getKD8330dtODRNObyHTComp(ByVal iHMCD As String, ByVal iQTY As Integer, ByVal iDLVRDT As String) As DataRow()
+        Dim dr() As DataRow
+        dr = mKD8330dt.AsEnumerable _
+            .Where(Function(r) _
+                ( _
+                    Replace(r("TKHMCD").ToString(), "-", "") = Replace(iHMCD, "-", "") Or _
+                    Replace(r("HMCD").ToString(), "-", "") = Replace(iHMCD, "-", "") _
+                ) _
+                And CInt(r("HTJUQTY")) >= iQTY _
+                And CDate(r("DLVRDT").ToString()) > CDate(iDLVRDT) _
+            ) _
+            .OrderBy(Function(c) c("DLVRDT")) _
+            .ToArray()
+        Return dr
     End Function
 
 End Module

@@ -19,7 +19,7 @@ Public Class FormWiFiCheck
                 lblSV.ForeColor = Color.Black
                 lblMessage.Text = "チェック完了、正常です．"
                 Refresh()
-                Thread.Sleep(2000)
+                Thread.Sleep(500)
                 Me.DialogResult = System.Windows.Forms.DialogResult.OK
             ElseIf mKD8330Mode = "TROUBLE" Then
                 lblSV.BackColor = Color.Red

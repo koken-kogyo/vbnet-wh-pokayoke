@@ -40,6 +40,8 @@ Partial Public Class FormPoka1Kubota
         Me.lblHIASU = New System.Windows.Forms.Label
         Me.TimerWiFiUpdater = New System.Windows.Forms.Timer
         Me.TimerServerChecker = New System.Windows.Forms.Timer
+        Me.txtTotalQty = New System.Windows.Forms.TextBox
+        Me.lblTotalQty = New System.Windows.Forms.Label
         Me.SuspendLayout()
         '
         'btnF1
@@ -197,17 +199,17 @@ Partial Public Class FormPoka1Kubota
         'lblQTY
         '
         Me.lblQTY.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
-        Me.lblQTY.Location = New System.Drawing.Point(95, 218)
+        Me.lblQTY.Location = New System.Drawing.Point(154, 216)
         Me.lblQTY.Name = "lblQTY"
-        Me.lblQTY.Size = New System.Drawing.Size(64, 29)
-        Me.lblQTY.Text = "数量："
+        Me.lblQTY.Size = New System.Drawing.Size(30, 29)
+        Me.lblQTY.Text = "/"
         '
         'txtQTY
         '
         Me.txtQTY.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 20.0!, System.Drawing.FontStyle.Regular)
-        Me.txtQTY.Location = New System.Drawing.Point(162, 211)
+        Me.txtQTY.Location = New System.Drawing.Point(173, 211)
         Me.txtQTY.Name = "txtQTY"
-        Me.txtQTY.Size = New System.Drawing.Size(65, 46)
+        Me.txtQTY.Size = New System.Drawing.Size(54, 46)
         Me.txtQTY.TabIndex = 145
         '
         'lblHIASU
@@ -221,11 +223,29 @@ Partial Public Class FormPoka1Kubota
         '
         'TimerWiFiUpdater
         '
-        Me.TimerWiFiUpdater.Interval = 5000
+        Me.TimerWiFiUpdater.Interval = 120000
         '
         'TimerServerChecker
         '
         Me.TimerServerChecker.Interval = 1000
+        '
+        'txtTotalQty
+        '
+        Me.txtTotalQty.BackColor = System.Drawing.SystemColors.ScrollBar
+        Me.txtTotalQty.Enabled = False
+        Me.txtTotalQty.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 14.0!, System.Drawing.FontStyle.Regular)
+        Me.txtTotalQty.Location = New System.Drawing.Point(100, 211)
+        Me.txtTotalQty.Name = "txtTotalQty"
+        Me.txtTotalQty.Size = New System.Drawing.Size(49, 34)
+        Me.txtTotalQty.TabIndex = 155
+        '
+        'lblTotalQty
+        '
+        Me.lblTotalQty.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 9.0!, System.Drawing.FontStyle.Regular)
+        Me.lblTotalQty.Location = New System.Drawing.Point(57, 219)
+        Me.lblTotalQty.Name = "lblTotalQty"
+        Me.lblTotalQty.Size = New System.Drawing.Size(54, 20)
+        Me.lblTotalQty.Text = "指示数"
         '
         'FormPoka1Kubota
         '
@@ -235,6 +255,8 @@ Partial Public Class FormPoka1Kubota
         Me.BackColor = System.Drawing.Color.Silver
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
+        Me.Controls.Add(Me.txtTotalQty)
+        Me.Controls.Add(Me.lblTotalQty)
         Me.Controls.Add(Me.txtQTY)
         Me.Controls.Add(Me.lblQTY)
         Me.Controls.Add(Me.txtHMCD)
@@ -280,4 +302,6 @@ Partial Public Class FormPoka1Kubota
     Friend WithEvents lblHIASU As System.Windows.Forms.Label
     Friend WithEvents TimerWiFiUpdater As System.Windows.Forms.Timer
     Friend WithEvents TimerServerChecker As System.Windows.Forms.Timer
+    Friend WithEvents txtTotalQty As System.Windows.Forms.TextBox
+    Friend WithEvents lblTotalQty As System.Windows.Forms.Label
 End Class

@@ -168,7 +168,7 @@ Partial Public Class FormPoka5Tana
         Me.Controls.Add(Me.lblHMCDTitle)
         Me.Controls.Add(Me.btnF1)
         Me.Controls.Add(Me.LabelMenu)
-        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
         Me.Name = "FormPoka5Tana"
         Me.Text = "FormPoka5Location"
         Me.ResumeLayout(False)

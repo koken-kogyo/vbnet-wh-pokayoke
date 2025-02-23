@@ -44,7 +44,7 @@ Partial Public Class FormReceive
         Me.Label1.Location = New System.Drawing.Point(0, 0)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(240, 28)
-        Me.Label1.Text = "ファイル受信"
+        Me.Label1.Text = "マスタ受信"
         Me.Label1.TextAlign = System.Drawing.ContentAlignment.TopCenter
         '
         'btnF4

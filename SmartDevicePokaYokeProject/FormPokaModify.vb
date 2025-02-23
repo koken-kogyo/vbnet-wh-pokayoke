@@ -1,4 +1,6 @@
-﻿Public Class FormPokaModify
+﻿Imports System.Data
+
+Public Class FormPokaModify
 
     ' SQLite
     Private rowId As Integer = 0
@@ -59,29 +61,69 @@
         Me.Close()
     End Sub
 
-    ' F4キー (更新)
-    Private Sub btnF4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF4.Click
+    ' 取崩し処理
+    ' 　当日出荷分が足りなくなったので　翌日以降の出荷準備が完了したものから取崩しする場合
+    ' 　照合ログは既にPCに取り込み済みで存在しない
+    ' 　用は、出荷指示テーブルの翌日以降分の取り消し処理
+    Private Sub btnF2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF2.Click
         Dim preqty As String = txtQTYbefore.Text
         Dim qty As String = txtQTY.Text
         If IsNumeric(qty) = False Then
-            MessageBox.Show("数値を入力してください．", "入力チェック", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
+            MessageBox.Show("数値を入力してください．", "出荷指示書取崩", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
             txtQTY.Focus()
             Exit Sub
         End If
-        If preqty = qty Then
-            MessageBox.Show("変更がありません．", "入力チェック", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
-            txtQTY.Focus()
+        If mKD8330Mode = "" Then
+            MessageBox.Show("出荷指示モードの時のみ" & vbCrLf & "実行可能です．", "出荷指示書取崩", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
             Exit Sub
         End If
-        ' SQLServer側が既に更新されていたら差分で更新し直す
-        If dbstatus = "OK" Then
-            dbstatus = UpdateKD8330(tkcd, dlvrdt, odrno, txtHMCD.Text, preqty, qty, tancd)
-            If dbstatus = "OK" Then Call getKD8330() ' ver.24.11.04 y.w
-        End If
-        ' ローカルSQLiteデータベースを更新
-        If updatePokaXMeisai(tableName, rowId, txtQTY.Text, dbstatus) Then
-            Me.DialogResult = Windows.Forms.DialogResult.OK
-            Me.Close() ' 更新OK時このダイアログは閉じる
+        ' 翌日以降の出荷準備を検索（社内品番からデータテーブルを検索）
+        Dim dr() As DataRow
+        Dim msg As String = ""
+        Dim rslt = DialogResult
+        dr = getKD8330dtODRNObyHTComp(txtHMCD.Text, qty, txtDLVRDT.Text)
+        If dr.Length > 0 Then
+
+            Dim cnt As Integer = 1
+            For Each r As DataRow In dr
+                If dr.Length = 1 Then
+                    msg = qty & "本を出荷準備済みから" & vbCrLf & _
+                        "得意先コード:[" & r("TKCD").ToString() & "]" & vbCrLf & _
+                        "納期:[" & r("DLVRDT").ToString() & "]" & vbCrLf & _
+                        "品番:[" & txtHMCD.Text & "]" & vbCrLf & vbCrLf & _
+                        "から取崩しします" & vbCrLf & vbCrLf & "よろしいですか？"
+                ElseIf dr.Length > 1 Then
+                    msg = "取崩対象が複数あります" & vbCrLf & vbCrLf & _
+                        "得意先コード:[" & r("TKCD").ToString() & "]" & vbCrLf & _
+                        "納期:[" & r("DLVRDT").ToString() & "]" & vbCrLf & _
+                        "品番:[" & txtHMCD.Text & "]" & vbCrLf & vbCrLf & _
+                        "から" & qty & "本を取崩しします" & vbCrLf & vbCrLf & "よろしいですか？" & vbCrLf & _
+                        "(" & cnt & " / " & dr.Length & ")"
+                End If
+                rslt = MessageBox.Show(msg, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton1)
+                If rslt = Windows.Forms.DialogResult.Yes Then
+
+                    ' SQLServer側を更新しに行く
+                    Dim wODRNO = r("ODRNO").ToString()
+                    Dim wMaeQty As Integer = Integer.Parse(r("HTJUQTY"))
+                    Dim wAtoQty As Integer = wMaeQty - CInt(qty)
+                    dbstatus = UpdateKD8330("", "", wODRNO, "", wMaeQty, wAtoQty, tancd)
+                    If dbstatus = "OK" Then
+                        mKD8330Mode = "SQLSERVER"
+                        Call getKD8330()
+                        MessageBox.Show("更新が成功しました．", "更新成功", MessageBoxButtons.OK, MessageBoxIcon.None, MsgBoxStyle.DefaultButton1)
+                        Me.DialogResult = Windows.Forms.DialogResult.OK
+                        Me.Close() ' 更新OK時このダイアログは閉じる
+                    Else
+                        MessageBox.Show("なんらかの異常が発生しました．", "異常発生", MessageBoxButtons.OK, MessageBoxIcon.Hand, MsgBoxStyle.DefaultButton1)
+                    End If
+                    Exit For
+
+                End If
+                cnt = cnt + 1
+            Next
+        Else
+            MessageBox.Show("取崩し対象のレコードを" & vbCrLf & "見つけられませんでした．", "出荷指示書取崩", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
         End If
     End Sub
 
@@ -115,12 +157,40 @@
         End If
     End Sub
 
+    ' F4キー (更新)
+    Private Sub btnF4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnF4.Click
+        Dim preqty As String = txtQTYbefore.Text
+        Dim qty As String = txtQTY.Text
+        If IsNumeric(qty) = False Then
+            MessageBox.Show("数値を入力してください．", "入力チェック", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
+            txtQTY.Focus()
+            Exit Sub
+        End If
+        If preqty = qty Then
+            MessageBox.Show("変更がありません．", "入力チェック", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1)
+            txtQTY.Focus()
+            Exit Sub
+        End If
+        ' SQLServer側が既に更新されていたら差分で更新し直す
+        If dbstatus = "OK" Then
+            dbstatus = UpdateKD8330(tkcd, dlvrdt, odrno, txtHMCD.Text, preqty, qty, tancd)
+            If dbstatus = "OK" Then Call getKD8330() ' ver.24.11.04 y.w
+        End If
+        ' ローカルSQLiteデータベースを更新
+        If updatePokaXMeisai(tableName, rowId, txtQTY.Text, dbstatus) Then
+            Me.DialogResult = Windows.Forms.DialogResult.OK
+            Me.Close() ' 更新OK時このダイアログは閉じる
+        End If
+    End Sub
+
     Private Sub FormPokaModify_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles MyBase.KeyDown
         Select Case e.KeyValue
             Case System.Windows.Forms.Keys.Enter
                 Call btnF4_Click(sender, e)
             Case Bt.LibDef.BT_VK_F1
                 Call btnF1_Click(sender, e)
+            Case Bt.LibDef.BT_VK_F2
+                Call btnF2_Click(sender, e)
             Case Bt.LibDef.BT_VK_F3
                 Call btnF3_Click(sender, e)
             Case Bt.LibDef.BT_VK_F4
@@ -143,5 +213,4 @@
         ' 入力待機色を解除
         txtHMCD.BackColor = Color.White
     End Sub
-
 End Class
