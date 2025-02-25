@@ -511,7 +511,11 @@ Public Class FormPoka1Kubota
                             Exit Sub
                         Else
                             txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
-                            txtQTY.Text = Integer.Parse(Strings.Mid(s, 52, 7))  ' 収容数
+                            If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
+                                txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
+                            Else
+                                txtQTY.Text = oINSUU                            ' 収容数
+                            End If
                         End If
                     Else
                         txtTotalQty.Text = "---"                                ' 指示書なし Integer.Parse(Strings.Mid(s, 40, 7)) ' 納入数量をセットしてみる（いらないかも）
@@ -547,7 +551,11 @@ Public Class FormPoka1Kubota
                             Exit Sub
                         Else
                             txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
-                            txtQTY.Text = Split(s, "|")(10)                     ' 収容数
+                            If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
+                                txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
+                            Else
+                                txtQTY.Text = oINSUU                            ' 収容数
+                            End If
                         End If
                     Else
                         txtTotalQty.Text = "---"                                ' 指示書なし Split(s, "|")(3) ' 納入数量をセットしてみる（いらないかも）
@@ -565,45 +573,48 @@ Public Class FormPoka1Kubota
                     '   (3) :納入数         :14 :4桁 = 固定 17 Byte
 
                     ' 出荷指示書に存在する品番かをまずはチェック
-                    Dim dt As DataTable = getKD8330dt(Strings.Mid(s, 3, 10).Trim()) _
-                        .AsEnumerable() _
-                        .Where(Function(r) r("TKCD") = "C0101") _
-                        .CopyToDataTable()
+                    Dim dr() As DataRow = getKD8330dtTKCD("C0101", Strings.Mid(s, 3, 10).Trim())
 
                     Dim rslt As DialogResult
                     Dim msg As String
                     Dim cnt As Integer = 1
-                    For Each r As DataRow In dt.Rows
-                        If dt.Rows.Count > 1 Then
-                            msg = "消込対象が複数あります" & vbCrLf & vbCrLf & _
-                                  "その現品票は" & vbCrLf & _
-                                  "納期:[" & r("DLVRDT").ToString() & "]ですか？" & vbCrLf & _
-                                  "(" & cnt & " / " & dt.Rows.Count & ")"
-                            rslt = MessageBox.Show(msg, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton1)
-                        End If
-                        If dt.Rows.Count = 1 Or rslt = Windows.Forms.DialogResult.Yes Then
-                            gTKCD = "C0101"
-                            gDLVRDT = r("DLVRDT").ToString()
-                            gTKHMCD = Strings.Mid(s, 3, 10)
-                            gODRNO = r("ODRNO").ToString()
-                            Dim oOdrQTY As Integer = IIf(IsNumeric(r("ODRQTY")), Integer.Parse(r("ODRQTY")), 0)
-                            Dim oHTQTY As Integer = IIf(IsNumeric(r("HTJUQTY")), Integer.Parse(r("HTJUQTY")), 0)
-                            Dim oINSUU As Integer = IIf(IsNumeric(r("INSUU")), Integer.Parse(r("INSUU")), 0)
-                            Dim oWaitQTY As Integer = getWaitOdrRecQTY(gODRNO)
-                            If oOdrQTY = (oHTQTY + oWaitQTY) Then
-                                txtTotalQty.Text = "済"
-                                MsgBox("既に出荷準備されています．" & vbCrLf & vbCrLf & _
-                                       "確認してください！", MsgBoxStyle.Exclamation)
-                                Exit Sub
-                            Else
-                                lblTotalQty.Text = "残数"
-                                txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY  ' 指示書残数
-                                txtQTY.Text = oINSUU                            ' 収容数
+                    If dr.Length > 0 Then
+                        For Each r As DataRow In dr
+                            If dr.Length > 1 Then
+                                msg = "消込対象が複数あります" & vbCrLf & vbCrLf & _
+                                      "その現品票は" & vbCrLf & _
+                                      "納期:[" & r("DLVRDT").ToString() & "]ですか？" & vbCrLf & _
+                                      "(" & cnt & " / " & dr.Length & ")"
+                                rslt = MessageBox.Show(msg, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton1)
                             End If
-                            Exit For
-                        End If
-                        cnt = cnt + 1
-                    Next
+                            If dr.Length = 1 Or rslt = Windows.Forms.DialogResult.Yes Then
+                                gTKCD = "C0101"
+                                gDLVRDT = r("DLVRDT").ToString()
+                                gTKHMCD = Strings.Mid(s, 3, 10)
+                                gODRNO = r("ODRNO").ToString()
+                                Dim oOdrQTY As Integer = IIf(IsNumeric(r("ODRQTY")), Integer.Parse(r("ODRQTY")), 0)
+                                Dim oHTQTY As Integer = IIf(IsNumeric(r("HTJUQTY")), Integer.Parse(r("HTJUQTY")), 0)
+                                Dim oINSUU As Integer = IIf(IsNumeric(r("INSUU")), Integer.Parse(r("INSUU")), 0)
+                                Dim oWaitQTY As Integer = getWaitOdrRecQTY(gODRNO)
+                                If oOdrQTY = (oHTQTY + oWaitQTY) Then
+                                    txtTotalQty.Text = "済"
+                                    MsgBox("既に出荷準備されています．" & vbCrLf & vbCrLf & _
+                                           "確認してください！", MsgBoxStyle.Exclamation)
+                                    Exit Sub
+                                Else
+                                    lblTotalQty.Text = "残数"
+                                    txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
+                                    If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
+                                        txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
+                                    Else
+                                        txtQTY.Text = oINSUU                            ' 収容数
+                                    End If
+                                End If
+                                Exit For
+                            End If
+                            cnt = cnt + 1
+                        Next
+                    End If
 
                 End If
 
@@ -613,22 +624,26 @@ Public Class FormPoka1Kubota
                 txtQTY.Text = ""                                        ' 初期表示なし
 
                 ' 出荷指示書に存在する品番かをまずはチェック
-                Dim dt As DataTable = getKD8330dt(_HMCD)
+                Dim dr() As DataRow = getKD8330dt(_HMCD)
 
                 ' 拠点コードがわかっている場合は更新しない
                 '   84: C0282 : KCW
-                If dt.Rows.Count > 0 And Strings.Left(s, 2) <> "84" Then
-                    Dim msgbase As String = IIf(dt.Rows.Count > 1, "消込対象が複数あります" & vbCrLf & vbCrLf, "")
+                '   98: C0283 : KAMS中国向け農機
+                If dr.Length = 0 Or s.StartsWith("84") Or s.StartsWith("98") Then
+                    txtTotalQty.Text = "---"                                ' 指示書なし初期値
+                    txtQTY.Text = ""                                        ' 初期表示なし
+                Else
+                    Dim msgbase As String = IIf(dr.Length > 1, "消込対象が複数あります" & vbCrLf & vbCrLf, "")
                     Dim msg As String
                     Dim cnt As Integer = 1
-                    For Each r As DataRow In dt.Rows
+                    For Each r As DataRow In dr
                         msg = msgbase & _
                             "その現品票は" & vbCrLf & _
                             "得意先コード:[" & r("TKCD").ToString() & "]" & vbCrLf & _
                             "納期:[" & r("DLVRDT").ToString() & "]" & vbCrLf & _
                             "品番:[" & txtHMCD.Text & "]" & vbCrLf & vbCrLf & _
                             "であっていますか？" & vbCrLf & _
-                            "(" & cnt & " / " & dt.Rows.Count & ")"
+                            "(" & cnt & " / " & dr.Length & ")"
                         If MessageBox.Show(msg, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton2) = Windows.Forms.DialogResult.Yes Then
                             gTKCD = r("TKCD").ToString()
                             gDLVRDT = r("DLVRDT").ToString()

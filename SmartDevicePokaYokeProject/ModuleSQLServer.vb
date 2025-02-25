@@ -361,13 +361,24 @@ Module ModuleSQLServer
     End Function
 
     ' 出荷指示書(dt)上の「得意先ｺｰﾄﾞ＋得意先品番＋未完」を検索した納期を/付き10文字に変換し(た後ソートして)返却
-    Public Function getKD8330dt(ByVal iTKHMCD As String) As DataTable
-        Dim dt As DataTable = mKD8330dt.AsEnumerable.Where(Function(r) ( _
-            Replace(r("TKHMCD").ToString(), "-", "") = iTKHMCD And _
-            r("ODRQTY").ToString() <> r("HTJUQTY").ToString() _
-            )).CopyToDataTable()
-        ').Select(Function(r) r("DLVRDT").ToString()). '.OrderBy(Function(s) s)
-        Return dt
+    Public Function getKD8330dt(ByVal iTKHMCD As String) As DataRow()
+        Dim dr() As DataRow
+        dr = mKD8330dt.AsEnumerable.Where(Function(r) ( _
+                Replace(r("TKHMCD").ToString(), "-", "") = iTKHMCD And _
+                r("ODRQTY").ToString() <> r("HTJUQTY").ToString() _
+            )).ToArray()
+        Return dr
+    End Function
+
+    ' 出荷指示書(dt)上の「得意先ｺｰﾄﾞ＋得意先品番＋未完」を検索した納期を/付き10文字に変換し(た後ソートして)返却
+    Public Function getKD8330dtTKCD(ByVal iTKCD As String, ByVal iTKHMCD As String) As DataRow()
+        Dim dr() As DataRow
+        dr = mKD8330dt.AsEnumerable.Where(Function(r) ( _
+                r("TKCD").ToString() = iTKCD And _
+                Replace(r("TKHMCD").ToString(), "-", "") = iTKHMCD And _
+                r("ODRQTY").ToString() <> r("HTJUQTY").ToString() _
+            )).ToArray()
+        Return dr
     End Function
 
     ' 出荷指示書(dt)上の「7:注文番号」を検索し残りの指示数と準備済数を返却
