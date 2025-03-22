@@ -206,6 +206,7 @@ Partial Public Class FormPoka1Kubota
         '
         'txtQTY
         '
+        Me.txtQTY.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer))
         Me.txtQTY.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 20.0!, System.Drawing.FontStyle.Regular)
         Me.txtQTY.Location = New System.Drawing.Point(173, 211)
         Me.txtQTY.Name = "txtQTY"

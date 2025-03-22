@@ -21,6 +21,9 @@ Public Class FormPoka1Kubota
     Dim gRetryDt As DateTime = New DateTime(1999, 12, 31, 23, 59, 59) ' 最終疎通時間を保持
     Dim gInterval As UInt32             ' 端末のオートパワーオフ設定値を保持
 
+    ' カラー定数
+    Private cColorZan As Color = Color.Violet ' 指示数が収容数以下だった場合の背景色 PaleGoldenrod
+
     Private Sub FormPoka1Kubota_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
         txtTANCD.Text = FormMain.txtTANCD.Text
@@ -513,13 +516,16 @@ Public Class FormPoka1Kubota
                             txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
                             If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
                                 txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
+                                txtQTY.BackColor = cColorZan
                             Else
                                 txtQTY.Text = oINSUU                            ' 収容数
+                                txtQTY.BackColor = Color.White
                             End If
                         End If
                     Else
                         txtTotalQty.Text = "---"                                ' 指示書なし Integer.Parse(Strings.Mid(s, 40, 7)) ' 納入数量をセットしてみる（いらないかも）
                         txtQTY.Text = Integer.Parse(Strings.Mid(s, 52, 7))      ' 収容数
+                        txtQTY.BackColor = Color.White
                     End If
                 ElseIf Strings.Left(s, 7) = "KQR_Tag" Then
                     ' KIC QRバーコード仕様（可変長）
@@ -553,13 +559,16 @@ Public Class FormPoka1Kubota
                             txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
                             If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
                                 txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
+                                txtQTY.BackColor = cColorZan
                             Else
                                 txtQTY.Text = oINSUU                            ' 収容数
+                                txtQTY.BackColor = Color.White
                             End If
                         End If
                     Else
                         txtTotalQty.Text = "---"                                ' 指示書なし Split(s, "|")(3) ' 納入数量をセットしてみる（いらないかも）
                         txtQTY.Text = Split(s, "|")(10)                         ' 収容数
+                        txtQTY.BackColor = Color.White
                     End If
 
                 ElseIf Strings.Left(s, 2) = "21" Then
@@ -606,8 +615,10 @@ Public Class FormPoka1Kubota
                                     txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
                                     If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
                                         txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
+                                        txtQTY.BackColor = cColorZan
                                     Else
                                         txtQTY.Text = oINSUU                            ' 収容数
+                                        txtQTY.BackColor = Color.White
                                     End If
                                 End If
                                 Exit For
@@ -622,6 +633,7 @@ Public Class FormPoka1Kubota
                 lblTotalQty.Text = "指示数"
                 txtTotalQty.Text = "---"                                ' 指示書なし初期値
                 txtQTY.Text = ""                                        ' 初期表示なし
+                txtQTY.BackColor = Color.White
 
                 ' 出荷指示書に存在する品番かをまずはチェック
                 Dim dr() As DataRow = getKD8330dt(_HMCD)
@@ -673,6 +685,7 @@ Public Class FormPoka1Kubota
             ElseIf mKD8330Mode = "" Then ' ローカル照合モード（クボタ照合）のときでも数量と収容数をセット
 
                 lblTotalQty.Text = "指示数"
+                txtQTY.BackColor = Color.White
 
                 If mKD8330Mode = "" And _
                 ( _
