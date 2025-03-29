@@ -22,7 +22,7 @@ Public Class FormPoka1Kubota
     Dim gInterval As UInt32             ' 端末のオートパワーオフ設定値を保持
 
     ' カラー定数
-    Private cColorZan As Color = Color.Violet ' 指示数が収容数以下だった場合の背景色 PaleGoldenrod
+    Private cColorZan As Color = Color.Yellow ' 数量が結束数数以下だった場合の背景色 PaleGoldenrod
 
     Private Sub FormPoka1Kubota_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 
@@ -145,9 +145,9 @@ Public Class FormPoka1Kubota
         lblHMCD.Text = ""
         txtTKHMCD.Text = ""
         lblTKHMCD.Text = ""
-        txtTotalQty.Text = "" ' 25.02.13 add y.w
-        txtQTY.Text = ""    ' 24.05.10 add y.w
-        lblHIASU.Text = ""  ' 24.05.20 add y.w
+        txtTotalQty.Text = ""   ' 2025.02.13 add y.w
+        txtQTY.Text = ""        ' 2024.05.10 add y.w
+        lblHIASU.Text = ""      ' 2024.05.20 add y.w
         lblCount.Text = getRecordCount(tblNamePoka1)
         txtHMCD.Focus()
         flgConfirm = False
@@ -516,16 +516,13 @@ Public Class FormPoka1Kubota
                             txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
                             If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
                                 txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
-                                txtQTY.BackColor = cColorZan
                             Else
                                 txtQTY.Text = oINSUU                            ' 収容数
-                                txtQTY.BackColor = Color.White
                             End If
                         End If
                     Else
                         txtTotalQty.Text = "---"                                ' 指示書なし Integer.Parse(Strings.Mid(s, 40, 7)) ' 納入数量をセットしてみる（いらないかも）
                         txtQTY.Text = Integer.Parse(Strings.Mid(s, 52, 7))      ' 収容数
-                        txtQTY.BackColor = Color.White
                     End If
                 ElseIf Strings.Left(s, 7) = "KQR_Tag" Then
                     ' KIC QRバーコード仕様（可変長）
@@ -559,16 +556,13 @@ Public Class FormPoka1Kubota
                             txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
                             If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
                                 txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
-                                txtQTY.BackColor = cColorZan
                             Else
                                 txtQTY.Text = oINSUU                            ' 収容数
-                                txtQTY.BackColor = Color.White
                             End If
                         End If
                     Else
                         txtTotalQty.Text = "---"                                ' 指示書なし Split(s, "|")(3) ' 納入数量をセットしてみる（いらないかも）
                         txtQTY.Text = Split(s, "|")(10)                         ' 収容数
-                        txtQTY.BackColor = Color.White
                     End If
 
                 ElseIf Strings.Left(s, 2) = "21" Then
@@ -615,10 +609,8 @@ Public Class FormPoka1Kubota
                                     txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY      ' 指示書残数
                                     If (oOdrQTY - oHTQTY - oWaitQTY) < oINSUU Then
                                         txtQTY.Text = oOdrQTY - oHTQTY - oWaitQTY       ' 収容数より少ない場合は指示書残数
-                                        txtQTY.BackColor = cColorZan
                                     Else
                                         txtQTY.Text = oINSUU                            ' 収容数
-                                        txtQTY.BackColor = Color.White
                                     End If
                                 End If
                                 Exit For
@@ -829,7 +821,42 @@ Public Class FormPoka1Kubota
         txtQTY.SelectionStart = 0
         txtQTY.SelectionLength = txtQTY.TextLength
         txtQTY.BackColor = Color.Aqua
+        ' 紐色数の結束本数と数量を比較し、少ない場合は背景色を通常以外の色に変更
+        If lblHIASU.Text <> "" And txtQTY.Text <> "" And txtQTY.Text <> "0" Then
+            Dim hiasu = getHIASU(lblHIASU.Text)
+            If hiasu > Convert.ToInt32(txtQTY.Text) Then
+                txtQTY.BackColor = cColorZan
+            End If
+        End If
     End Sub
+
+    ' 紐色数から結束数を取得（デフォルト：0を返却）
+    Private Function getHIASU(ByVal s As String) As Integer
+        Dim ret As Integer = 0
+        ' ｱｵ, ｷ(ｷｬｯﾌﾟ,ﾌﾛｼｷ以外), ｼﾛ, ﾐﾄﾞ, ﾑﾗ
+        If s.Contains("ｱｵ") Or _
+            (s.Contains("ｷ") And s.Contains("ｷｬ") = False And s.Contains("ｼｷ") = False) Or _
+            s.Contains("ｼﾛ") Or _
+            s.Contains("ﾐﾄﾞ") Or _
+            s.Contains("ﾑﾗ") _
+        Then
+            Try
+                Dim sb As New System.Text.StringBuilder()
+                Dim i As Integer
+                For i = s.Length To 0 Step -1
+                    If IsNumeric(Mid(s, i, 1)) Then
+                        sb.Insert(0, Mid(s, i, 1))      ' 先頭に数値を挿入
+                    Else
+                        If sb.Length > 0 Then Exit For ' 数値以外が出現したらループを抜ける
+                    End If
+                Next
+                ret = Convert.ToInt32(sb.ToString())
+            Catch ex As Exception
+                ret = 0
+            End Try
+        End If
+        getHIASU = ret
+    End Function
 
     Private Sub txtQTY_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtQTY.KeyDown
         Select Case e.KeyCode

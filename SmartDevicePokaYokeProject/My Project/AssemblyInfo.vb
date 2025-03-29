@@ -12,7 +12,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("")>
 <Assembly: AssemblyCompany("")>
 <Assembly: AssemblyProduct("PokaYoke")> 
-<Assembly: AssemblyCopyright("© 2023 koken-kogyo CO,LTD.")> 
+<Assembly: AssemblyCopyright("© 2025 koken-kogyo CO,LTD.")> 
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: CLSCompliant(True)>
@@ -33,7 +33,7 @@ Imports System.Runtime.InteropServices
 ' 既定値にすることができます:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("2.2.2.1")> 
+<Assembly: AssemblyVersion("2.2.2.2")> 
 
 '以下の属性は FxCop 警告 "CA2232 : Microsoft.Usage : STAThreadAttribute をアセンブリに追加します" を抑制しますが、
 ' これは、デバイス アプリケーションで STA スレッドがサポートされないためです。
