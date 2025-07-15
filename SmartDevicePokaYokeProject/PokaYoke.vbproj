@@ -144,6 +144,12 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ModuleSQLServer.vb" />
+    <Compile Include="MyDialogSelector.Designer.vb">
+      <DependentUpon>MyDialogSelector.vb</DependentUpon>
+    </Compile>
+    <Compile Include="MyDialogSelector.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MyDialogWarn.Designer.vb">
       <DependentUpon>MyDialogWarn.vb</DependentUpon>
     </Compile>
@@ -249,6 +255,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormWiFiCheck.resx">
       <DependentUpon>FormWiFiCheck.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MyDialogSelector.resx">
+      <DependentUpon>MyDialogSelector.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyDialogWarn.resx">
       <DependentUpon>MyDialogWarn.vb</DependentUpon>

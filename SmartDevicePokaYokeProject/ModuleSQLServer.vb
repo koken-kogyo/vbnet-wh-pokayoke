@@ -415,4 +415,15 @@ Module ModuleSQLServer
         Return dr
     End Function
 
+    ' 出荷指示書(dt)上の「注文番号＋得意先品番＋未完」を検索し返却
+    Public Function getKD8330dtODRNO(ByVal iODRNO As String, ByVal iTKHMCD As String) As DataRow()
+        Dim dr() As DataRow
+        dr = mKD8330dt.AsEnumerable.Where(Function(r) ( _
+                r("ODRNO").ToString() = iODRNO And _
+                r("TKHMCD").ToString() = iTKHMCD And _
+                r("ODRQTY").ToString() <> r("HTJUQTY").ToString() _
+            )).ToArray()
+        Return dr
+    End Function
+
 End Module

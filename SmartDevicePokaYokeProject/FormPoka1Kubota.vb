@@ -637,41 +637,41 @@ Public Class FormPoka1Kubota
                     txtTotalQty.Text = "---"                                ' 指示書なし初期値
                     txtQTY.Text = ""                                        ' 初期表示なし
                 Else
-                    Dim msgbase As String = IIf(dr.Length > 1, "消込対象が複数あります" & vbCrLf & vbCrLf, "")
-                    Dim msg As String
-                    Dim cnt As Integer = 1
-                    For Each r As DataRow In dr
-                        msg = msgbase & _
-                            "その現品票は" & vbCrLf & _
-                            "得意先コード:[" & r("TKCD").ToString() & "]" & vbCrLf & _
-                            "納期:[" & r("DLVRDT").ToString() & "]" & vbCrLf & _
-                            "品番:[" & txtHMCD.Text & "]" & vbCrLf & vbCrLf & _
-                            "であっていますか？" & vbCrLf & _
-                            "(" & cnt & " / " & dr.Length & ")"
-                        If MessageBox.Show(msg, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MsgBoxStyle.DefaultButton2) = Windows.Forms.DialogResult.Yes Then
-                            gTKCD = r("TKCD").ToString()
-                            gDLVRDT = r("DLVRDT").ToString()
-                            gTKHMCD = _HMCD
-                            gODRNO = r("ODRNO").ToString()
-
-                            Dim oOdrQTY As Integer = IIf(IsNumeric(r("ODRQTY")), Integer.Parse(r("ODRQTY")), 0)
-                            Dim oHTQTY As Integer = IIf(IsNumeric(r("HTJUQTY")), Integer.Parse(r("HTJUQTY")), 0)
-                            Dim oINSUU As Integer = IIf(IsNumeric(r("INSUU")), Integer.Parse(r("INSUU")), 0)
-                            Dim oWaitQTY As Integer = getWaitOdrRecQTY(gODRNO)
-                            If oOdrQTY = (oHTQTY + oWaitQTY) Then
-                                txtTotalQty.Text = "済"
-                                MsgBox("既に出荷準備されています．" & vbCrLf & vbCrLf & _
-                                       "確認してください！", MsgBoxStyle.Exclamation)
-                                Exit Sub
-                            Else
-                                lblTotalQty.Text = "残数"
-                                txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY  ' 指示書残数
-                                txtQTY.Text = oINSUU                            ' 収容数
-                            End If
-                            Exit For
+                    Dim r As DataRow
+                    Dim flg As Boolean = False
+                    If (dr.Length = 1) Then
+                        r = dr(0)
+                        flg = True
+                    Else
+                        Dim dlg As New MyDialogSelector(txtHMCD.Text) 'ハイフンつきで検索
+                        If dlg.ShowDialog() = Windows.Forms.DialogResult.OK Then
+                            r = dlg.SelectedDataRow
+                            flg = True
+                        Else
+                            r = mKD8330dt.NewRow
                         End If
-                        cnt = cnt + 1
-                    Next
+                    End If
+                    If flg Then
+                        gTKCD = r("TKCD").ToString()
+                        gDLVRDT = r("DLVRDT").ToString()
+                        gTKHMCD = _HMCD
+                        gODRNO = r("ODRNO").ToString()
+
+                        Dim oOdrQTY As Integer = IIf(IsNumeric(r("ODRQTY")), Integer.Parse(r("ODRQTY")), 0)
+                        Dim oHTQTY As Integer = IIf(IsNumeric(r("HTJUQTY")), Integer.Parse(r("HTJUQTY")), 0)
+                        Dim oINSUU As Integer = IIf(IsNumeric(r("INSUU")), Integer.Parse(r("INSUU")), 0)
+                        Dim oWaitQTY As Integer = getWaitOdrRecQTY(gODRNO)
+                        If oOdrQTY = (oHTQTY + oWaitQTY) Then
+                            txtTotalQty.Text = "済"
+                            MsgBox("既に出荷準備されています．" & vbCrLf & vbCrLf & _
+                                   "確認してください！", MsgBoxStyle.Exclamation)
+                            Exit Sub
+                        Else
+                            lblTotalQty.Text = "残数"
+                            txtTotalQty.Text = oOdrQTY - oHTQTY - oWaitQTY  ' 指示書残数
+                            txtQTY.Text = oINSUU                            ' 収容数
+                        End If
+                    End If
                 End If
 
             ElseIf mKD8330Mode = "" Then ' ローカル照合モード（クボタ照合）のときでも数量と収容数をセット
