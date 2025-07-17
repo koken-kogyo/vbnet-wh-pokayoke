@@ -402,18 +402,6 @@ Public Class FormPoka1Kubota
         ElseIf i > 11 And Strings.Left(_HMCD, 11) = Strings.Mid(_TKHMCD, 3, 11) Then
             isOK = True ' 8/8 add 社内品番11桁 TA040333628000015
 
-        ElseIf _HMCD = "RD55192432" And Strings.Mid(_TKHMCD, 59, 12) = "RD551-9243-1" Then
-            isOK = True ' 8/10 add 素地品番違い 臨時対応
-
-        ElseIf _HMCD = "RD55192442" And Strings.Mid(_TKHMCD, 59, 12) = "RD551-9244-1" Then
-            isOK = True ' 8/10 add 素地品番違い 臨時対応
-
-        ElseIf _HMCD = "RP47168632" And Strings.Mid(_TKHMCD, 59, 12) = "RP47B-6863-2" Then
-            isOK = True ' 8/10 add 素地品番違い 臨時対応
-
-        ElseIf _HMCD = "RP47168643" And Strings.Mid(_TKHMCD, 59, 12) = "RP47B-6864-3" Then
-            isOK = True ' 8/10 add 素地品番違い 臨時対応
-
         Else
 
             ' 得意先マスタ[M0600]の情報で再度照合をかける 23.10.04
