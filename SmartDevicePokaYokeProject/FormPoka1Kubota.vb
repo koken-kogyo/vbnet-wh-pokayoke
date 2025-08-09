@@ -230,6 +230,8 @@ Public Class FormPoka1Kubota
                     ' 出荷指示モードを判定 ver.24.11.04 y.w
                     If InStr(mTargetTKCDs, Split(txtHMCD.Text, "-")(0) & "|") > 0 Then
 
+                        If gDisableMin = 240 Then gDisableMin = 30 ' 一応もとにもどす 25.08.09
+
                         ' Wi-Fi通信経路確認ダイアログボックス表示
                         Dim dialog As New FormWiFiCheck
                         If dialog.ShowDialog() = System.Windows.Forms.DialogResult.OK Then
@@ -252,6 +254,17 @@ Public Class FormPoka1Kubota
                         End If
                         txtHMCD.Text = ""
                         Exit Sub
+
+                    ElseIf txtHMCD.Text = "EWU" And mKD8330dt.Rows.Count > 100 Then
+                        ' 出荷指示モードをEWUモードに変更 ver.25.08.09 y.w
+                        Me.LabelMenu.Text = "出荷指示書(EWU)"
+                        Me.LabelMenu.BackColor = Color.Red
+                        gRetryDt = DateTime.Now ' 現時刻から
+                        gDisableMin = 240       ' 240分間はWiFiチェックしにいかない
+                        mKD8330Mode = "TROUBLE"
+                        txtHMCD.Text = ""
+                        Exit Sub
+
                     End If
                 End If
 
