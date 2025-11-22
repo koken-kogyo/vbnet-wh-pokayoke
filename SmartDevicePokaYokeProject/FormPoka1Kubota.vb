@@ -255,7 +255,7 @@ Public Class FormPoka1Kubota
                         txtHMCD.Text = ""
                         Exit Sub
 
-                    ElseIf txtHMCD.Text = "EWU" And mKD8330dt.Rows.Count > 100 Then
+                    ElseIf txtHMCD.Text = "EWU" Then ' 25.11.22 del y.w -> And mKD8330dt.Rows.Count > 100 Then
                         ' 出荷指示モードをEWUモードに変更 ver.25.08.09 y.w
                         Me.LabelMenu.Text = "出荷指示書(EWU)"
                         Me.LabelMenu.BackColor = Color.Red
@@ -499,7 +499,11 @@ Public Class FormPoka1Kubota
                     '   (11):納入指示日     :81 :8桁
                     '   (12):予備           :89 :12桁 = 固定 100 Byte
                     gODRNO = Strings.Mid(s, 13, 8)
-                    gTKCD = getKD8330dtTKCDfromODRNO(gODRNO)
+                    If mKD8330Mode = "TROUBLE" And mKD8330dt.Rows.Count = 0 Then
+                        gTKCD = "C0103"
+                    Else
+                        gTKCD = getKD8330dtTKCDfromODRNO(gODRNO)
+                    End If
                     gDLVRDT = Strings.Mid(s, 81, 8).Insert(6, "/").Insert(4, "/") ' 88文字超必要
                     gTKHMCD = Strings.Mid(s, 3, 10)
                     Dim oOdrQTY As Integer
@@ -539,7 +543,11 @@ Public Class FormPoka1Kubota
                     '   (10):収容数         :最大11桁
                     '   (13):納入期日       :最大8桁
                     gODRNO = Split(s, "|")(5)
-                    gTKCD = getKD8330dtTKCDfromODRNO(gODRNO)
+                    If mKD8330Mode = "TROUBLE" And mKD8330dt.Rows.Count = 0 Then
+                        gTKCD = "C0101"
+                    Else
+                        gTKCD = getKD8330dtTKCDfromODRNO(gODRNO)
+                    End If
                     gDLVRDT = Split(s, "|")(13).Insert(6, "/").Insert(4, "/")
                     gTKHMCD = Split(s, "|")(7)
                     Dim oOdrQTY As Integer
@@ -618,6 +626,10 @@ Public Class FormPoka1Kubota
                             End If
                             cnt = cnt + 1
                         Next
+
+                    ElseIf mKD8330Mode = "TROUBLE" And mKD8330dt.Rows.Count = 0 Then
+                        gTKCD = "C0101"
+
                     End If
 
                 End If
