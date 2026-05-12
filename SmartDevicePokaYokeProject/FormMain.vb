@@ -100,8 +100,8 @@ Public Class FormMain
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
-                'Case Keys.NumPad4
-                '    btnORIENT_Click(sender, e)
+            Case Keys.NumPad4
+                btnSANSEN_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
             Case Keys.NumPad6
@@ -135,8 +135,8 @@ Public Class FormMain
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
-                'Case Keys.NumPad4
-                '    btnORIENT_Click(sender, e)
+            Case Keys.NumPad4
+                btnSANSEN_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
             Case Keys.NumPad6
@@ -170,8 +170,8 @@ Public Class FormMain
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
-                'Case Keys.NumPad4
-                '    btnORIENT_Click(sender, e)
+            Case Keys.NumPad4
+                btnSANSEN_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
             Case Keys.NumPad6
@@ -182,6 +182,41 @@ Public Class FormMain
                 Dim ping As New FormPing
                 ping.ShowDialog()
                 btnHITATI.Focus()
+            Case Keys.NumPad8
+                btnRestart_Click(sender, e)
+            Case Keys.NumPad9
+                Me.Close()
+            Case Keys.NumPad0
+                Dim frm As New FormSetting
+                frm.ShowDialog()
+                btnKUBOTA.Focus()
+        End Select
+    End Sub
+
+    Private Sub btnSansen_KeyDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles btnSansen.KeyDown
+        Select Case e.KeyCode
+            Case Keys.Up
+                btnYANMAR.Focus()
+            Case Keys.Down
+                btnTANA.Focus()
+            Case Keys.NumPad1
+                btnKUBOTA_Click(sender, e)
+            Case Keys.NumPad2
+                btnYANMAR_Click(sender, e)
+            Case Keys.NumPad3
+                btnHITATI_Click(sender, e)
+            Case Keys.NumPad4
+                btnSANSEN_Click(sender, e)
+            Case Keys.NumPad5
+                btnTANA_Click(sender, e)
+            Case Keys.NumPad6
+                Dim receive As New FormReceive
+                receive.ShowDialog()
+                btnKUBOTA.Focus()
+            Case Keys.NumPad7
+                Dim ping As New FormPing
+                ping.ShowDialog()
+                btnKUBOTA.Focus()
             Case Keys.NumPad8
                 btnRestart_Click(sender, e)
             Case Keys.NumPad9
@@ -205,8 +240,8 @@ Public Class FormMain
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
-                'Case Keys.NumPad4
-                '    btnORIENT_Click(sender, e)
+            Case Keys.NumPad4
+                btnSANSEN_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
             Case Keys.NumPad8
@@ -232,8 +267,8 @@ Public Class FormMain
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
-                'Case Keys.NumPad4
-                '    btnORIENT_Click(sender, e)
+            Case Keys.NumPad4
+                btnSANSEN_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
             Case Keys.NumPad6
@@ -277,9 +312,9 @@ Public Class FormMain
         frm.Show()
     End Sub
 
-    Private Sub btnORIENT_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnORIENT.Click
-        btnORIENT.Focus()
-        Dim frm As Form = New FormPoka4Orient()
+    Private Sub btnSANSEN_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnORIENT.Click, btnSansen.Click
+        btnSansen.Focus()
+        Dim frm As Form = New FormPoka6Sansen()
         frm.Show()
     End Sub
 
@@ -299,8 +334,8 @@ Public Class FormMain
                 btnYANMAR_Click(sender, e)
             Case Keys.NumPad3
                 btnHITATI_Click(sender, e)
-                'Case Keys.NumPad4
-                '    btnORIENT_Click(sender, e)
+            Case Keys.NumPad4
+                btnSANSEN_Click(sender, e)
             Case Keys.NumPad5
                 btnTANA_Click(sender, e)
             Case Keys.NumPad6

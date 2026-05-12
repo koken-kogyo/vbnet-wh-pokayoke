@@ -32,6 +32,7 @@ Partial Public Class FormMain
         Me.btnORIENT = New System.Windows.Forms.Button
         Me.btnRestart = New System.Windows.Forms.Button
         Me.lblHIASU = New System.Windows.Forms.Label
+        Me.btnSansen = New System.Windows.Forms.Button
         Me.SuspendLayout()
         '
         'btnKUBOTA
@@ -49,7 +50,7 @@ Partial Public Class FormMain
         Me.btnClose.Location = New System.Drawing.Point(138, 240)
         Me.btnClose.Name = "btnClose"
         Me.btnClose.Size = New System.Drawing.Size(88, 36)
-        Me.btnClose.TabIndex = 7
+        Me.btnClose.TabIndex = 8
         Me.btnClose.Text = "9.終了"
         '
         'lblTANCD
@@ -86,17 +87,18 @@ Partial Public Class FormMain
         Me.btnYANMAR.Location = New System.Drawing.Point(14, 117)
         Me.btnYANMAR.Name = "btnYANMAR"
         Me.btnYANMAR.Size = New System.Drawing.Size(213, 36)
-        Me.btnYANMAR.TabIndex = 3
+        Me.btnYANMAR.TabIndex = 2
         Me.btnYANMAR.Text = "2.ヤンマー"
         '
         'btnHITATI
         '
         Me.btnHITATI.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
-        Me.btnHITATI.Location = New System.Drawing.Point(14, 158)
+        Me.btnHITATI.Location = New System.Drawing.Point(205, 158)
         Me.btnHITATI.Name = "btnHITATI"
-        Me.btnHITATI.Size = New System.Drawing.Size(213, 36)
-        Me.btnHITATI.TabIndex = 4
+        Me.btnHITATI.Size = New System.Drawing.Size(32, 36)
+        Me.btnHITATI.TabIndex = 3
         Me.btnHITATI.Text = "3.日立建機"
+        Me.btnHITATI.Visible = False
         '
         'lblVersion
         '
@@ -104,7 +106,7 @@ Partial Public Class FormMain
         Me.lblVersion.Location = New System.Drawing.Point(116, 276)
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(110, 22)
-        Me.lblVersion.Text = "ver.25.11.22"
+        Me.lblVersion.Text = "ver.26.05.12"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
         'chkBuzzer
@@ -126,7 +128,7 @@ Partial Public Class FormMain
         Me.btnTANA.Location = New System.Drawing.Point(14, 199)
         Me.btnTANA.Name = "btnTANA"
         Me.btnTANA.Size = New System.Drawing.Size(212, 36)
-        Me.btnTANA.TabIndex = 5
+        Me.btnTANA.TabIndex = 6
         Me.btnTANA.Text = "5.自動倉庫"
         '
         'btnORIENT
@@ -146,7 +148,7 @@ Partial Public Class FormMain
         Me.btnRestart.Location = New System.Drawing.Point(14, 240)
         Me.btnRestart.Name = "btnRestart"
         Me.btnRestart.Size = New System.Drawing.Size(118, 36)
-        Me.btnRestart.TabIndex = 6
+        Me.btnRestart.TabIndex = 7
         Me.btnRestart.Text = "8.再起動"
         '
         'lblHIASU
@@ -159,6 +161,15 @@ Partial Public Class FormMain
         Me.lblHIASU.Text = "0:設定画面、6:ﾏｽﾀ受信、7:通信ﾁｪｯｸ"
         Me.lblHIASU.TextAlign = System.Drawing.ContentAlignment.TopCenter
         '
+        'btnSansen
+        '
+        Me.btnSansen.Font = New System.Drawing.Font("TTヒラギノUD丸ゴ Mono StdN W4", 18.0!, System.Drawing.FontStyle.Regular)
+        Me.btnSansen.Location = New System.Drawing.Point(14, 157)
+        Me.btnSansen.Name = "btnSansen"
+        Me.btnSansen.Size = New System.Drawing.Size(213, 36)
+        Me.btnSansen.TabIndex = 5
+        Me.btnSansen.Text = "4.酸洗工程"
+        '
         'FormMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -167,6 +178,7 @@ Partial Public Class FormMain
         Me.BackColor = System.Drawing.Color.Gainsboro
         Me.ClientSize = New System.Drawing.Size(240, 320)
         Me.ControlBox = False
+        Me.Controls.Add(Me.btnSansen)
         Me.Controls.Add(Me.lblHIASU)
         Me.Controls.Add(Me.btnRestart)
         Me.Controls.Add(Me.btnTANA)
@@ -200,5 +212,6 @@ Partial Public Class FormMain
     Friend WithEvents btnORIENT As System.Windows.Forms.Button
     Friend WithEvents btnRestart As System.Windows.Forms.Button
     Friend WithEvents lblHIASU As System.Windows.Forms.Label
+    Friend WithEvents btnSansen As System.Windows.Forms.Button
 
 End Class

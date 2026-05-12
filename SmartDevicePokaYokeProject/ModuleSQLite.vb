@@ -21,6 +21,7 @@ Module ModuleSQLite
     Public tblNamePoka3 As [String] = "Poka3" ' 日立照合履歴テーブル
     Public tblNamePoka4 As [String] = "Poka4" ' オリエント照合履歴テーブル
     Public tblNamePoka5 As [String] = "Poka5" ' 棚番照合履歴テーブル
+    Public tblNamePoka6 As [String] = "Poka6" ' 酸洗照合履歴テーブル 26.04.17 add y.w
     Public itemMAKER As [String] = "メーカー"
     Public itemDATETIME As [String] = "照合日付"
     Public itemTANCD As [String] = "担当者"
