@@ -807,6 +807,64 @@ FUNCEND:
     End Function
 
     '''//////////////////////////////////////////////////////////
+    ''' 構成部品マスタ（酸洗用）取得
+    '''//////////////////////////////////////////////////////////
+    Public Function getOYAHMCD(ByVal _HMCD As String, ByVal _TKHMCD As String) As String
+
+        Dim oyahmcd As [String] = ""
+
+        ' SQLite sreftime フォーマット %Y年 %m月 %d日 %H時 %M分 %S秒 as 照合日付
+        Dim sql As New StringBuilder("SELECT OYAHMCD FROM M0520ASSL WHERE KOHMCD='" & _HMCD & "';")
+        Dim cIdx As Integer = Bt.FileLib.SQLite.btSQLiteCmdCreate(dbIdx)
+        If cIdx <= 0 Then
+            MessageBox.Show("ERROR M0520ASSL btSQLiteCmdCreate:" & cIdx)
+            Return ""
+        End If
+
+        Dim ret As Integer = Bt.FileLib.SQLite.btSQLiteCmdSetCommandText(cIdx, sql)
+        If ret <> 0 Then
+            setDBSQLErrorString()
+            MessageBox.Show(sqliteErrorString)
+            MessageBox.Show("ERROR M0520ASSL btSQLiteCmdSetCommandText:" & ret & vbCr & vbLf & sql.ToString())
+            GoTo FUNCEND
+        End If
+
+        ret = Bt.FileLib.SQLite.btSQLiteCmdExecuteReader(cIdx)
+        Do
+            ret = Bt.FileLib.SQLite.btSQLiteCmdRead(cIdx)
+            If ret = 1 Then ' データあり
+
+                Dim data As IntPtr
+                data = Marshal.AllocCoTaskMem(Marshal.SizeOf(GetType([Char])) * (8192 + 1))
+                Dim ret2 As Integer = Bt.FileLib.SQLite.btSQLiteCmdGetValue(cIdx, 0, data, 8192)
+                If ret2 <> 0 Then
+                    MessageBox.Show("ERROR btSQLiteCmdGetValue:" & ret2)
+                    Marshal.FreeCoTaskMem(data)
+                    GoTo FUNCEND
+                End If
+                oyahmcd = Marshal.PtrToStringUni(data)
+                Marshal.FreeCoTaskMem(data)
+
+                ' マスタ変換した値が、入力得意先品番内に存在してたらループを抜ける
+                If InStr(_TKHMCD.Replace("-", ""), oyahmcd.Replace("-", "")) > 0 Then
+                    Exit Do
+                End If
+
+            ElseIf ret = 0 Then 'データが無くなったもしくは無い場合終了
+                GoTo FUNCEND
+
+            ElseIf ret < 0 Then
+                MessageBox.Show("ERROR btSQLiteCmdRead:" & ret & vbCr & vbLf & sql.ToString())
+                GoTo FUNCEND
+            End If
+        Loop While ret = 1
+
+FUNCEND:
+        Bt.FileLib.SQLite.btSQLiteCmdDelete(cIdx)
+        Return oyahmcd
+    End Function
+
+    '''//////////////////////////////////////////////////////////
     ''' 得意先コード取得
     '''//////////////////////////////////////////////////////////
     Public Function getTKCD(ByVal _HMCD As String) As String

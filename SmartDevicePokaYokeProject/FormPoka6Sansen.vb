@@ -225,11 +225,14 @@ Public Class FormPoka6Sansen
 
         Else
 
-            ' 得意先マスタ[M0600]の情報で照合 23.10.20
-            _HMCD = getTKHMCD(txtHMCD.Text, _TKHMCD).Replace("-", "") ' SQLiteのマスタサーチ
+            ' 構成部品マスタ[M0520ASSL]の情報で照合 26.05.28
+            _HMCD = getOYAHMCD(txtHMCD.Text, _TKHMCD).Replace("-", "") ' SQLiteのマスタサーチ
             i = _HMCD.Length
 
-            If _HMCD <> "" And _HMCD = Strings.Left(_TKHMCD.Replace("-", ""), i) Then ' 先頭から得意先品番文字数分
+            If i > _TKHMCD.Replace("-", "").Length Then
+                isOK = False
+
+            ElseIf _HMCD <> "" And _HMCD = Strings.Left(_TKHMCD.Replace("-", ""), i) Then ' 先頭から得意先品番文字数分
                 isOK = True
 
             End If
